@@ -75,10 +75,13 @@ class Connector extends Controller
         $session = new SessionHelper("gambio");
         $config = $session->connectorConfig;
 
+        include($config->connector_root.'/release_info.php');
+
         $connector = new ConnectorIdentification();
         $connector->setEndpointVersion(CONNECTOR_VERSION);
         $connector->setPlatformName('Gambio');
-        $connector->setPlatformVersion(SHOP_VERSION);
+        $connector->setPlatformVersion(ltrim($gx_version,'v'));
+        $connector->setProtocolVersion(Application()->getProtocolVersion());
 
         $action->setResult($connector);
 

@@ -1,8 +1,17 @@
 <?php
 namespace jtl\Connector\Gambio\Mapper;
 
-use jtl\Connector\Gambio\Mapper\BaseMapper;
-use jtl\Connector\Model\ProductStockLevel;
+use \jtl\Connector\Gambio\Mapper\BaseMapper;
+use \jtl\Connector\Model\ProductStockLevel;
+use \jtl\Connector\Model\Product as ProductModel;
+use \jtl\Connector\Model\ProductStockLevel as ProductStockLevelModel;
+use \jtl\Connector\Type\ProductStockLevel as ProductStockLevelType;
+use \jtl\Connector\Model\ProductPrice as ProductPriceModel;
+use \jtl\Connector\Model\ProductPriceItem as ProductPriceItemModel;
+use \jtl\Connector\Model\ProductVariation as ProductVariationModel;
+use \jtl\Connector\Model\ProductVariationI18n as ProductVariationI18nModel;
+use \jtl\Connector\Model\ProductVariationValue as ProductVariationValueModel;
+use \jtl\Connector\Model\ProductVariationValueI18n as ProductVariationValueI18nModel;
 
 class Product extends BaseMapper
 {
@@ -17,7 +26,7 @@ class Product extends BaseMapper
             "id" => "products_id",
             "ean" => "products_ean",
             "stockLevel" => "ProductStockLevel|setStockLevel",
-            "sku" => null,
+            "sku" => "products_model",
             "sort" => "products_sort",
             "creationDate" => "products_date_added",
             "availableFrom" => "products_date_available",
@@ -39,7 +48,9 @@ class Product extends BaseMapper
             "variations" => "ProductVariation|addVariation",
             "invisibilities" => "ProductInvisibility|addInvisibility",
             "attributes" => "ProductAttr|addAttribute",
-            "vat" => null
+            "varCombinations" => "ProductVarCombination|addVarCombination",
+            "vat" => null,
+            "isMasterProduct" => null
         ),
         "mapPush" => array(
             "products_id" => "id",
@@ -51,7 +62,7 @@ class Product extends BaseMapper
             "products_date_available" => "availableFrom",
             "products_weight" => "productWeight",
             "manufacturers_id" => "manufacturerId",
-            "products_manufacturers_model" => "manufacturerNumber",
+            //"products_manufacturers_model" => "manufacturerNumber",
             "products_vpe" => null,
             "products_vpe_value" => "basePriceDivisor",
             "products_vpe_status" => null,
@@ -62,7 +73,7 @@ class Product extends BaseMapper
             "Product2Category|addCategory" => "categories",
             "ProductPrice|addPrice" => "prices",
             "ProductSpecialPrice|addSpecialPrice" => "specialPrices",
-            "ProductVariation|addVariation" => "variations",
+            //"ProductVariation|addVariation" => "variations",
             "ProductInvisibility|addInvisibility|true" => "invisibilities",
             "ProductAttr|addAttribute|true" => "attributes",
             "products_image" => null,
@@ -70,15 +81,123 @@ class Product extends BaseMapper
         )
     );
 
-    public function push($data, $dbObj = null)
+    public function pull($data, $limit = null)
     {
-        if (!is_null($data->getId()->getEndpoint())) {
-            foreach ($this->getCustomerGroups() as $group) {
-                $this->db->query('DELETE FROM personal_offers_by_customers_status_'.$group['customers_status_id'].' WHERE products_id='.$data->getId()->getEndpoint());
+        $return = parent::pull($data, $limit);
+
+        $combis = $this->db->query('
+            SELECT c.*,p.products_price 
+            FROM products_properties_combis c 
+            LEFT JOIN products p ON p.products_id=c.products_id 
+            LEFT JOIN jtl_connector_link l ON CONCAT(c.products_id,"_",c.products_properties_combis_id) = l.endpointId AND l.type = 64 
+            WHERE l.hostId IS NULL');
+
+        foreach ($combis as $combi) {
+            $varcombi = new ProductModel();
+            $varcombi->setMasterProductId($this->identity($combi['products_id']));
+            $varcombi->setId($this->identity($combi['products_id'].'_'.$combi['products_properties_combis_id']));
+            $varcombi->setSku($combi['combi_model']);
+            $varcombi->setEan($combi['combi_ean']);
+            $varcombi->setProductWeight(floatval($combi['combi_weight']));
+            $varcombi->setSort(intval($combi['sort_order']));
+
+            $stockLevel = new ProductStockLevelModel();
+            $stockLevel->setProductId($varcombi->getId());
+            $stockLevel->setStockLevel(floatval($combi['combi_quantity']));
+
+            $varcombi->setStockLevel($stockLevel);
+
+            $default = new ProductPriceModel();
+            $default->setId($this->identity($varcombi->getId()->getEndpoint().'_default'));
+            $default->setProductId($varcombi->getId());
+            $default->setCustomerGroupId($this->identity(null));
+
+            $defaultItem = new ProductPriceItemModel();
+            $defaultItem->setProductPriceId($default->getId());
+            $price = $combi['combi_price_type'] === 'calc' ? floatval($combi['products_price']) + floatval($combi['combi_price']) : floatval($combi['combi_price']);
+            $defaultItem->setNetPrice($price);
+
+            $default->addItem($defaultItem);
+
+            $varcombi->setprices(array($default));
+
+            $variationQuery = $this->db->query('SELECT * FROM products_properties_index WHERE products_properties_combis_id='.$combi['products_properties_combis_id']);
+
+            $variations = array();
+
+            foreach ($variationQuery as $variation) {
+                if (!isset($variations[$variation['properties_id']])) {
+                    $variations[$variation['properties_id']] = $variation;                  
+                } 
+                
+                $variations[$variation['properties_id']]['i18ns'][$variation['language_id']] = array($variation['properties_name'], $variation['values_name']);                
             }
+
+            $variationsArray = array();
+
+            foreach ($variations as $variation) {
+                $varModel = new ProductVariationModel();
+                $varModel->setId($this->identity($variation['properties_id']));
+                $varModel->setProductId($varcombi->getId());
+                $varModel->setSort(intval($variation['properties_sort_order']));
+
+                $varValueModel = new ProductVariationValueModel();
+                $varValueModel->setId($this->identity($variation['properties_values_id']));
+                $varValueModel->setProductVariationId($varModel->getId());
+                $varValueModel->setSort(intval($variation['value_sort_order']));
+
+                $variationI18ns = array();
+                $variationValueI18ns = array();
+
+                foreach ($variation['i18ns'] as $language => $names) {
+                    $variationI18n = new ProductVariationI18nModel();
+                    $variationI18n->setProductvariationId($varModel->getId());
+                    $variationI18n->setLanguageISO($this->id2locale($language));
+                    $variationI18n->setName($names[0]);
+
+                    $variationValueI18n = new ProductVariationValueI18nModel();
+                    $variationValueI18n->setProductvariationValueId($varValueModel->getId());
+                    $variationValueI18n->setLanguageISO($variationI18n->getLanguageISO());
+                    $variationValueI18n->setName($names[1]);
+
+                    $variationI18ns[] = $variationI18n;
+                    $variationValueI18ns[] = $variationValueI18n;
+                }
+
+                $varModel->setI18ns($variationI18ns);
+                $varValueModel->setI18ns($variationValueI18ns);
+
+                $varModel->setValues(array($varValueModel));
+
+                $variationsArray[] = $varModel;
+            }
+
+            $varcombi->setVariations($variationsArray);
+            
+            $return[] = $varcombi;
         }
 
-        return parent::push($data, $dbObj);
+        return $return;
+    }
+
+    public function push($data, $dbObj = null)
+    {
+        $isVarCombi = $data->getMasterProductId()->getEndpoint();
+        $isVarCombi = !empty($isVarCombi);
+
+        $id = $data->getId()->getEndpoint();
+        
+        if ($isVarCombi) {
+
+        } else {
+            if (!empty($id)) {
+                foreach ($this->getCustomerGroups() as $group) {
+                    $this->db->query('DELETE FROM personal_offers_by_customers_status_'.$group['customers_status_id'].' WHERE products_id='.$data->getId()->getEndpoint());
+                }
+            }
+
+            return parent::push($data, $dbObj);
+        }
     }
 
     public function delete($data)
@@ -107,13 +226,10 @@ class Product extends BaseMapper
         return $data;
     }
 
-    protected function sku($data)
+    protected function isMasterProduct($data)
     {
-        if (!empty($data['products_model'])) {
-            return $data['products_model'];
-        } else {
-            return $data['products_id'];
-        }
+        $query = $this->db->query('SELECT products_properties_combis_id FROM products_properties_combis WHERE products_id='.$data['products_id']);
+        return count($query) === 0 ? false : true;
     }
 
     protected function considerBasePrice($data)
