@@ -17,9 +17,7 @@ class Product extends BaseMapper
 {
     protected $mapperConfig = array(
         "table" => "products",
-        "query" => "SELECT p.* FROM products p
-            LEFT JOIN jtl_connector_link l ON p.products_id = l.endpointId AND l.type = 64
-            WHERE l.hostId IS NULL",
+        "query" => "SELECT p.* FROM products p LEFT JOIN jtl_connector_link l ON CONVERT(p.products_id, CHAR(16)) = l.endpointId COLLATE utf8_unicode_ci AND l.type = 64 WHERE l.hostId IS NULL",
         "where" => "products_id",
         "identity" => "getId",
         "mapPull" => array(
@@ -73,7 +71,7 @@ class Product extends BaseMapper
             "Product2Category|addCategory" => "categories",
             "ProductPrice|addPrice" => "prices",
             "ProductSpecialPrice|addSpecialPrice" => "specialPrices",
-            //"ProductVariation|addVariation" => "variations",
+            "ProductVariation|addVariation" => "variations",
             "ProductInvisibility|addInvisibility|true" => "invisibilities",
             "ProductAttr|addAttribute|true" => "attributes",
             "products_image" => null,
@@ -188,16 +186,18 @@ class Product extends BaseMapper
         $id = $data->getId()->getEndpoint();
         
         if ($isVarCombi) {
-
+            $this->mapperConfig['mapPush'] = array(
+                "ProductVariation|addVariation" => "variations",
+            );            
         } else {
             if (!empty($id)) {
                 foreach ($this->getCustomerGroups() as $group) {
                     $this->db->query('DELETE FROM personal_offers_by_customers_status_'.$group['customers_status_id'].' WHERE products_id='.$data->getId()->getEndpoint());
                 }
-            }
-
-            return parent::push($data, $dbObj);
+            }            
         }
+
+        return parent::push($data, $dbObj);
     }
 
     public function delete($data)

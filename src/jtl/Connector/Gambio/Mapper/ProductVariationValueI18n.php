@@ -16,6 +16,24 @@ class ProductVariationValueI18n extends BaseMapper
         )
     );
 
+    public function pull($data, $limit)
+    {
+        if (isset($data['options_values_id'])) {
+            $this->mapperConfig = array(
+                "table" => "products_options_values",
+                "query" => 'SELECT * FROM products_options_values WHERE products_options_values_id=[[options_values_id]]',
+                "getMethod" => "getI18ns",
+                "mapPull" => array(
+                    "productVariationValueId" => "products_options_values_id",
+                    "name" => "products_options_values_name",
+                    "languageISO" => null
+                )
+            );
+        }
+
+        return parent::pull($data, $limit);
+    }
+
     protected function languageISO($data)
     {
         return $this->id2locale($data['language_id']);

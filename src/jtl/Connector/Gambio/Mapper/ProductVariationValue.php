@@ -14,12 +14,33 @@ class ProductVariationValue extends BaseMapper
         "mapPull" => array(
             "id" => "properties_values_id",
             "productVariationId" => "properties_id",
-            //"sku" => "attributes_model",
             "sort" => "value_sort_order",
-            //"stockLevel" => "attributes_stock",
             "i18ns" => "ProductVariationValueI18n|addI18n"
         )
     );
+
+    public function pull($data, $limit)
+    {
+        if (isset($data['options_id'])) {
+            $this->mapperConfig = array(
+                "table" => "products_attributes",
+                "query" => 'SELECT * FROM products_attributes WHERE products_id=[[products_id]] && options_id=[[options_id]]',
+                "getMethod" => "getValues",
+                "mapPull" => array(
+                    "id" => "options_values_id",
+                    "productVariationId" => "options_id",
+                    "extraWeight" => null,
+                    "sku" => "attributes_model",
+                    "sort" => "sortorder",
+                    "stockLevel" => "attributes_stock",
+                    "i18ns" => "ProductVariationValueI18n|addI18n",
+                    "extraCharges" => "ProductVariationValueExtraCharge|addExtraCharge"
+                )
+            );
+        }
+
+        return parent::pull($data, $limit);
+    }
 
     protected function extraWeight($data)
     {

@@ -325,7 +325,7 @@ class BaseMapper
     public function statistic()
     {
         if (isset($this->mapperConfig['query'])) {
-            $result = $this->db->query($this->mapperConfig['query']);
+            $result = $this->db->query($this->mapperConfig['query']);            
             return count($result);
         } else {
             $objs = $this->db->query("SELECT count(*) as count FROM {$this->mapperConfig['table']} LIMIT 1", array("return" => "object"));
