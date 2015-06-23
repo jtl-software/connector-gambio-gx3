@@ -20,7 +20,13 @@ class ProductStockLevel extends BaseMapper
         $productId = $stockLevel->getProductId()->getEndpoint();
 
         if (!empty($productId)) {
-            $this->db->query('UPDATE products SET products_quantity='.round($stockLevel->getStockLevel()).' WHERE products_id='.$productId);
+            if (strpos($productId, '_') !== false) {
+                $ids = explode('_', $productId);
+
+                $this->db->query('UPDATE products_properties_combis SET combi_quantity='.round($stockLevel->getStockLevel()).' WHERE products_properties_combis_id='.$ids[1]);
+            } else {
+                $this->db->query('UPDATE products SET products_quantity='.round($stockLevel->getStockLevel()).' WHERE products_id='.$productId);
+            }
 
             return $stockLevel;
         }
