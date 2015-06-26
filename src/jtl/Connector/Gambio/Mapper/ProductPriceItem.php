@@ -34,19 +34,34 @@ class ProductPriceItem extends BaseMapper
     {
         $productId = $data->getProductId()->getEndpoint();
 
-        foreach ($data->getItems() as $price) {
-            $obj = new \stdClass();
+        if (strpos($productId, '_') !== false) {
+            $ids = explode('_', $productId);
 
-            if (is_null($data->getCustomerGroupId()->getEndpoint()) || $data->getCustomerGroupId()->getEndpoint() == '') {
-                $obj->products_price = $price->getNetPrice();
+            foreach ($data->getItems() as $price) {
+                $obj = new \stdClass();
 
-                $this->db->updateRow($obj, 'products', 'products_id', $productId);
-            } else {
-                $obj->products_id = $productId;
-                $obj->personal_offer = $price->getNetprice();
-                $obj->quantity = ($price->getQuantity() == 0) ? 1 : $price->getQuantity();
+                if (is_null($data->getCustomerGroupId()->getEndpoint()) || $data->getCustomerGroupId()->getEndpoint() == '') {
+                    $obj->combi_price = $price->getNetPrice();
+                    $obj->combi_price_type = 'fix';
 
-                $this->db->insertRow($obj, 'personal_offers_by_customers_status_'.$data->getCustomerGroupId()->getEndpoint());
+                    $this->db->updateRow($obj, 'products_properties_combis', 'products_properties_combis_id', $ids[1]);
+                }
+            }
+        } else {
+            foreach ($data->getItems() as $price) {
+                $obj = new \stdClass();
+
+                if (is_null($data->getCustomerGroupId()->getEndpoint()) || $data->getCustomerGroupId()->getEndpoint() == '') {
+                    $obj->products_price = $price->getNetPrice();
+
+                    $this->db->updateRow($obj, 'products', 'products_id', $productId);
+                } else {
+                    $obj->products_id = $productId;
+                    $obj->personal_offer = $price->getNetprice();
+                    $obj->quantity = ($price->getQuantity() == 0) ? 1 : $price->getQuantity();
+
+                    $this->db->insertRow($obj, 'personal_offers_by_customers_status_'.$data->getCustomerGroupId()->getEndpoint());
+                }
             }
         }
 

@@ -192,8 +192,10 @@ class Product extends BaseMapper
         } else {
             if (!empty($id)) {
                 foreach ($this->getCustomerGroups() as $group) {
-                    $this->db->query('DELETE FROM personal_offers_by_customers_status_'.$group['customers_status_id'].' WHERE products_id='.$data->getId()->getEndpoint());
+                    $this->db->query('DELETE FROM personal_offers_by_customers_status_'.$group['customers_status_id'].' WHERE products_id='.$id);
                 }
+
+                $this->db->query('DELETE FROM specials WHERE products_id='.$id);
             }            
         }
 

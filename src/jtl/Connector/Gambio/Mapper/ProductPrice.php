@@ -61,10 +61,14 @@ class ProductPrice extends BaseMapper
                 $price->setProductId($productId);
             }
         } else {
-            $customerGrp = $parent->getCustomerGroupId()->getEndpoint();
+            $productId = $parent->getProductId()->getEndpoint();
 
-            if (!is_null($customerGrp) && $customerGrp != '') {
-                $this->db->query('DELETE FROM personal_offers_by_customers_status_'.$customerGrp.' WHERE products_id='.$parent->getProductId()->getEndpoint());
+            if (strpos($productId, '_') == false) {
+                $customerGrp = $parent->getCustomerGroupId()->getEndpoint();
+
+                if (!is_null($customerGrp) && $customerGrp != '') {
+                    //$this->db->query('DELETE FROM personal_offers_by_customers_status_'.$customerGrp.' WHERE products_id='.$productId);
+                }
             }
 
             unset($this->mapperConfig['getMethod']);

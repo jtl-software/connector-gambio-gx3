@@ -37,7 +37,7 @@ class CustomerOrderItem extends BaseMapper
             "CustomerOrderItemVariation|addVariation" => "variations"
         )
     );
-
+    
     public function push($parent, $dbObj = null)
     {
         $return = [];
