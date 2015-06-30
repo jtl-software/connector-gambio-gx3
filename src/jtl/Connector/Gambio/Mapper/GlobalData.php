@@ -17,7 +17,8 @@ class GlobalData extends \jtl\Connector\Gambio\Mapper\BaseMapper
         "mapPush" => array(
             "Currency|addCurrency" => "currencies",
             "Unit|addUnit" => "units",
-            "CrossSellingGroup|addCrossSellingGroup" => "crossSellingGroups"
+            "CrossSellingGroup|addCrossSellingGroup" => "crossSellingGroups",
+            "CustomerGroup|addCustomerGroup" => "customerGroups"
         )
     );
 
