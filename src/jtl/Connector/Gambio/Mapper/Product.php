@@ -260,7 +260,7 @@ class Product extends BaseMapper
 
     protected function considerBasePrice($data)
     {
-        return $data['products_vpe_status'] == 1 ? true : false;
+        return $data['products_vpe_status'] == 1 ? true : false;        
     }
 
     protected function products_vpe($data)
@@ -357,7 +357,8 @@ class Product extends BaseMapper
 
     protected function considerVariationStock($data)
     {
-        return $this->shopConfig['settings']['ATTRIBUTE_STOCK_CHECK'];
+        //return $this->shopConfig['settings']['ATTRIBUTE_STOCK_CHECK'];
+        return false;
     }
 
     protected function permitNegativeStock($data)
