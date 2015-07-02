@@ -12,13 +12,15 @@ class GlobalData extends \jtl\Connector\Gambio\Mapper\BaseMapper
             "taxRates" => "TaxRate|addTaxRate",
             "currencies" => "Currency|addCurrency",
             "units" => "Unit|addUnit",
-            "crossSellingGroups" => "CrossSellingGroup|addCrossSellingGroup"
+            "crossSellingGroups" => "CrossSellingGroup|addCrossSellingGroup",
+            "measurementUnits" => "MeasurementUnit|addMeasurementUnit"
         ),
         "mapPush" => array(
             "Currency|addCurrency" => "currencies",
             "Unit|addUnit" => "units",
             "CrossSellingGroup|addCrossSellingGroup" => "crossSellingGroups",
-            "CustomerGroup|addCustomerGroup" => "customerGroups"
+            "CustomerGroup|addCustomerGroup" => "customerGroups",
+            "MeasurementUnit|addMeasurementUnit" => "measurementUnits"
         )
     );
 

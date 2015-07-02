@@ -206,13 +206,13 @@
             "delete": false
         },
         "MeasurementUnit": {
-            "pull": false,
-            "push": false,
+            "pull": true,
+            "push": true,
             "delete": false
         },
         "MeasurementUnitI18n": {
-            "pull": false,
-            "push": false,
+            "pull": true,
+            "push": true,
             "delete": false
         },
         "MediaFile": {
