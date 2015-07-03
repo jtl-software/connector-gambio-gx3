@@ -5,7 +5,7 @@ use \jtl\Connector\Application\Application;
 use \jtl\Connector\Gambio\Gambio;
 
 defined('CONNECTOR_DIR') || define("CONNECTOR_DIR", __DIR__);
-define("CONNECTOR_VERSION", "1.0.1");
+defined("CONNECTOR_VERSION") || define("CONNECTOR_VERSION", file_get_contents(__DIR__.'/version'));
 
 try {
     if (!strpos($_SERVER['REQUEST_URI'], 'install')) {

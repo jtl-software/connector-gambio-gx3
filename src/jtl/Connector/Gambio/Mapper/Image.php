@@ -1,7 +1,7 @@
 <?php
-namespace jtl\Connector\Modified\Mapper;
+namespace jtl\Connector\Gambio\Mapper;
 
-use jtl\Connector\Modified\Mapper\BaseMapper;
+use jtl\Connector\Gambio\Mapper\BaseMapper;
 use jtl\Connector\Drawing\ImageRelationType;
 
 class Image extends BaseMapper

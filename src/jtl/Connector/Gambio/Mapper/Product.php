@@ -17,7 +17,12 @@ class Product extends BaseMapper
 {
     protected $mapperConfig = array(
         "table" => "products",
-        "query" => "SELECT p.* FROM products p LEFT JOIN jtl_connector_link l ON CONVERT(p.products_id, CHAR(16)) = l.endpointId COLLATE utf8_unicode_ci AND l.type = 64 WHERE l.hostId IS NULL",
+        "query" => "SELECT p.*, q.quantity_unit_id, c.code_isbn, c.code_mpn, c.code_upc
+            FROM products p 
+            LEFT JOIN products_quantity_unit q ON q.products_id = p.products_id
+            LEFT JOIN products_item_codes c ON c.products_id = p.products_id
+            LEFT JOIN jtl_connector_link l ON CONVERT(p.products_id, CHAR(16)) = l.endpointId COLLATE utf8_unicode_ci AND l.type = 64 
+            WHERE l.hostId IS NULL",
         "where" => "products_id",
         "identity" => "getId",
         "mapPull" => array(
@@ -48,7 +53,13 @@ class Product extends BaseMapper
             "attributes" => "ProductAttr|addAttribute",
             "varCombinations" => "ProductVarCombination|addVarCombination",
             "vat" => null,
-            "isMasterProduct" => null
+            "isMasterProduct" => null,
+            "measurementUnitId" => "quantity_unit_id",
+            "isbn" => "code_isbn",
+            "manufacturerNumber" => "code_mpn",
+            "upc" => "code_upc",
+            "minimumOrderQuantity" => "gm_min_order",
+            "packagingQuantity" => "gm_graduated_qty"
         ),
         "mapPush" => array(
             "products_id" => "id",
@@ -60,7 +71,6 @@ class Product extends BaseMapper
             "products_date_available" => "availableFrom",
             "products_weight" => "productWeight",
             "manufacturers_id" => "manufacturerId",
-            //"products_manufacturers_model" => "manufacturerNumber",
             "products_vpe" => null,
             "products_vpe_value" => "basePriceDivisor",
             "products_vpe_status" => null,
