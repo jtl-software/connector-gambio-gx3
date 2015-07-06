@@ -8,6 +8,8 @@ use jtl\Connector\Model\CategoryAttrI18n as CategoryAttrI18nModel;
 class CategoryAttr extends BaseMapper
 {
     public function pull($data = null, $limit = null) {
+        $attrs = array();
+
         $attr = new CategoryAttrModel();
         $attr->setId($this->identity(1));
         $attr->setCategoryId($this->identity($data['categories_id']));
@@ -20,7 +22,35 @@ class CategoryAttr extends BaseMapper
 
         $attr->setI18ns([$attrI18n]);
 
-        return [$attr];
+        $attrs[] = $attr;
+
+        $hlQuery = $this->db->query('SELECT c.categories_heading_title,l.code 
+            FROM categories_description c
+            LEFT JOIN languages l ON l.languages_id=c.language_id
+            WHERE c.categories_id='.$data['categories_id']);
+
+        if (count($hlQuery) >  0) {
+            $hlAttr = new CategoryAttrModel();
+            $hlAttr->setId($this->identity(2));
+            $hlAttr->setCategoryId($this->identity($data['categories_id']));
+
+            $hlAttrI18ns = array();
+
+            foreach ($hlQuery as $headline) {
+                $hlAttrI18n = new CategoryAttrI18nModel();
+                $hlAttrI18n->setCategoryAttrId($hlAttr->getId());
+                $hlAttrI18n->setLanguageISO($this->fullLocale($headline['code']));
+                $hlAttrI18n->setName('Überschrift');
+                $hlAttrI18n->setValue($headline['categories_heading_title']);
+
+                $hlAttrI18ns[] = $hlAttrI18n;
+            }
+
+            $hlAttr->setI18ns($hlAttrI18ns);
+            $attrs[] = $hlAttr;
+        }
+
+        return $attrs;
     }
 
     public function push($data, $dbObj = null) {

@@ -40,7 +40,7 @@ class ProductSpecialPrice extends BaseMapper
         return $data['expires_date'] == '0000-00-00 00:00:00' ? false : true;
     }
 
-    protected function activeUntil($data)
+    protected function activeUntilDate($data)
     {
         return $data['expires_date'] == '0000-00-00 00:00:00' ? null : $data['expires_date'];
     }

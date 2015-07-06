@@ -27,7 +27,8 @@ class CategoryI18n extends \jtl\Connector\Gambio\Mapper\BaseMapper
             "categories_description" => "description",
             "categories_meta_description" => "metaDescription",
             "categories_meta_keywords" => "metaKeywords",
-            "categories_meta_title" => "titleTag"
+            "categories_meta_title" => "titleTag",
+            "categories_heading_title" => null
         )
     );
 
@@ -46,5 +47,18 @@ class CategoryI18n extends \jtl\Connector\Gambio\Mapper\BaseMapper
         $return->setCategoryId($this->identity($parent->getId()->getEndpoint()));
 
         return $parent->getId()->getEndpoint();
+    }
+
+    protected function categories_heading_title($data, $return, $parent)
+    {
+        foreach ($parent->getAttributes() as $attr) {
+            foreach ($attr->getI18ns() as $i18n) {
+                if ($i18n->getName() == "Überschrift") {
+                    if ($i18n->getLanguageISO() == $data->getLanguageISO()) {
+                        return $i18n->getValue();
+                    }                               
+                }
+            }
+        }
     }
 }
