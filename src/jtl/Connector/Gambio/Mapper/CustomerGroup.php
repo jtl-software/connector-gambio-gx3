@@ -13,7 +13,7 @@ class CustomerGroup extends BaseMapper
         "mapPull" => array(
             "id" => "customers_status_id",
             "discount" => "customers_status_discount",
-            "applyNetPrice" => "customers_status_add_tax_ot",
+            "applyNetPrice" => null,
             "isDefault" => null,
             "i18ns" => "CustomerGroupI18n|addI18n"
         ),
@@ -25,5 +25,10 @@ class CustomerGroup extends BaseMapper
     protected function isDefault($data)
     {
         return ($data['customers_status_id'] == $this->shopConfig['settings']['DEFAULT_CUSTOMERS_STATUS_ID']) ? true : false;
+    }
+
+    protected function applyNetprice($data)
+    {
+        return $data['customers_status_show_price_tax'] == 1 ? false : true;
     }
 }
