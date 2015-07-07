@@ -21,7 +21,8 @@ class CustomerOrderShippingAddress extends BaseMapper
             "state" => "delivery_state",
             "countryIso" => "delivery_country_iso_code_2",
             "eMail" => "customers_email_address",
-            "phone" => "customers_telephone"
+            "phone" => "customers_telephone",
+            "salutation" => "delivery_gender"
         ),
         "mapPush" => array(
             "delivery_name" => null,

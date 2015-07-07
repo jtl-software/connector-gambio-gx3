@@ -33,6 +33,7 @@ class CategoryAttr extends BaseMapper
             $hlAttr = new CategoryAttrModel();
             $hlAttr->setId($this->identity(2));
             $hlAttr->setCategoryId($this->identity($data['categories_id']));
+            $hlAttr->setIsTranslated(true);
 
             $hlAttrI18ns = array();
 
