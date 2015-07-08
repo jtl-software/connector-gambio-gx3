@@ -60,5 +60,7 @@ class CategoryI18n extends \jtl\Connector\Gambio\Mapper\BaseMapper
                 }
             }
         }
+
+        return '';
     }
 }

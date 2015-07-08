@@ -126,7 +126,7 @@ class Category extends \jtl\Connector\Gambio\Mapper\BaseMapper
                 $this->db->query('DELETE FROM categories WHERE categories_id='.$data->getId()->getEndpoint());
                 $this->db->query('DELETE FROM categories_description WHERE categories_id='.$data->getId()->getEndpoint());
                 $this->db->query('DELETE FROM products_to_categories WHERE categories_id='.$data->getId()->getEndpoint());
-
+                
                 $this->db->query('DELETE FROM jtl_connector_link WHERE type=1 && endpointId="'.$data->getId()->getEndpoint().'"');
             }
             catch(\Exception $e) {            
