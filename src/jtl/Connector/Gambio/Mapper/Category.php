@@ -85,6 +85,7 @@ class Category extends \jtl\Connector\Gambio\Mapper\BaseMapper
     public function pushDone($model, $dbObj)
     {
         static::$idCache[$model->getId()->getHost()] = $model->getId()->getEndpoint();
+        array_map('unlink', glob($this->connectorConfig->connector_root.'/cache/*'));
     }
 
     private function getChildren($ids = null, $level = 0, $limit)
@@ -132,6 +133,8 @@ class Category extends \jtl\Connector\Gambio\Mapper\BaseMapper
             catch(\Exception $e) {            
             }
         }
+
+        array_map('unlink', glob($this->connectorConfig->connector_root.'/cache/*'));
 
         return $data;
     }

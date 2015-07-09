@@ -54,7 +54,7 @@ class Product extends BaseMapper
             "varCombinations" => "ProductVarCombination|addVarCombination",
             "vat" => null,
             "isMasterProduct" => null,
-            "measurementUnitId" => "quantity_unit_id",
+            "measurementUnitCode" => "quantity_unit_id",
             "isbn" => "code_isbn",
             "manufacturerNumber" => "code_mpn",
             "upc" => "code_upc",
@@ -85,7 +85,7 @@ class Product extends BaseMapper
             "ProductInvisibility|addInvisibility|true" => "invisibilities",
             "ProductAttr|addAttribute|true" => "attributes",
             "products_image" => null,
-            "products_shippingtime" => null
+            "products_shippingtime" => null            
         )
     );
 
@@ -108,6 +108,8 @@ class Product extends BaseMapper
             $varcombi->setEan($combi['combi_ean']);
             $varcombi->setProductWeight(floatval($combi['combi_weight']));
             $varcombi->setSort(intval($combi['sort_order']));
+            $varcombi->setConsiderStock(true);
+            $varcombi->setConsiderVariationStock(true);
 
             $stockLevel = new ProductStockLevelModel();
             $stockLevel->setProductId($varcombi->getId());
@@ -212,6 +214,12 @@ class Product extends BaseMapper
         return parent::push($data, $dbObj);
     }
 
+    protected function pushDone($data, $model)
+    {
+        //$query = 'INSERT INTO products_quantity_unit SET products_id='.$data->getId()->getEndpoint().' quantity_unit_id='.intval($data->getMeasurementUnitCode());
+        //var_dump($query);
+    }
+
     public function delete($data)
     {
         $isVarCombi = $data->getMasterProductId()->getEndpoint();
@@ -247,6 +255,9 @@ class Product extends BaseMapper
                     $this->db->query('DELETE FROM products_properties_index WHERE products_id='.$id);
                     $this->db->query('DELETE v FROM products_properties_combis_values v LEFT JOIN products_properties_combis c ON c.products_properties_combis_id = v.products_properties_combis_id  WHERE c.products_id='.$id);
                     $this->db->query('DELETE FROM products_properties_combis WHERE products_id='.$id);
+                    $this->db->query('DELETE FROM products_quantity_unit WHERE products_id='.$id);
+                    $this->db->query('DELETE FROM categories_index WHERE products_id='.$id);
+                    $this->db->query('DELETE FROM products_item_codes WHERE products_id='.$id);
 
                     foreach ($this->getCustomerGroups() as $group) {
                         $this->db->query('DELETE FROM personal_offers_by_customers_status_'.$group['customers_status_id'].' WHERE products_id='.$id);
@@ -402,5 +413,25 @@ class Product extends BaseMapper
     protected function products_quantity($data)
     {
         return round($data->getStockLevel()->getStockLevel());
+    }
+
+    public function statistic()
+    {
+        $count = 0;
+
+        $products = $this->db->query('SELECT p.products_id
+            FROM products p             
+            LEFT JOIN jtl_connector_link l ON CONVERT(p.products_id, CHAR(16)) = l.endpointId COLLATE utf8_unicode_ci AND l.type = 64 
+            WHERE l.hostId IS NULL');
+
+        $combis = $this->db->query('SELECT c.products_properties_combis_id
+            FROM products_properties_combis c 
+            LEFT JOIN jtl_connector_link l ON CONCAT(c.products_id,"_",c.products_properties_combis_id) = l.endpointId AND l.type = 64 
+            WHERE l.hostId IS NULL');
+
+        $count += count($products);
+        $count += count($combis);
+
+        return $count;
     }
 }
