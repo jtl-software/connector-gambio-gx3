@@ -43,7 +43,7 @@ class MeasurementUnitI18n extends BaseMapper
         $data->getId()->setEndpoint($id);
 
         foreach ($data->getI18ns() as $i18n) {
-            $i18n->getUnitId()->setEndpoint($id);
+            $i18n->getMeasurementUnitId()->setEndpoint($id);
 
             $unit = new \stdClass();
             $unit->language_id = $this->locale2id($i18n->getLanguageISO());

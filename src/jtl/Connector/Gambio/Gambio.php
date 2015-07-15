@@ -113,7 +113,8 @@ class Gambio extends BaseConnector
                 'original' => DIR_WS_ORIGINAL_IMAGES,
                 'thumbnails' => DIR_WS_THUMBNAIL_IMAGES,
                 'info' => DIR_WS_INFO_IMAGES,
-                'popup' => DIR_WS_POPUP_IMAGES
+                'popup' => DIR_WS_POPUP_IMAGES,
+                'gallery' => 'images/product_images/gallery_images/'
             )
         );
     }
