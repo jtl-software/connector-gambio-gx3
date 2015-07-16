@@ -222,12 +222,9 @@ class Product extends BaseMapper
 
     public function delete($data)
     {
-        $isVarCombi = $data->getMasterProductId()->getEndpoint();
-        $isVarCombi = !empty($isVarCombi);
-
         $id = $data->getId()->getEndpoint();
 
-        if ($isVarCombi) {
+        if (strpos($id, '_') !== false) {
             if (!empty($id) && $id != '') {
                 try {
                     $combiId = explode('_', $id);

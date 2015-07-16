@@ -257,6 +257,10 @@ class ProductVariation extends BaseMapper
                         }
                     }
 
+                    $result = $this->db->deleteInsertRow($combi, 'products_properties_combis', 'products_properties_combis_id', $combi->products_properties_combis_id);
+
+                    $combi->products_properties_combis_id = $result->getKey();
+
                     foreach ($parent->getVariations() as $variation) {
                         $varI18ns = array();
                         foreach ($variation->getI18ns() as $varI18n) {
@@ -286,12 +290,13 @@ class ProductVariation extends BaseMapper
 
                             $this->db->deleteInsertRow($combiValue, 'products_properties_combis_values', array('products_properties_combis_id', 'properties_values_id'), array($combiValue->products_properties_combis_id, $combiValue->properties_values_id));
                         }
-                    }                    
-                               
-                    $result = $this->db->deleteInsertRow($combi, 'products_properties_combis', 'products_properties_combis_id', $combi->products_properties_combis_id);
-
-                    $combi->products_properties_combis_id = $result->getKey();                   
-                    $parent->getId()->setEndpoint($parent->getMasterProductId()->getEndpoint().'_'.$result->getKey());
+                    }                                                 
+                    
+                    $combiId = new \StdClass();
+                    $combiId->endpointId = $parent->getMasterProductId()->getEndpoint().'_'.$result->getKey();
+                    $combiId->hostId = $parent->getId()->getHost();
+                    $combiId->type = 64;
+                    $this->db->deleteInsertRow($combiId, 'jtl_connector_link', 'endpointId', $combiId->endpointId);
                 }
             }
         }
