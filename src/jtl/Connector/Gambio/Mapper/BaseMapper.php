@@ -219,7 +219,7 @@ class BaseMapper
                 }
 
                 if (method_exists(get_class($this), 'pushDone')) {
-                    $this->pushDone($model, $dbObj);
+                    $this->pushDone($model, $dbObj, $obj);
                 }
             } else {
                 foreach ($dbObj as $key => $value) {

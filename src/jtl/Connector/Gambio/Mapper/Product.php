@@ -15,6 +15,8 @@ use \jtl\Connector\Model\ProductVariationValueI18n as ProductVariationValueI18nM
 
 class Product extends BaseMapper
 {
+    private static $idCache = array();
+
     protected $mapperConfig = array(
         "table" => "products",
         "query" => "SELECT p.*, q.quantity_unit_id, c.code_isbn, c.code_mpn, c.code_upc
@@ -192,8 +194,14 @@ class Product extends BaseMapper
 
     public function push($data, $dbObj = null)
     {
-        $isVarCombi = $data->getMasterProductId()->getEndpoint();
-        $isVarCombi = !empty($isVarCombi);
+        $masterId = $data->getMasterProductId()->getEndpoint();
+
+        if (empty($masterId) && isset(static::$idCache[$data->getMasterProductId()->getHost()])) {
+            $masterId = static::$idCache[$data->getMasterProductId()->getHost()];
+            $data->getMasterProductId()->setEndpoint($masterId);
+        }
+
+        $isVarCombi = !empty($masterId);
 
         $id = $data->getId()->getEndpoint();
         
@@ -211,11 +219,15 @@ class Product extends BaseMapper
             }            
         }
 
-        return parent::push($data, $dbObj);
+        return parent::push($data, $dbObj);        
     }
 
-    protected function pushDone($data, $model)
+    protected function pushDone($returnModel, $dbObj, $data)
     {
+        if ($data->getIsMasterProduct() === true) {
+            static::$idCache[$data->getId()->getHost()] = $data->getId()->getEndpoint();
+        }
+        
         //$query = 'INSERT INTO products_quantity_unit SET products_id='.$data->getId()->getEndpoint().' quantity_unit_id='.intval($data->getMeasurementUnitCode());
         //var_dump($query);
     }
