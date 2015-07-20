@@ -35,6 +35,7 @@ class BaseMapper
     public function generateModel($data)
     {
         $model = new $this->model();
+
         if (!$this->type) {
             $this->type = $model->getModelType();
         }
@@ -116,7 +117,8 @@ class BaseMapper
         foreach ($data as $obj) {
             $subMapper = [];
 
-            $model = new $this->model();
+            //$model = new $this->model();
+            $model = $obj;
 
             if (!$this->type) {
                 $this->type = $model->getModelType();

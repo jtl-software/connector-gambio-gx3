@@ -12,6 +12,7 @@ use \jtl\Connector\Model\ProductVariation as ProductVariationModel;
 use \jtl\Connector\Model\ProductVariationI18n as ProductVariationI18nModel;
 use \jtl\Connector\Model\ProductVariationValue as ProductVariationValueModel;
 use \jtl\Connector\Model\ProductVariationValueI18n as ProductVariationValueI18nModel;
+use \jtl\Connector\Model\ProductI18n as ProductI18nModel;
 
 class Product extends BaseMapper
 {
@@ -87,7 +88,9 @@ class Product extends BaseMapper
             "ProductInvisibility|addInvisibility|true" => "invisibilities",
             "ProductAttr|addAttribute|true" => "attributes",
             "products_image" => null,
-            "products_shippingtime" => null            
+            "products_shippingtime" => null,
+            "gm_min_order" => "minimumOrderQuantity",
+            "gm_graduated_qty" => "packagingQuantity"
         )
     );
 
@@ -112,6 +115,16 @@ class Product extends BaseMapper
             $varcombi->setSort(intval($combi['sort_order']));
             $varcombi->setConsiderStock(true);
             $varcombi->setConsiderVariationStock(true);
+
+            $i18nStatus = $this->db->query('SELECT * FROM shipping_status WHERE shipping_status_id='.$combi['combi_shipping_status_id']);
+
+            foreach ($i18nStatus as $status) {
+                $i18n = new ProductI18nModel();
+                $i18n->setProductId($varcombi->getId());
+                $i18n->setDeliveryStatus($status['shipping_status_name']);
+                $i18n->setLanguageISO($this->id2locale($status['language_id']));
+                $varcombi->addI18n($i18n);
+            }
 
             $stockLevel = new ProductStockLevelModel();
             $stockLevel->setProductId($varcombi->getId());
@@ -226,6 +239,20 @@ class Product extends BaseMapper
     {
         if ($data->getIsMasterProduct() === true) {
             static::$idCache[$data->getId()->getHost()] = $data->getId()->getEndpoint();
+        }
+
+        $checkCodes = $this->db->query('SELECT products_id FROM products_item_codes WHERE products_id='.$data->getId()->getEndpoint());
+
+        $codes = new \stdClass();
+        $codes->products_id = $data->getId()->getEndpoint();
+        $codes->code_isbn = $data->getIsbn();
+        $codes->code_upc = $data->getUpc();
+        $codes->code_mpn = $data->getManufacturerNumber();
+
+        if (count($checkCodes) > 0) {
+            $this->db->updateRow($codes, 'products_item_codes', 'products_id', $codes->products_id);
+        } else {
+            $this->db->insertRow($codes, 'products_item_codes');
         }
         
         //$query = 'INSERT INTO products_quantity_unit SET products_id='.$data->getId()->getEndpoint().' quantity_unit_id='.intval($data->getMeasurementUnitCode());
