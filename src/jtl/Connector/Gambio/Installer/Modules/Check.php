@@ -154,7 +154,7 @@ class Check extends Module
         if (count($this->db->query("SHOW TABLES LIKE 'jtl_connector_link'")) == 0) {
             $sql = "
                 CREATE TABLE IF NOT EXISTS jtl_connector_link (
-                    endpointId varchar(16) NOT NULL,
+                    endpointId varchar(64) NOT NULL,
                     hostId int(10) NOT NULL,
                     type int(10),
                     PRIMARY KEY (endpointId, hostId, type)

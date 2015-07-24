@@ -33,14 +33,16 @@ class Currency extends BaseMapper
 
     public function push($data, $parent)
     {
-        foreach ($data->getCurrencies() as $currency) {
-            $check = $this->db->query('SELECT currencies_id FROM currencies WHERE code="'.$currency->getIso().'"');
-            if (count($check) > 0) {
-                $currency->getId()->setEndpoint($check[0]['currencies_id']);                
+        if (!empty($data->getCurrencies())) {
+            foreach ($data->getCurrencies() as $currency) {
+                $check = $this->db->query('SELECT currencies_id FROM currencies WHERE code="' . $currency->getIso() . '"');
+                if (count($check) > 0) {
+                    $currency->getId()->setEndpoint($check[0]['currencies_id']);
+                }
             }
+
+            return parent::push($data, $parent);
         }
-    
-        return parent::push($data, $parent);
     }
 
     protected function isDefault($data)
