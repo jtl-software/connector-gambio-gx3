@@ -21,7 +21,7 @@ class CustomerOrderBillingAddress extends BaseMapper
             "countryIso" => "billing_country_iso_code_2",
             "eMail" => "customers_email_address",
             "phone" => "customers_telephone",
-            "salutation" => "billing_gender"
+            "salutation" => null
         ),
         "mapPush" => array(
             "customers_name" => null,
@@ -46,6 +46,15 @@ class CustomerOrderBillingAddress extends BaseMapper
             "customers_email_address" => "eMail"
         )
     );
+
+    protected function salutation($data)
+    {
+        if ($data['billing_gender'] == 'm') {
+            return 'm';
+        } elseif ($data['billing_gender'] == 'f') {
+            return 'w';
+        }
+    }
 
     public function pull($data = null, $limit = null)
     {

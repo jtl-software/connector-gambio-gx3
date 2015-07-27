@@ -47,9 +47,9 @@ class ProductVariation extends BaseMapper
     public function push($parent, $dbObj = null)
     {
         if (count($parent->getVariations()) > 0) {
-            $checksum = ChecksumLinker::find($parent, 1);
+            //$checksum = ChecksumLinker::find($parent, 1);
 
-            if ($checksum === null || $checksum->hasChanged() === true) {
+            //if ($checksum === null || $checksum->hasChanged() === true) {
                 $masterId = $parent->getMasterProductId()->getEndpoint();
 
                 if (empty($masterId) && $parent->getIsMasterProduct() === false) {
@@ -246,11 +246,11 @@ class ProductVariation extends BaseMapper
                     $combi->combi_ean = $parent->getEan();
                     $combi->combi_quantity = $parent->getStockLevel()->getStockLevel();
                     $combi->combi_shipping_status_id = 0;
-                    $combi->combi_weight = $parent->getShippingWeight();
+                    $combi->combi_weight = $parent->getProductWeight();
                     $combi->combi_price_type = 'fix';
 
                     foreach ($parent->getPrices() as $price) {
-                        if ($price->getCustomerGroupId()->getHost() == 0) {
+                        if (is_null($price->getCustomerGroupId()->getEndpoint()) || $price->getCustomerGroupId()->getEndpoint() == '') {
                             $priceItem = $price->getItems()[0];
                             $combi->combi_price = $priceItem->getNetPrice();
                             break;
@@ -298,7 +298,7 @@ class ProductVariation extends BaseMapper
                     $combiId->type = 64;
                     $this->db->deleteInsertRow($combiId, 'jtl_connector_link', 'endpointId', $combiId->endpointId);
                 }
-            }
+           //}
         }
 
         return $parent->getVariations();

@@ -1,8 +1,6 @@
 <?php
 namespace jtl\Connector\Gambio\Mapper;
 
-use jtl\Connector\Gambio\Mapper\BaseMapper;
-
 class CustomerGroup extends BaseMapper
 {
     protected $mapperConfig = array(
@@ -15,7 +13,8 @@ class CustomerGroup extends BaseMapper
             "discount" => "customers_status_discount",
             "applyNetPrice" => null,
             "isDefault" => null,
-            "i18ns" => "CustomerGroupI18n|addI18n"
+            "i18ns" => "CustomerGroupI18n|addI18n",
+            "attributes" => "CustomerGroupAttr|addAttribute"
         ),
         "mapPush" => array(
             "CustomerGroupI18n|addI18n" => "i18ns"

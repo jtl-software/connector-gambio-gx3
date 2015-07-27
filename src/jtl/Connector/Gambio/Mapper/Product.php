@@ -220,7 +220,7 @@ class Product extends BaseMapper
         
         if ($isVarCombi) {
             $this->mapperConfig['mapPush'] = array(
-                "ProductVariation|addVariation" => "variations",
+                "ProductVariation|addVariation" => "variations"
             );            
         } else {
             if (!empty($id)) {
