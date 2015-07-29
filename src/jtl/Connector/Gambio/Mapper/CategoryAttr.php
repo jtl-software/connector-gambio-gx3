@@ -7,22 +7,23 @@ use jtl\Connector\Model\CategoryAttrI18n as CategoryAttrI18nModel;
 
 class CategoryAttr extends BaseMapper
 {
+    private $additions = array(
+        'categories_status' => 'Aktiv',
+        'gm_show_qty_info' => 'Lagerbestand anzeigen',
+        'gm_show_attributes' => 'Attribute anzeigen',
+        'gm_show_graduated_prices' => 'Staffelpreise anzeigen',
+        'show_sub_categories' => 'Unterkategorien anzeigen',
+        'show_sub_products' => 'Artikel aus Unterkategorien anzeigen',
+        'show_sub_categories_images' => 'Kategoriebild anzeigen',
+        'show_sub_categories_names' => 'Kategorie Ueberschrift anzeigen'
+    );
+
     public function pull($data = null, $limit = null) {
         $attrs = array();
 
-        $attr = new CategoryAttrModel();
-        $attr->setId($this->identity(1));
-        $attr->setCategoryId($this->identity($data['categories_id']));
-
-        $attrI18n = new CategoryAttrI18nModel();
-        $attrI18n->setCategoryAttrId($attr->getId());
-        $attrI18n->setLanguageISO('ger');
-        $attrI18n->setName('Aktiv');
-        $attrI18n->setValue($data['categories_status']);
-
-        $attr->setI18ns([$attrI18n]);
-
-        $attrs[] = $attr;
+        foreach ($this->additions as $field => $name) {
+            $attrs[] = $this->createAttr($field, $name, $data[$field], $data);
+        }
 
         $hlQuery = $this->db->query('SELECT c.categories_heading_title,l.code 
             FROM categories_description c
@@ -59,7 +60,10 @@ class CategoryAttr extends BaseMapper
 
         foreach ($data->getAttributes() as $attr) {
             foreach ($attr->getI18ns() as $i18n) {
-                if ($i18n->getName() == 'Aktiv' && $i18n->getValue() == '0') {
+                $field = array_search($i18n->getName(), $this->additions);
+                if ($field) {
+                    $dbObj->$field = $i18n->getValue();
+                } elseif ($i18n->getName() == 'Aktiv' && $i18n->getValue() == '0') {
                     $dbObj->categories_status = 0;
                     break;
                 }                    
@@ -67,5 +71,22 @@ class CategoryAttr extends BaseMapper
         }
 
         return $data->getAttributes();
+    }
+
+    private function createAttr($id, $name, $value, $data)
+    {
+        $attr = new CategoryAttrModel();
+        $attr->setId($this->identity($id));
+        $attr->setCategoryId($this->identity($data['categories_id']));
+
+        $attrI18n = new CategoryAttrI18nModel();
+        $attrI18n->setCategoryAttrId($attr->getId());
+        $attrI18n->setLanguageISO('ger');
+        $attrI18n->setName($name);
+        $attrI18n->setValue($value);
+
+        $attr->setI18ns([$attrI18n]);
+
+        return $attr;
     }
 }

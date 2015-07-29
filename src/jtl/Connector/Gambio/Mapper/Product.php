@@ -20,10 +20,11 @@ class Product extends BaseMapper
 
     protected $mapperConfig = array(
         "table" => "products",
-        "query" => "SELECT p.*, q.quantity_unit_id, c.code_isbn, c.code_mpn, c.code_upc
+        "query" => "SELECT p.*, q.quantity_unit_id, c.code_isbn, c.code_mpn, c.code_upc, c.google_export_condition, c.google_export_availability_id, g.google_category
             FROM products p 
             LEFT JOIN products_quantity_unit q ON q.products_id = p.products_id
             LEFT JOIN products_item_codes c ON c.products_id = p.products_id
+            LEFT JOIN products_google_categories g ON g.products_id = p.products_id
             LEFT JOIN jtl_connector_link l ON CONVERT(p.products_id, CHAR(16)) = l.endpointId COLLATE utf8_unicode_ci AND l.type = 64 
             WHERE l.hostId IS NULL",
         "where" => "products_id",
@@ -248,6 +249,16 @@ class Product extends BaseMapper
         $codes->code_isbn = $data->getIsbn();
         $codes->code_upc = $data->getUpc();
         $codes->code_mpn = $data->getManufacturerNumber();
+
+        foreach ($data->getAttributes() as $attr) {
+            foreach ($attr->getI18ns() as $i18n) {
+                if ($i18n->getName() === 'Google Zustand') {
+                    $codes->google_export_condition = $i18n->getValue();
+                } elseif($i18n->getName() === 'Google Verfuegbarkeit ID') {
+                    $codes->google_export_availability_id = $i18n->getValue();
+                }
+            }
+        }
 
         if (count($checkCodes) > 0) {
             $this->db->updateRow($codes, 'products_item_codes', 'products_id', $codes->products_id);

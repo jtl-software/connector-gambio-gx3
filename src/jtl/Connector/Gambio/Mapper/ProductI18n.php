@@ -23,7 +23,8 @@ class ProductI18n extends BaseMapper
             "shortDescription" => "products_short_description",
             "titleTag" => "products_meta_title",
             "unitName" => null,
-            "deliveryStatus" => null
+            "deliveryStatus" => null,
+            "urlPath" => "gm_url_keywords"
         ),
         "mapPush" => array(
             "language_id" => null,
@@ -33,7 +34,8 @@ class ProductI18n extends BaseMapper
             "products_meta_description" => "metaDescription",
             "products_meta_keywords" => "metaKeywords",
             "products_short_description" => "shortDescription",
-            "products_meta_title" => "titleTag"
+            "products_meta_title" => "titleTag",
+            "gm_url_keywords" => "urlPath"
         )
     );
     

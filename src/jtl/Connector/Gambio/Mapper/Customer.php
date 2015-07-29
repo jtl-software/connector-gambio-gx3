@@ -11,6 +11,7 @@ class Customer extends BaseMapper
         "query" => "SELECT * FROM customers c
             LEFT JOIN address_book a ON c.customers_default_address_id = a.address_book_id
             LEFT JOIN countries co ON co.countries_id = a.entry_country_id
+            LEFT JOIN coupon_gv_customer g ON g.customer_id = c.customers_id
             LEFT JOIN jtl_connector_link l ON c.customers_id = l.endpointId AND l.type = 2
             WHERE l.hostId IS NULL && c.customers_status != 0
             ORDER BY c.customers_date_added",
@@ -36,7 +37,8 @@ class Customer extends BaseMapper
             "eMail" => "customers_email_address",
             "vatNumber" => "customers_vat_id",
             "hasNewsletterSubscription" => null,
-            "creationDate" => "customers_date_added"
+            "creationDate" => "customers_date_added",
+            "accountCredit" => "amount"
         ),
         "mapPush" => array(
             "customers_id" => "id",
@@ -110,6 +112,7 @@ class Customer extends BaseMapper
         if (!is_null($id)) {
             $this->db->query('DELETE FROM address_book WHERE customers_id='.$id);
             $this->db->query('DELETE FROM customers_info WHERE customers_info_id='.$id);
+            $this->db->query('DELETE FROM coupon_gv_customer WHERE customer_id='.$id);
         }
 
         $return = parent::push($data, $dbObj);
@@ -148,7 +151,14 @@ class Customer extends BaseMapper
         $infoObj = new \stdClass();
         $infoObj->customers_info_id = $insertResult->getKey();
         $this->db->insertRow($infoObj, 'customers_info');
-      
+
+        if ($data->getAccountCredit() > 0) {
+            $credit = new \stdClass();
+            $credit->customer_id = $insertResult->getKey();
+            $credit->amount = $data->getAccountCredit();
+            $this->db->insertRow($credit, 'coupon_gv_customer');
+        }
+
         return $return;
     }
 
@@ -158,6 +168,7 @@ class Customer extends BaseMapper
             $this->db->query('DELETE FROM customers WHERE customers_id='.$data->getId()->getEndpoint());
             $this->db->query('DELETE FROM address_book WHERE customers_id='.$data->getId()->getEndpoint());
             $this->db->query('DELETE FROM customers_info WHERE customers_info_id='.$data->getId()->getEndpoint());
+            $this->db->query('DELETE FROM coupon_gv_customer WHERE customer_id='.$data->getId()->getEndpoint());
     		
     		$this->db->query('DELETE FROM jtl_connector_link WHERE type=2 && endpointId='.$data->getId()->getEndpoint());
         }

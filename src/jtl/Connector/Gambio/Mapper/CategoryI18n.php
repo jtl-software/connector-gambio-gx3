@@ -18,7 +18,8 @@ class CategoryI18n extends \jtl\Connector\Gambio\Mapper\BaseMapper
             "description" => "categories_description",
             "metaDescription" => "categories_meta_description",
             "metaKeywords" => "categories_meta_keywords",
-            "titleTag" => "categories_meta_title"
+            "titleTag" => "categories_meta_title",
+            "urlPath" => "gm_url_keywords"
         ),
         "mapPush" => array(
             "language_id" => null,
@@ -28,6 +29,7 @@ class CategoryI18n extends \jtl\Connector\Gambio\Mapper\BaseMapper
             "categories_meta_description" => "metaDescription",
             "categories_meta_keywords" => "metaKeywords",
             "categories_meta_title" => "titleTag",
+            "gm_url_keywords" => "urlPath",
             "categories_heading_title" => null
         )
     );
