@@ -90,8 +90,8 @@ class Product extends BaseMapper
             "ProductAttr|addAttribute|true" => "attributes",
             "products_image" => null,
             "products_shippingtime" => null,
-            "gm_min_order" => "minimumOrderQuantity",
-            "gm_graduated_qty" => "packagingQuantity"
+            "gm_min_order" => null,
+            "gm_graduated_qty" => null
         )
     );
 
@@ -318,6 +318,16 @@ class Product extends BaseMapper
         }
 
         return $data;
+    }
+
+    protected function gm_min_order($data)
+    {
+        return $data->getMinimumOrderQuantity() == 0 ? 1 : $data->getMinimumOrderQuantity();
+    }
+
+    protected function gm_graduated_qty($data)
+    {
+        return $data->getPackagingQuantity() == 0 ? 1 : $data->getPackagingQuantity();
     }
 
     protected function isMasterProduct($data)

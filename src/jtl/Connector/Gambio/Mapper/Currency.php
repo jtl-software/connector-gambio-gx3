@@ -33,7 +33,9 @@ class Currency extends BaseMapper
 
     public function push($data, $parent)
     {
-        if (!empty($data->getCurrencies())) {
+        $currencies = $data->getCurrencies();
+
+        if (!empty($currencies)) {
             foreach ($data->getCurrencies() as $currency) {
                 $check = $this->db->query('SELECT currencies_id FROM currencies WHERE code="' . $currency->getIso() . '"');
                 if (count($check) > 0) {
