@@ -58,7 +58,7 @@ class Product extends BaseMapper
             "varCombinations" => "ProductVarCombination|addVarCombination",
             "vat" => null,
             "isMasterProduct" => null,
-            "measurementUnitCode" => "quantity_unit_id",
+            "measurementUnitId" => "quantity_unit_id",
             "isbn" => "code_isbn",
             "manufacturerNumber" => "code_mpn",
             "upc" => "code_upc",
@@ -91,7 +91,8 @@ class Product extends BaseMapper
             "products_image" => null,
             "products_shippingtime" => null,
             "gm_min_order" => null,
-            "gm_graduated_qty" => null
+            "gm_graduated_qty" => null,
+            "gm_show_date_added" => null
         )
     );
 
@@ -265,9 +266,9 @@ class Product extends BaseMapper
         } else {
             $this->db->insertRow($codes, 'products_item_codes');
         }
-        
-        //$query = 'INSERT INTO products_quantity_unit SET products_id='.$data->getId()->getEndpoint().' quantity_unit_id='.intval($data->getMeasurementUnitCode());
-        //var_dump($query);
+
+        //$this->db->query('DELETE FROM products_quantity_unit WHERE products_id='.$data->getId()->getEndpoint());
+        //$this->db->query('INSERT INTO products_quantity_unit SET products_id='.$data->getId()->getEndpoint().', quantity_unit_id='.intval($data->getMeasurementUnitId()->getEndpoint()));
     }
 
     public function delete($data)
@@ -318,6 +319,11 @@ class Product extends BaseMapper
         }
 
         return $data;
+    }
+
+    protected function gm_show_date_added($data)
+    {
+        return $data->getAvailableFrom() > new \DateTime() ? 1 : 0;
     }
 
     protected function gm_min_order($data)

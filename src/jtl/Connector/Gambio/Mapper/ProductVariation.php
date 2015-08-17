@@ -7,6 +7,9 @@ use \jtl\Connector\Core\Logger\Logger;
 
 class ProductVariation extends BaseMapper
 {
+    private static $variationIds;
+    private static $valueIds;
+
     protected $mapperConfig = array(
         "table" => "products_properties_index",
         "query" => 'SELECT * FROM products_properties_index WHERE products_id=[[products_id]] GROUP BY properties_id',
@@ -139,7 +142,7 @@ class ProductVariation extends BaseMapper
 
                             // get product variation price for default customer group
                             foreach ($value->getExtraCharges() as $extraCharge) {
-                                if ($extraCharge->getCustomerGroupId()->getEndpoint() == $this->shopConfig['settings']['DEFAULT_CUSTOMERS_STATUS_ID']) {
+                                if ($extraCharge->getCustomerGroupId()->getEndpoint() == '') {
                                     $pVarObj->price_prefix = $extraCharge->getExtraChargeNet() < 0 ? '-' : '+';
                                     $pVarObj->options_values_price = abs($extraCharge->getExtraChargeNet());
                                 }
@@ -155,6 +158,8 @@ class ProductVariation extends BaseMapper
 
                     $this->clearUnusedVariations();
                 } elseif ($parent->getIsMasterProduct() === true) {
+                    $this->db->query('DELETE FROM products_attributes WHERE products_id='.$parent->getId()->getEndpoint());
+
                     foreach ($parent->getVariations() as $variation) {
                         // get variation name in default language
                         foreach ($variation->getI18ns() as $i18n) {
@@ -245,9 +250,11 @@ class ProductVariation extends BaseMapper
                     $combi->combi_model = $parent->getSku();
                     $combi->combi_ean = $parent->getEan();
                     $combi->combi_quantity = $parent->getStockLevel()->getStockLevel();
-                    $combi->combi_shipping_status_id = 0;
+                    $combi->combi_shipping_status_id = $this->getShippingtime($parent);
                     $combi->combi_weight = $parent->getProductWeight();
                     $combi->combi_price_type = 'fix';
+                    $combi->vpe_value = $parent->getBasePriceDivisor();
+                    $combi->products_vpe_id = $this->getVpe($parent);
 
                     foreach ($parent->getPrices() as $price) {
                         if (is_null($price->getCustomerGroupId()->getEndpoint()) || $price->getCustomerGroupId()->getEndpoint() == '') {
@@ -262,6 +269,8 @@ class ProductVariation extends BaseMapper
                     $combi->products_properties_combis_id = $result->getKey();
 
                     foreach ($parent->getVariations() as $variation) {
+                        $variation->getId()->setEndpoint($this->getVariationId($variation));
+
                         $varI18ns = array();
                         foreach ($variation->getI18ns() as $varI18n) {
                             $langId = $this->locale2id($varI18n->getLanguageISO());
@@ -275,7 +284,7 @@ class ProductVariation extends BaseMapper
                                 $index->language_id = $this->locale2id($i18n->getLanguageISO());
                                 $index->properties_id = $variation->getId()->getEndpoint();
                                 $index->products_properties_combis_id = $combi->products_properties_combis_id;
-                                $index->properties_values_id = $value->getId()->getEndpoint();
+                                $index->properties_values_id = $this->getValueId($value, $variation);
                                 $index->properties_name = $varI18ns[$index->language_id];
                                 $index->properties_sort_order = $variation->getSort();
                                 $index->values_name = $i18n->getName();
@@ -286,7 +295,7 @@ class ProductVariation extends BaseMapper
 
                             $combiValue = new \stdClass();
                             $combiValue->products_properties_combis_id = $combi->products_properties_combis_id;
-                            $combiValue->properties_values_id = $value->getId()->getEndpoint();
+                            $combiValue->properties_values_id = $this->getValueId($value, $variation);
 
                             $this->db->deleteInsertRow($combiValue, 'products_properties_combis_values', array('products_properties_combis_id', 'properties_values_id'), array($combiValue->products_properties_combis_id, $combiValue->properties_values_id));
                         }
@@ -302,6 +311,114 @@ class ProductVariation extends BaseMapper
         }
 
         return $parent->getVariations();
+    }
+
+    private function getVariationId($variation)
+    {
+        if (isset(static::$variationIds[$variation->getId()->getHost()])) {
+            return static::$variationIds[$variation->getId()->getHost()];
+        } else {
+            foreach ($variation->getI18ns() as $i18n) {
+                if ($i18n->getLanguageISO() == $this->fullLocale($this->shopConfig['settings']['DEFAULT_LANGUAGE'])) {
+                    $varName = $i18n->getName();
+                }
+            }
+
+            $variationIdQuery = $this->db->query('SELECT properties_id FROM properties_description WHERE properties_name="' . $varName . '"');
+
+            if (count($variationIdQuery) > 0) {
+                static::$variationIds[$variation->getId()->getHost()] = $variationIdQuery[0]['properties_id'];
+
+                return $variationIdQuery[0]['properties_id'];
+            }
+        }
+
+        return false;
+    }
+
+    private function getValueId($value, $variation)
+    {
+        if (isset(static::$valueIds[$value->getId()->getHost()])) {
+            return static::$valueIds[$value->getId()->getHost()];
+        } else {
+            foreach ($value->getI18ns() as $i18n) {
+                if ($i18n->getLanguageISO() == $this->fullLocale($this->shopConfig['settings']['DEFAULT_LANGUAGE'])) {
+                    $valueName = $i18n->getName();
+                    $langId = $this->locale2id($i18n->getLanguageISO());
+                    break;
+                }
+            }
+
+            $valueIdQuery = $this->db->query('SELECT v.properties_values_id
+                FROM properties_values_description d
+                LEFT JOIN properties_values v ON v.properties_values_id=d.properties_values_id
+                LEFT JOIN properties p ON p.properties_id=v.properties_id
+                WHERE p.properties_id=' . $this->getVariationId($variation) . ' && d.language_id=' . $langId . ' && d.values_name="' . $valueName . '"');
+
+            if (count($valueIdQuery) > 0) {
+                static::$valueIds[$value->getId()->getHost()] = $valueIdQuery[0]['properties_values_id'];
+
+                return $valueIdQuery[0]['properties_values_id'];
+            }
+        }
+
+        return false;
+    }
+
+    private function getVpe($data)
+    {
+        foreach ($data->getI18ns() as $i18n) {
+            $name = $i18n->getUnitName();
+
+            if (!empty($name)) {
+                $language_id = $this->locale2id($i18n->getLanguageISO());
+                $dbResult = $this->db->query('SELECT code FROM languages WHERE languages_id='.$language_id);
+
+                if ($dbResult[0]['code'] == $this->shopConfig['settings']['DEFAULT_LANGUAGE']) {
+                    $sql = $this->db->query('SELECT products_vpe_id FROM products_vpe WHERE language_id='.$language_id.' && products_vpe_name="'.$name.'"');
+                    if (count($sql) > 0) {
+                        return $sql[0]['products_vpe_id'];
+                    }
+                }
+            }
+        }
+
+        return 0;
+    }
+
+    private function getShippingtime($data)
+    {
+        foreach ($data->getI18ns() as $i18n) {
+            $name = $i18n->getDeliveryStatus();
+
+            if (!empty($name)) {
+                $language_id = $this->locale2id($i18n->getLanguageISO());
+                $dbResult = $this->db->query('SELECT code FROM languages WHERE languages_id='.$language_id);
+
+                if ($dbResult[0]['code'] == $this->shopConfig['settings']['DEFAULT_LANGUAGE']) {
+                    $sql = $this->db->query('SELECT shipping_status_id FROM shipping_status WHERE language_id='.$language_id.' && shipping_status_name="'.$name.'"');
+                    if (count($sql) > 0) {
+                        return $sql[0]['shipping_status_id'];
+                    } else {
+                        $nextId = $this->db->query('SELECT max(shipping_status_id) + 1 AS nextID FROM shipping_status');
+                        $id = is_null($nextId[0]['nextID']) || $nextId[0]['nextID'] === 0 ? 1 : $nextId[0]['nextID'];
+
+                        foreach ($data->getI18ns() as $i18n) {
+                            $status = new \stdClass();
+                            $status->shipping_status_id = $id;
+                            $status->language_id = $this->locale2id($i18n->getLanguageISO());
+                            $status->shipping_status_name = $i18n->getDeliveryStatus();
+
+                            $this->db->deleteInsertRow($status, 'shipping_status', array('shipping_status_id', 'langauge_id'), array($status->shipping_status_id, $status->language_id));
+                        }
+
+                        return $id;
+                    }
+                }
+            }
+        }
+
+        return 0;
     }
 
     private function clearUnusedVariations()

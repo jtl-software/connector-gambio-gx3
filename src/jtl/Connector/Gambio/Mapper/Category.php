@@ -26,11 +26,17 @@ class Category extends \jtl\Connector\Gambio\Mapper\BaseMapper
             "CategoryI18n|addI18n" => "i18ns",
             "CategoryInvisibility|addInvisibility|true" => "invisibilities",
             "CategoryAttr|addAttribute|true" => "attributes",
+            "last_modified" => null
         )
     );
 
     private $tree = array();
     private static $idCache = array();
+
+    protected function last_modified($data)
+    {
+        return date('Y-m-d H:m:i', time());
+    }
 
     protected function parentCategoryId($data)
     {
@@ -94,7 +100,8 @@ class Category extends \jtl\Connector\Gambio\Mapper\BaseMapper
     public function pushDone($model, $dbObj)
     {
         static::$idCache[$model->getId()->getHost()] = $model->getId()->getEndpoint();
-        array_map('unlink', glob($this->connectorConfig->connector_root.'/cache/*'));
+        $this->db->query('UPDATE categories SET date_added="'.date('Y-m-d H:m:i', time()).'" WHERE categories_id='.$model->getId()->getEndpoint().' && date_added IS NULL');
+        array_map('unlink', glob($this->shopConfig['shop']['path'].'cache/*'));
     }
 
     private function getChildren($ids = null, $level = 0, $limit)
