@@ -250,6 +250,7 @@ class Product extends BaseMapper
         $codes->code_isbn = $data->getIsbn();
         $codes->code_upc = $data->getUpc();
         $codes->code_mpn = $data->getManufacturerNumber();
+        $codes->expiration_date = $data->getMinBestBeforeDate()->format('Y-m-d H:i:s');
 
         foreach ($data->getAttributes() as $attr) {
             foreach ($attr->getI18ns() as $i18n) {
@@ -267,8 +268,49 @@ class Product extends BaseMapper
             $this->db->insertRow($codes, 'products_item_codes');
         }
 
-        //$this->db->query('DELETE FROM products_quantity_unit WHERE products_id='.$data->getId()->getEndpoint());
-        //$this->db->query('INSERT INTO products_quantity_unit SET products_id='.$data->getId()->getEndpoint().', quantity_unit_id='.intval($data->getMeasurementUnitId()->getEndpoint()));
+        $this->updateMeasurementId($data);
+    }
+
+    private function updateMeasurementId($data)
+    {
+        $id = null;
+
+        foreach ($data->getI18ns() as $i18n) {
+            $language_id = $this->locale2id($i18n->getLanguageISO());
+
+            $dbResult = $this->db->query('SELECT code FROM languages WHERE languages_id='.$language_id);
+
+            if ($dbResult[0]['code'] == $this->shopConfig['settings']['DEFAULT_LANGUAGE']) {
+                $sql = $this->db->query('SELECT quantity_unit_id FROM quantity_unit_description WHERE language_id='.$language_id.' && unit_name="'.$i18n->getUnitName().'"');
+                if (count($sql) > 0) {
+                    $id = $sql[0]['quantity_unit_id'];
+                }
+            }
+        }
+
+        if (is_null($id)) {
+            $newUnit = new \stdClass();
+            $newUnit->quantity_unit_id = null;
+            $idResult = $this->db->insertRow($newUnit, 'quantity_unit');
+            $id = $idResult->getKey();
+        } else {
+            $this->db->query('DELETE FROM quantity_unit_description WHERE quantity_unit_id='.$id);
+        }
+
+        foreach ($data->getI18ns() as $i18n) {
+            $unit = new \stdClass();
+            $unit->language_id = $this->locale2id($i18n->getLanguageISO());
+            $unit->quantity_unit_id = $id;
+            $unit->unit_name = $i18n->getUnitName();
+
+            $this->db->insertRow($unit, 'quantity_unit_description');
+        }
+
+        $quantityProduct = new \stdClass();
+        $quantityProduct->products_id = $data->getId()->getEndpoint();
+        $quantityProduct->quantity_unit_id = $id;
+
+        $this->db->deleteInsertRow($quantityProduct, 'products_quantity_unit', 'products_id', $quantityProduct->products_id);
     }
 
     public function delete($data)
@@ -347,6 +389,7 @@ class Product extends BaseMapper
         return $data['products_vpe_status'] == 1 ? true : false;        
     }
 
+    /*
     protected function products_vpe($data)
     {
         foreach ($data->getI18ns() as $i18n) {
@@ -366,6 +409,42 @@ class Product extends BaseMapper
         }
 
         return '';
+    }
+    */
+
+    protected function products_vpe($data)
+    {
+        $name = $data->getBasePriceUnitName();
+
+        if (!empty($name)) {
+            foreach ($data->getI18ns() as $i18n) {
+                $language_id = $this->locale2id($i18n->getLanguageISO());
+                $dbResult = $this->db->query('SELECT code FROM languages WHERE languages_id=' . $language_id);
+
+                if ($dbResult[0]['code'] == $this->shopConfig['settings']['DEFAULT_LANGUAGE']) {
+                    $sql = $this->db->query('SELECT products_vpe_id FROM products_vpe WHERE language_id=' . $language_id . ' && products_vpe_name="' . $name . '"');
+                    if (count($sql) > 0) {
+                        return $sql[0]['products_vpe_id'];
+                    } else {
+                        $nextId = $this->db->query('SELECT max(products_vpe_id) + 1 AS nextID FROM products_vpe');
+                        $id = is_null($nextId[0]['nextID']) || $nextId[0]['nextID'] === 0 ? 1 : $nextId[0]['nextID'];
+
+                        foreach ($data->getI18ns() as $i18n) {
+                            $status = new \stdClass();
+                            $status->products_vpe_id = $id;
+                            $status->language_id = $this->locale2id($i18n->getLanguageISO());
+                            $status->products_vpe_name = $data->getBasePriceQuantity().' '.$name;
+
+                            $this->db->deleteInsertRow($status, 'products_vpe', array('products_vpe_id', 'language_id'), array($status->product_vpe_id, $status->language_id));
+                        }
+
+                        return $id;
+                    }
+                }
+            }
+        }
+
+        return 0;
     }
 
     protected function products_shippingtime($data)
@@ -391,7 +470,7 @@ class Product extends BaseMapper
                             $status->language_id = $this->locale2id($i18n->getLanguageISO());
                             $status->shipping_status_name = $i18n->getDeliveryStatus();
 
-                            $this->db->deleteInsertRow($status, 'shipping_status', array('shipping_status_id', 'langauge_id'), array($status->shipping_status_id, $status->language_id));
+                            $this->db->deleteInsertRow($status, 'shipping_status', array('shipping_status_id', 'language_id'), array($status->shipping_status_id, $status->language_id));
                         }
 
                         return $id;
