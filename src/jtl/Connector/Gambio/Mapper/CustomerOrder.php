@@ -23,7 +23,6 @@ class CustomerOrder extends BaseMapper
             "currencyIso" => "currency",
             "billingAddress" => "CustomerOrderBillingAddress|setBillingAddress",
             "shippingAddress" => "CustomerOrderShippingAddress|setShippingAddress",
-            "shippingMethodName" => "shipping_method",
             "items" => "CustomerOrderItem|addItem",
             "status" => null,
             "paymentStatus" => null
@@ -34,8 +33,8 @@ class CustomerOrder extends BaseMapper
             "date_purchased" => "creationDate",
             "comments" => "note",
             "orders_status" => null,
-            "payment_method" => null,
-            "payment_class" => null,
+            //"payment_method" => null,
+            //"payment_class" => null,
             "currency" => "currencyIso",
             "CustomerOrderBillingAddress|addBillingAddress|true" => "billingAddress",
             "CustomerOrderShippingAddress|addShippingAddress|true" => "shippingAddress",
@@ -53,7 +52,7 @@ class CustomerOrder extends BaseMapper
         'klarna_SpecCamp' => 'pm_klarna',
         'klarna_invoice' => 'pm_klarna',
         'klarna_partPayment' => 'pm_klarna',
-        'banktransfer' => 'pm_direct_debit',
+        'moneyorder' => 'pm_direct_debit',
         'cod' => 'pm_cash_on_delivery',
         'paypal' => 'pm_paypal_standard',
         'paypal_ipn' => 'pm_paypal_standard',
@@ -68,7 +67,7 @@ class CustomerOrder extends BaseMapper
         'moneybookers_sft' => 'pm_skrill_sft',
         'moneybookers_wlt' => 'pm_skrill_wlt',
         'invoice' => 'pm_invoice',
-        'pn_sofortueberweisung' => 'pm_sofort',
+        'sofort_sofortueberweisung' => 'pm_sofort',
         'worldpay' => 'pm_worldpay'
     );
 
@@ -147,7 +146,8 @@ class CustomerOrder extends BaseMapper
 
     protected function paymentModuleCode($data)
     {
-        return $this->paymentMapping[$data['payment_method']];
+        return $data['payment_method'];
+        //return $this->paymentMapping[$data['payment_method']];
     }
 
     protected function payment_method($data)
@@ -236,6 +236,7 @@ class CustomerOrder extends BaseMapper
             if ($total['class'] == 'ot_shipping') {
                 $shipping->setPrice(floatval($total['value']));
                 $shipping->setName($total['title']);
+                $model->setShippingMethodName($total['title']);
             }
             if ($total['class'] == 'ot_payment') {
                 $discount = new \jtl\Connector\Model\CustomerOrderItem();
