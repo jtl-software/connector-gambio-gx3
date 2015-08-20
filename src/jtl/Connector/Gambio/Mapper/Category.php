@@ -145,7 +145,7 @@ class Category extends \jtl\Connector\Gambio\Mapper\BaseMapper
             }
         }
 
-        array_map('unlink', glob($this->connectorConfig->connector_root.'/cache/*'));
+        array_map('unlink', glob($this->shopConfig['shop']['path'].'cache/*'));
 
         return $data;
     }

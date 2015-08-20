@@ -391,7 +391,7 @@ class Product extends BaseMapper
 
     protected function products_vpe($data)
     {
-        $name = $data->getBasePriceUnitName();
+        $name = $data->getBasePriceQuantity().' '.$data->getBasePriceUnitName();
 
         if (!empty($name)) {
             foreach ($data->getI18ns() as $i18n) {
@@ -410,7 +410,7 @@ class Product extends BaseMapper
                             $status = new \stdClass();
                             $status->products_vpe_id = $id;
                             $status->language_id = $this->locale2id($i18n->getLanguageISO());
-                            $status->products_vpe_name = $data->getBasePriceQuantity().' '.$name;
+                            $status->products_vpe_name = $name;
 
                             $this->db->deleteInsertRow($status, 'products_vpe', array('products_vpe_id', 'language_id'), array($status->product_vpe_id, $status->language_id));
                         }
