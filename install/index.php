@@ -20,14 +20,35 @@
     </style>
   </head>
   <body>
-    <?php
-        include('../index.php');
-
-        use \jtl\Connector\Gambio\Installer\Installer;
-    ?>
     <div class="container">
         <br>
         <br>
+        <?php
+        $errors = array();
+
+        if (!is_writable(sys_get_temp_dir())) {
+            $errors[] = 'Das temporäre Verzeichnis "'.sys_get_temp_dir().'" ist nicht beschreibbar.';
+        }
+
+        if (!extension_loaded('phar')) {
+            $errors[] = 'Die notwendige PHP Extension für PHAR-Archive ist nicht installiert.';
+        }
+
+        if (extension_loaded('suhosin')) {
+            if (strpos(ini_get('suhosin.executor.include.whitelist'),'phar') === false) {
+                $errors[] = 'Die PHP Extension Suhosin ist installiert, unterbindet jedoch die notwendige Verwendung von PHAR-Archiven.';
+            }
+        }
+
+        if (count($errors) > 0) {
+            echo '<div class="alert alert-danger"><b>Die Installation des JTL Connectors ist aufgrund folgender Probleme in der Server-Konfiguration derzeit nicht möglich:</b><ul>';
+            foreach ($errors as $error) {
+                echo '<li>'.$error.'</li>';
+            }
+            echo '</ul></div>';
+        } else {
+            include('../index.php');
+        ?>
         <div class="panel panel-primary">
             <div class="panel-heading">
                 <h3 class="panel-title">
@@ -36,36 +57,15 @@
             </div>
             <div class="panel-body">
                 <form class="form-horizontal" role="form" method="post">
-                    <?php                       
-                    $errors = array();
-
-                    if (!is_writable(sys_get_temp_dir())) {
-                        $errors[] = 'Das temporäre Verzeichnis "'.sys_get_temp_dir().'" ist nicht beschreibbar.';
-                    }
-                    
-                    if (!extension_loaded('phar')) {
-                        $errors[] = 'Die notwendige PHP Extension für PHAR-Archive ist nicht installiert.';
-                    }
-
-                    if (extension_loaded('suhosin')) {
-                        if (strpos(ini_get('suhosin.executor.include.whitelist'),'phar') === false) {
-                            $errors[] = 'Die PHP Extension Suhosin ist installiert, unterbindet jedoch die notwendige Verwendung von PHAR-Archiven.';
-                        }
-                    }
-                    
-                    if (count($errors) > 0) {
-                        echo '<div class="alert alert-danger"><b>Die Installation des JTL Connectors ist aufgrund folgender Probleme in der Server-Konfiguration derzeit nicht möglich:</b><ul>';
-                        foreach ($errors as $error) {
-                            echo '<li>'.$error.'</li>';
-                        }
-                        echo '</ul></div>';     
-                    } else {
-                        new Installer();
-                    }
+                    <?php
+                        new \jtl\Connector\Gambio\Installer\Installer();
                     ?>
                 </form>
             </div>
         </div>
+        <?php
+        }
+        ?>
     </div>
 
     <script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
