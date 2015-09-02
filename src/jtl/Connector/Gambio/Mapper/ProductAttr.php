@@ -154,7 +154,7 @@ class ProductAttr extends BaseMapper
             $attr = new ProductAttrModel();
             $attr->setProductId(new Identity($data['products_id']));
             $attr->setId(new Identity($attrData['additional_field_id']));
-            $attr->setIsTranslated(boolval($attrData['multilingual']));
+            $attr->setIsTranslated((bool) $attrData['multilingual']);
             $attr->setIsCustomProperty(true);
 
             $multiLang = $attr->getIsTranslated() ? ' AND d.language_id = v.language_id' : '';
