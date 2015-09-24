@@ -24,7 +24,7 @@ class ProductVariation extends BaseMapper
         )
     );
 
-    public function pull($data, $limit)
+    public function pull($data = null, $limit = null)
     {
         $checkCombi = $this->db->query('SELECT products_properties_combis_id FROM products_properties_index WHERE products_id='.$data['products_id']);
 

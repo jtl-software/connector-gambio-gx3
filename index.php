@@ -7,13 +7,10 @@ use \jtl\Connector\Gambio\Gambio;
 defined('CONNECTOR_DIR') || define("CONNECTOR_DIR", __DIR__);
 defined("CONNECTOR_VERSION") || define("CONNECTOR_VERSION", file_get_contents(__DIR__.'/version'));
 
-try {
-    if (!strpos($_SERVER['REQUEST_URI'], 'install')) {
-        $connector = Gambio::getInstance();
-        $application = Application::getInstance();
-        $application->register($connector);
-        $application->run();
-    }
-} catch (\Exception $exc) {
-    $connector->exceptionHandler($exc);
+
+if (!strpos($_SERVER['REQUEST_URI'], 'install')) {
+    $connector = Gambio::getInstance();
+    $application = Application::getInstance();
+    $application->register($connector);
+    $application->run();
 }

@@ -31,7 +31,7 @@ class Currency extends BaseMapper
         )
     );
 
-    public function push($data, $parent)
+    public function push($data, $dbObj = null)
     {
         $currencies = $data->getCurrencies();
 
@@ -43,7 +43,7 @@ class Currency extends BaseMapper
                 }
             }
 
-            return parent::push($data, $parent);
+            return parent::push($data, $dbObj);
         }
     }
 

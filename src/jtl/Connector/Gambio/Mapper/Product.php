@@ -96,7 +96,7 @@ class Product extends BaseMapper
         )
     );
 
-    public function pull($data, $limit = null)
+    public function pull($data = null, $limit = null)
     {
         $return = parent::pull($data, $limit);
 
