@@ -407,4 +407,16 @@ class BaseMapper
     {
         return new Identity($id);
     }
+
+    public function cleanName($name, $p_replace = '-')
+    {
+        $search_array  = array('ä', 'Ä', 'ö', 'Ö', 'ü', 'Ü', '&auml;', '&Auml;', '&ouml;', '&Ouml;', '&uuml;', '&Uuml;', 'ß', '&szlig;');
+        $replace_array = array('ae', 'Ae', 'oe', 'Oe', 'ue', 'Ue', 'ae', 'Ae', 'oe', 'Oe', 'ue', 'Ue', 'ss', 'ss');
+        $name          = str_replace($search_array, $replace_array, $name);
+
+        $replace_param = '/[^a-zA-Z0-9]/';
+        $name          = preg_replace($replace_param, $p_replace, $name);
+
+        return $name;
+    }
 }

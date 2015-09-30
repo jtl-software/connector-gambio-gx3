@@ -35,7 +35,7 @@ class ProductI18n extends BaseMapper
             "products_meta_keywords" => "metaKeywords",
             "products_short_description" => "shortDescription",
             "products_meta_title" => "titleTag",
-            "gm_url_keywords" => "urlPath"
+            "gm_url_keywords" => null
         )
     );
     
@@ -86,5 +86,10 @@ class ProductI18n extends BaseMapper
         }
 
         return parent::push($parent, $dbObj);
+    }
+
+    protected function gm_url_keywords($data)
+    {
+        return $this->cleanName($data->getUrlPath());
     }
 }

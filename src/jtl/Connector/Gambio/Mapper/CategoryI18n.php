@@ -29,7 +29,7 @@ class CategoryI18n extends \jtl\Connector\Gambio\Mapper\BaseMapper
             "categories_meta_description" => "metaDescription",
             "categories_meta_keywords" => "metaKeywords",
             "categories_meta_title" => "titleTag",
-            "gm_url_keywords" => "urlPath",
+            "gm_url_keywords" => null,
             "categories_heading_title" => null
         )
     );
@@ -64,5 +64,10 @@ class CategoryI18n extends \jtl\Connector\Gambio\Mapper\BaseMapper
         }
 
         return '';
+    }
+
+    protected function gm_url_keywords($data)
+    {
+        return $this->cleanName($data->getUrlPath());
     }
 }
