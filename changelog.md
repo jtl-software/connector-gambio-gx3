@@ -1,3 +1,9 @@
+1.2
+------
+- [17de93b]
+  fixed deletion of custom fields
+  removed old config
+
 1.1
 ------
 - [3164d7b]
