@@ -100,108 +100,112 @@ class Product extends BaseMapper
     {
         $return = parent::pull($data, $limit);
 
-        $combis = $this->db->query('
+        if (count($return) < $limit) {
+            $limitQuery = isset($limit) ? ' LIMIT '.$limit : '';
+
+            $combis = $this->db->query('
             SELECT c.*,p.products_price 
             FROM products_properties_combis c 
             LEFT JOIN products p ON p.products_id=c.products_id 
             LEFT JOIN jtl_connector_link l ON CONCAT(c.products_id,"_",c.products_properties_combis_id) = l.endpointId AND l.type = 64 
-            WHERE l.hostId IS NULL');
+            WHERE l.hostId IS NULL'.$limitQuery);
 
-        foreach ($combis as $combi) {
-            $varcombi = new ProductModel();
-            $varcombi->setMasterProductId($this->identity($combi['products_id']));
-            $varcombi->setId($this->identity($combi['products_id'].'_'.$combi['products_properties_combis_id']));
-            $varcombi->setSku($combi['combi_model']);
-            $varcombi->setEan($combi['combi_ean']);
-            $varcombi->setProductWeight(floatval($combi['combi_weight']));
-            $varcombi->setSort(intval($combi['sort_order']));
-            $varcombi->setConsiderStock(true);
-            $varcombi->setConsiderVariationStock(true);
+            foreach ($combis as $combi) {
+                $varcombi = new ProductModel();
+                $varcombi->setMasterProductId($this->identity($combi['products_id']));
+                $varcombi->setId($this->identity($combi['products_id'] . '_' . $combi['products_properties_combis_id']));
+                $varcombi->setSku($combi['combi_model']);
+                $varcombi->setEan($combi['combi_ean']);
+                $varcombi->setProductWeight(floatval($combi['combi_weight']));
+                $varcombi->setSort(intval($combi['sort_order']));
+                $varcombi->setConsiderStock(true);
+                $varcombi->setConsiderVariationStock(true);
 
-            $i18nStatus = $this->db->query('SELECT * FROM shipping_status WHERE shipping_status_id='.$combi['combi_shipping_status_id']);
+                $i18nStatus = $this->db->query('SELECT * FROM shipping_status WHERE shipping_status_id=' . $combi['combi_shipping_status_id']);
 
-            foreach ($i18nStatus as $status) {
-                $i18n = new ProductI18nModel();
-                $i18n->setProductId($varcombi->getId());
-                $i18n->setDeliveryStatus($status['shipping_status_name']);
-                $i18n->setLanguageISO($this->id2locale($status['language_id']));
-                $varcombi->addI18n($i18n);
-            }
-
-            $stockLevel = new ProductStockLevelModel();
-            $stockLevel->setProductId($varcombi->getId());
-            $stockLevel->setStockLevel(floatval($combi['combi_quantity']));
-
-            $varcombi->setStockLevel($stockLevel);
-
-            $default = new ProductPriceModel();
-            $default->setId($this->identity($varcombi->getId()->getEndpoint().'_default'));
-            $default->setProductId($varcombi->getId());
-            $default->setCustomerGroupId($this->identity(null));
-
-            $defaultItem = new ProductPriceItemModel();
-            $defaultItem->setProductPriceId($default->getId());
-            $price = $combi['combi_price_type'] === 'calc' ? floatval($combi['products_price']) + floatval($combi['combi_price']) : floatval($combi['combi_price']);
-            $defaultItem->setNetPrice($price);
-
-            $default->addItem($defaultItem);
-
-            $varcombi->setprices(array($default));
-
-            $variationQuery = $this->db->query('SELECT * FROM products_properties_index WHERE products_properties_combis_id='.$combi['products_properties_combis_id']);
-
-            $variations = array();
-
-            foreach ($variationQuery as $variation) {
-                if (!isset($variations[$variation['properties_id']])) {
-                    $variations[$variation['properties_id']] = $variation;                  
-                } 
-                
-                $variations[$variation['properties_id']]['i18ns'][$variation['language_id']] = array($variation['properties_name'], $variation['values_name']);                
-            }
-
-            $variationsArray = array();
-
-            foreach ($variations as $variation) {
-                $varModel = new ProductVariationModel();
-                $varModel->setId($this->identity($variation['properties_id']));
-                $varModel->setProductId($varcombi->getId());
-                $varModel->setSort(intval($variation['properties_sort_order']));
-
-                $varValueModel = new ProductVariationValueModel();
-                $varValueModel->setId($this->identity($variation['properties_values_id']));
-                $varValueModel->setProductVariationId($varModel->getId());
-                $varValueModel->setSort(intval($variation['value_sort_order']));
-
-                $variationI18ns = array();
-                $variationValueI18ns = array();
-
-                foreach ($variation['i18ns'] as $language => $names) {
-                    $variationI18n = new ProductVariationI18nModel();
-                    $variationI18n->setProductvariationId($varModel->getId());
-                    $variationI18n->setLanguageISO($this->id2locale($language));
-                    $variationI18n->setName($names[0]);
-
-                    $variationValueI18n = new ProductVariationValueI18nModel();
-                    $variationValueI18n->setProductvariationValueId($varValueModel->getId());
-                    $variationValueI18n->setLanguageISO($variationI18n->getLanguageISO());
-                    $variationValueI18n->setName($names[1]);
-
-                    $variationI18ns[] = $variationI18n;
-                    $variationValueI18ns[] = $variationValueI18n;
+                foreach ($i18nStatus as $status) {
+                    $i18n = new ProductI18nModel();
+                    $i18n->setProductId($varcombi->getId());
+                    $i18n->setDeliveryStatus($status['shipping_status_name']);
+                    $i18n->setLanguageISO($this->id2locale($status['language_id']));
+                    $varcombi->addI18n($i18n);
                 }
 
-                $varModel->setI18ns($variationI18ns);
-                $varValueModel->setI18ns($variationValueI18ns);
+                $stockLevel = new ProductStockLevelModel();
+                $stockLevel->setProductId($varcombi->getId());
+                $stockLevel->setStockLevel(floatval($combi['combi_quantity']));
 
-                $varModel->setValues(array($varValueModel));
+                $varcombi->setStockLevel($stockLevel);
 
-                $variationsArray[] = $varModel;
+                $default = new ProductPriceModel();
+                $default->setId($this->identity($varcombi->getId()->getEndpoint() . '_default'));
+                $default->setProductId($varcombi->getId());
+                $default->setCustomerGroupId($this->identity(null));
+
+                $defaultItem = new ProductPriceItemModel();
+                $defaultItem->setProductPriceId($default->getId());
+                $price = $combi['combi_price_type'] === 'calc' ? floatval($combi['products_price']) + floatval($combi['combi_price']) : floatval($combi['combi_price']);
+                $defaultItem->setNetPrice($price);
+
+                $default->addItem($defaultItem);
+
+                $varcombi->setprices(array($default));
+
+                $variationQuery = $this->db->query('SELECT * FROM products_properties_index WHERE products_properties_combis_id=' . $combi['products_properties_combis_id']);
+
+                $variations = array();
+
+                foreach ($variationQuery as $variation) {
+                    if (!isset($variations[$variation['properties_id']])) {
+                        $variations[$variation['properties_id']] = $variation;
+                    }
+
+                    $variations[$variation['properties_id']]['i18ns'][$variation['language_id']] = array($variation['properties_name'], $variation['values_name']);
+                }
+
+                $variationsArray = array();
+
+                foreach ($variations as $variation) {
+                    $varModel = new ProductVariationModel();
+                    $varModel->setId($this->identity($variation['properties_id']));
+                    $varModel->setProductId($varcombi->getId());
+                    $varModel->setSort(intval($variation['properties_sort_order']));
+
+                    $varValueModel = new ProductVariationValueModel();
+                    $varValueModel->setId($this->identity($variation['properties_values_id']));
+                    $varValueModel->setProductVariationId($varModel->getId());
+                    $varValueModel->setSort(intval($variation['value_sort_order']));
+
+                    $variationI18ns = array();
+                    $variationValueI18ns = array();
+
+                    foreach ($variation['i18ns'] as $language => $names) {
+                        $variationI18n = new ProductVariationI18nModel();
+                        $variationI18n->setProductvariationId($varModel->getId());
+                        $variationI18n->setLanguageISO($this->id2locale($language));
+                        $variationI18n->setName($names[0]);
+
+                        $variationValueI18n = new ProductVariationValueI18nModel();
+                        $variationValueI18n->setProductvariationValueId($varValueModel->getId());
+                        $variationValueI18n->setLanguageISO($variationI18n->getLanguageISO());
+                        $variationValueI18n->setName($names[1]);
+
+                        $variationI18ns[] = $variationI18n;
+                        $variationValueI18ns[] = $variationValueI18n;
+                    }
+
+                    $varModel->setI18ns($variationI18ns);
+                    $varValueModel->setI18ns($variationValueI18ns);
+
+                    $varModel->setValues(array($varValueModel));
+
+                    $variationsArray[] = $varModel;
+                }
+
+                $varcombi->setVariations($variationsArray);
+
+                $return[] = $varcombi;
             }
-
-            $varcombi->setVariations($variationsArray);
-            
-            $return[] = $varcombi;
         }
 
         return $return;

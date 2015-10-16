@@ -277,7 +277,7 @@ class Image extends BaseMapper
 
                 case ImageRelationType::TYPE_PRODUCT:
                     if ($data->getSort() == 0) {
-                        $oldImage = $this->db->query('SELECT products_image FROM products WHERE products_id = '.$data->getForeignKey()->getEndpoint());
+                        $oldImage = $this->db->query('SELECT products_image FROM products WHERE products_id = "'.$data->getForeignKey()->getEndpoint().'"');
                         $oldImage = $oldImage[0]['products_image'];
 
                         if (isset($oldImage)) {
@@ -285,7 +285,7 @@ class Image extends BaseMapper
                             $this->db->query('UPDATE products SET products_image="" WHERE products_id='.$data->getForeignKey()->getEndpoint());
                         }
 
-                        $additionalImages = $this->db->query('SELECT image_name FROM products_images WHERE products_id='.$data->getForeignKey()->getEndpoint());
+                        $additionalImages = $this->db->query('SELECT image_name FROM products_images WHERE products_id="'.$data->getForeignKey()->getEndpoint().'"');
 
                         foreach ($additionalImages as $image) {
                             if (!empty($image['image_name'])) {
@@ -299,7 +299,7 @@ class Image extends BaseMapper
 
                         $this->db->query('DELETE FROM products_images WHERE products_id='.$data->getForeignKey()->getEndpoint());
                     } elseif ($data->getSort() == 1) {
-                        $oldImage = $this->db->query('SELECT products_image FROM products WHERE products_id = '.$data->getForeignKey()->getEndpoint());
+                        $oldImage = $this->db->query('SELECT products_image FROM products WHERE products_id = "'.$data->getForeignKey()->getEndpoint().'"');
                         $oldImage = $oldImage[0]['products_image'];
 
                         if (isset($oldImage)) {

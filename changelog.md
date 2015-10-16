@@ -1,5 +1,8 @@
 1.2
 ------
+- [7d05da5]
+  updated changelog
+
 - [17de93b]
   fixed deletion of custom fields
   removed old config

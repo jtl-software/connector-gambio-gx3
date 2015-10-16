@@ -44,6 +44,7 @@ class Gambio extends BaseConnector
         }
 
         $db->setNames();
+        $db->setCharset();
 
         if (!isset($session->shopConfig['settings'])) {
             $session->shopConfig += $this->readConfigDb($db);

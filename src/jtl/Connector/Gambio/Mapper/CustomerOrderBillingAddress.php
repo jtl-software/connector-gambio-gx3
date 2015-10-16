@@ -13,7 +13,7 @@ class CustomerOrderBillingAddress extends BaseMapper
             "firstName" => "billing_firstname",
             "lastName" => "billing_lastname",
             "company" => "billing_company",
-            "street" => "billing_street_address",
+            "street" => null,
             "extraAddressLine" => "billing_suburb",
             "zipCode" => "billing_postcode",
             "city" => "billing_city",
@@ -81,5 +81,10 @@ class CustomerOrderBillingAddress extends BaseMapper
     protected function billing_name($data)
     {
         return $data->getFirstName().' '.$data->getLastName();
+    }
+
+    protected function street($data)
+    {
+        return utf8_encode($data['billing_street_address']);
     }
 }
