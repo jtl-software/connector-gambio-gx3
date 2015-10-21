@@ -43,8 +43,10 @@ class Gambio extends BaseConnector
             ));
         }
 
-        $db->setNames();
-        $db->setCharset();
+        if(!isset($session->connectorConfig->utf8) || $session->connectorConfig->utf8 !== '1') {
+            $db->setNames();
+            $db->setCharset();
+        }
 
         if (!isset($session->shopConfig['settings'])) {
             $session->shopConfig += $this->readConfigDb($db);

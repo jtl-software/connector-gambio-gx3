@@ -1,8 +1,15 @@
-1.2
+1.3
 ------
+- [324044a]
+  fixed encoding
+  fixed some invalid queries
+  improved variation performance
+
 - [7d05da5]
   updated changelog
 
+1.2
+------
 - [17de93b]
   fixed deletion of custom fields
   removed old config
