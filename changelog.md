@@ -1,5 +1,8 @@
 1.3
 ------
+- [7e3ed3c]
+  added utf8 encode option for hacked shops/themes
+
 - [324044a]
   fixed encoding
   fixed some invalid queries
