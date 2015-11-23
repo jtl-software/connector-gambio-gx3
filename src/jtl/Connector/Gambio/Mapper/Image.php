@@ -88,7 +88,7 @@ class Image extends BaseMapper
         if (get_class($data) === 'jtl\Connector\Model\Image') {
             switch ($data->getRelationType()) {
                 case ImageRelationType::TYPE_CATEGORY:
-                    $oldImage = $this->db->query('SELECT categories_image FROM categories WHERE categories_id = '.$data->getForeignKey()->getEndpoint());
+                    $oldImage = $this->db->query('SELECT categories_image FROM categories WHERE categories_id = "'.$data->getForeignKey()->getEndpoint().'"');
                     $oldImage = $oldImage[0]['categories_image'];
 
                     if (isset($oldImage)) {
@@ -111,7 +111,7 @@ class Image extends BaseMapper
                     break;
 
                 case ImageRelationType::TYPE_MANUFACTURER:
-                    $oldImage = $this->db->query('SELECT manufacturers_image FROM manufacturers WHERE manufacturers_id = '.$data->getForeignKey()->getEndpoint());
+                    $oldImage = $this->db->query('SELECT manufacturers_image FROM manufacturers WHERE manufacturers_id = "'.$data->getForeignKey()->getEndpoint().'"');
                     $oldImage = $oldImage[0]['manufacturers_image'];
 
                     if (isset($oldImage)) {
@@ -246,7 +246,7 @@ class Image extends BaseMapper
         if (get_class($data) === 'jtl\Connector\Model\Image') {          
             switch ($data->getRelationType()) {
                 case ImageRelationType::TYPE_CATEGORY:
-                    $oldImage = $this->db->query('SELECT categories_image FROM categories WHERE categories_id = '.$data->getForeignKey()->getEndpoint());
+                    $oldImage = $this->db->query('SELECT categories_image FROM categories WHERE categories_id = "'.$data->getForeignKey()->getEndpoint().'"');
                     $oldImage = $oldImage[0]['categories_image'];
 
                     if (isset($oldImage)) {
@@ -261,7 +261,7 @@ class Image extends BaseMapper
                     break;
 
                 case ImageRelationType::TYPE_MANUFACTURER:
-                    $oldImage = $this->db->query('SELECT manufacturers_image FROM manufacturers WHERE manufacturers_id = '.$data->getForeignKey()->getEndpoint());
+                    $oldImage = $this->db->query('SELECT manufacturers_image FROM manufacturers WHERE manufacturers_id = "'.$data->getForeignKey()->getEndpoint().'"');
                     $oldImage = $oldImage[0]['manufacturers_image'];
 
                     if (isset($oldImage)) {
@@ -282,7 +282,7 @@ class Image extends BaseMapper
 
                         if (isset($oldImage)) {
                             @unlink($this->shopConfig['shop']['path'].$this->shopConfig['img']['original'].$oldImage);
-                            $this->db->query('UPDATE products SET products_image="" WHERE products_id='.$data->getForeignKey()->getEndpoint());
+                            $this->db->query('UPDATE products SET products_image="" WHERE products_id="'.$data->getForeignKey()->getEndpoint().'"');
                         }
 
                         $additionalImages = $this->db->query('SELECT image_name FROM products_images WHERE products_id="'.$data->getForeignKey()->getEndpoint().'"');
@@ -297,7 +297,7 @@ class Image extends BaseMapper
                             }
                         }
 
-                        $this->db->query('DELETE FROM products_images WHERE products_id='.$data->getForeignKey()->getEndpoint());
+                        $this->db->query('DELETE FROM products_images WHERE products_id="'.$data->getForeignKey()->getEndpoint().'"');
                     } elseif ($data->getSort() == 1) {
                         $oldImage = $this->db->query('SELECT products_image FROM products WHERE products_id = "'.$data->getForeignKey()->getEndpoint().'"');
                         $oldImage = $oldImage[0]['products_image'];

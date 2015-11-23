@@ -1,5 +1,8 @@
 1.3
 ------
+- [bd35f1a]
+  added crossselling id
+
 - [7e3ed3c]
   added utf8 encode option for hacked shops/themes
 

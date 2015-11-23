@@ -1,7 +1,6 @@
 <?php
 namespace jtl\Connector\Gambio\Mapper;
 
-use jtl\Connector\Gambio\Mapper\BaseMapper;
 use jtl\Connector\Model\CustomerOrder as CustomerOrderModel;
 
 class CustomerOrder extends BaseMapper

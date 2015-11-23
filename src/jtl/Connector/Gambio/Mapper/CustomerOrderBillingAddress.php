@@ -1,7 +1,7 @@
 <?php
 namespace jtl\Connector\Gambio\Mapper;
 
-use jtl\Connector\Gambio\Mapper\BaseMapper;
+use jtl\Connector\Core\Utilities\Country;
 
 class CustomerOrderBillingAddress extends BaseMapper
 {
@@ -18,7 +18,7 @@ class CustomerOrderBillingAddress extends BaseMapper
             "zipCode" => "billing_postcode",
             "city" => "billing_city",
             "state" => "billing_state",
-            "countryIso" => "billing_country_iso_code_2",
+            "countryIso" => null,
             "eMail" => "customers_email_address",
             "phone" => "customers_telephone",
             "salutation" => null,
@@ -48,6 +48,11 @@ class CustomerOrderBillingAddress extends BaseMapper
             "customers_email_address" => "eMail"
         )
     );
+
+    protected function countryIso($data)
+    {
+        return Country::map(strtolower($data['billing_country_iso_code_2']));
+    }
 
     protected function salutation($data)
     {

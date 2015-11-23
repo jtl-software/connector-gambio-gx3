@@ -3,6 +3,7 @@ namespace jtl\Connector\Gambio\Mapper;
 
 use jtl\Connector\Gambio\Mapper\BaseMapper;
 use jtl\Connector\Core\Utilities\Language;
+use jtl\Connector\Core\Utilities\Country;
 
 class Customer extends BaseMapper
 {
@@ -85,7 +86,7 @@ class Customer extends BaseMapper
 
     protected function countryIso($data)
     {
-        return $this->fullLocale(strtolower($data['countries_iso_code_2']));
+        return Country::map(strtolower($data['countries_iso_code_2']));
     }
 
     protected function hasNewsletterSubscription($data)
