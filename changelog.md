@@ -1,5 +1,8 @@
 1.3
 ------
+- [335b99e]
+  fixed iso mappings
+
 - [bd35f1a]
   added crossselling id
 
