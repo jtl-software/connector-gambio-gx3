@@ -14,7 +14,7 @@ class CustomerOrderShippingAddress extends BaseMapper
             "firstName" => "delivery_firstname",
             "lastName" => "delivery_lastname",
             "company" => "delivery_company",
-            "street" => null,
+            "street" => "delivery_street_address",
             "extraAddressLine" => "delivery_suburb",
             "zipCode" => "delivery_postcode",
             "city" => "delivery_city",
@@ -71,9 +71,10 @@ class CustomerOrderShippingAddress extends BaseMapper
     {
         return $data->getFirstName().' '.$data->getLastName();
     }
-
+    /*
     protected function street($data)
     {
         return utf8_encode($data['delivery_street_address']);
     }
+    */
 }

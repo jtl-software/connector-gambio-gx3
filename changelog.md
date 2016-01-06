@@ -1,5 +1,8 @@
 1.3
 ------
+- [1829dde]
+  fixed additional costs/discounts for orders
+
 - [335b99e]
   fixed iso mappings
 
