@@ -12,7 +12,9 @@ class ProductAttr extends BaseMapper
         'gm_price_status' => 'Preis-Status',
         'gm_show_qty_info' => 'Lagerbestand anzeigen',
         'gm_show_weight' => 'Gewicht anzeigen',
-        'products_fsk18' => 'FSK 18'
+        'products_fsk18' => 'FSK 18',
+        'product_template' => 'Produkt Vorlage',
+        'options_template' => 'Optionen Vorlage'
     );
 
     public function pull($data = null, $limit = null) {

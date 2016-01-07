@@ -1,5 +1,8 @@
 1.3
 ------
+- [e95e3ae]
+  fixed utf8 encoding
+
 - [1829dde]
   fixed additional costs/discounts for orders
 
