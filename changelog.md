@@ -1,5 +1,8 @@
-1.3
+1.4
 ------
+- [ce87fe5]
+  added product templates
+
 - [e95e3ae]
   fixed utf8 encoding
 
@@ -15,6 +18,8 @@
 - [7e3ed3c]
   added utf8 encode option for hacked shops/themes
 
+1.3
+------
 - [324044a]
   fixed encoding
   fixed some invalid queries
