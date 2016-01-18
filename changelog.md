@@ -1,5 +1,8 @@
 1.4
 ------
+- [dce4316]
+  fixed image pull sort
+
 - [ce87fe5]
   added product templates
 
