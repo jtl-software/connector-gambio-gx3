@@ -156,9 +156,9 @@ class Check extends Module
                 CREATE TABLE IF NOT EXISTS jtl_connector_link (
                     endpointId varchar(64) NOT NULL,
                     hostId int(10) NOT NULL,
-                    type int(10),
-                    PRIMARY KEY (endpointId, hostId, type)
+                    type int(10)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+                ALTER TABLE jtl_connector_link ADD INDEX(endpointId), ADD INDEX(hostId), ADD INDEX(type);
             ";
 
             try {
@@ -168,6 +168,24 @@ class Check extends Module
             } catch (\Exception $e) {
                 return array(false);
             }
+        } else {
+            if (count($this->db->query('SHOW INDEX FROM jtl_connector_link WHERE Key_name = "PRIMARY"')) > 0) {
+                $this->db->query('ALTER TABLE jtl_connector_link DROP PRIMARY KEY');
+            }
+
+            if (count($this->db->query('SHOW INDEX FROM jtl_connector_link WHERE Key_name = "endpointId"')) == 0) {
+                $this->db->query('ALTER TABLE jtl_connector_link ADD INDEX(endpointId)');
+            }
+
+            if (count($this->db->query('SHOW INDEX FROM jtl_connector_link WHERE Key_name = "hostId"')) == 0) {
+                $this->db->query('ALTER TABLE jtl_connector_link ADD INDEX(hostId)');
+            }
+
+            if (count($this->db->query('SHOW INDEX FROM jtl_connector_link WHERE Key_name = "type"')) == 0) {
+                $this->db->query('ALTER TABLE jtl_connector_link ADD INDEX(type)');
+            }
+
+            return array(true);
         }
 
         return array(true);
