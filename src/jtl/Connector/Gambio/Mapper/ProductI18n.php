@@ -1,8 +1,6 @@
 <?php
 namespace jtl\Connector\Gambio\Mapper;
 
-use jtl\Connector\Gambio\Mapper\BaseMapper;
-
 class ProductI18n extends BaseMapper
 {
     protected $mapperConfig = array(

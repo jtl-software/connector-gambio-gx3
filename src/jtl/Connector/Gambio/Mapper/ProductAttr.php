@@ -36,7 +36,7 @@ class ProductAttr extends BaseMapper
             $attrs[] = $this->createAttr('google_export_availability_id', 'Google Verfuegbarkeit ID', $data['google_export_availability_id'], $data);
         }
 
-        $attrs = array_merge($attrs, $this->pullCustoms($data));
+        $attrs = array_merge($attrs, $this->pullCustoms($data), $this->pullMultiAttrs($data));
 
         return $attrs;
     }
@@ -199,5 +199,32 @@ class ProductAttr extends BaseMapper
         }
 
         return $customs;
+    }
+
+    private function pullMultiAttrs($data)
+    {
+        $multiData = $this->db->query('
+          SELECT language_id, checkout_information
+          FROM products_description
+          WHERE products_id="'.$data['products_id'].'" && checkout_information != ""');
+
+        if (count($multiData) > 0) {
+            $checkoutInfo = new ProductAttrModel();
+            $checkoutInfo->setId(new Identity('checkout_information'));
+            $checkoutInfo->setProductId(new Identity($data['products_id']));
+            $checkoutInfo->setIsTranslated(true);
+
+            foreach ($multiData as $i18nData) {
+                $i18n = new ProductAttrI18nModel();
+                $i18n->setProductAttrId($checkoutInfo->getId());
+                $i18n->setValue($i18nData['checkout_information']);
+                $i18n->setName('Wesentliche Produktmerkmale');
+                $i18n->setLanguageISO($this->id2locale($i18nData['language_id']));
+
+                $checkoutInfo->addI18n($i18n);
+            }
+
+            return array($checkoutInfo);
+        }
     }
 }

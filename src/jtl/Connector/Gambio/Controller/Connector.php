@@ -76,7 +76,7 @@ class Connector extends Controller
         $session = new SessionHelper("gambio");
         $config = $session->connectorConfig;
 
-        include($config->connector_root.'/release_info.php');
+        include($config->platform_root.'/release_info.php');
 
         $returnMegaBytes = function($value) {
             $value = trim($value);

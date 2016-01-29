@@ -206,10 +206,11 @@ class BaseMapper
                 if (!empty($checkEmpty)) {
                     if (isset($this->mapperConfig['identity'])) {
                         $currentId = $obj->{$this->mapperConfig['identity']}()->getEndpoint();
-                    }                    
+                    }
 
                     if (!empty($currentId)) {
                         $insertResult = $this->db->updateRow($dbObj, $this->mapperConfig['table'], $whereKey, $whereValue);
+
                         $insertResult->setKey($currentId);
                     } else {                    
                         $insertResult = $this->db->deleteInsertRow($dbObj, $this->mapperConfig['table'], $whereKey, $whereValue);
@@ -410,7 +411,7 @@ class BaseMapper
 
     public function cleanName($name, $p_replace = '-')
     {
-        $search_array  = array('ä', 'Ä', 'ö', 'Ö', 'ü', 'Ü', '&auml;', '&Auml;', '&ouml;', '&Ouml;', '&uuml;', '&Uuml;', 'ß', '&szlig;');
+        $search_array  = array('Ã¤', 'Ã„', 'Ã¶', 'Ã–', 'Ã¼', 'Ãœ', '&auml;', '&Auml;', '&ouml;', '&Ouml;', '&uuml;', '&Uuml;', 'ÃŸ', '&szlig;');
         $replace_array = array('ae', 'Ae', 'oe', 'Oe', 'ue', 'Ue', 'ae', 'Ae', 'oe', 'Oe', 'ue', 'Ue', 'ss', 'ss');
         $name          = str_replace($search_array, $replace_array, $name);
 
