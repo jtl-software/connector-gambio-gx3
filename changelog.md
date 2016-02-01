@@ -1,5 +1,10 @@
-1.4
+1.5
 ------
+- [d78603f]
+  fixed mapping table creation
+  fixed order item price
+  fixed endpoint version identify
+
 - [bb9c0d1]
   add link table index checks
 
@@ -9,6 +14,8 @@
 - [dce4316]
   fixed image pull sort
 
+1.4
+------
 - [ce87fe5]
   added product templates
 
