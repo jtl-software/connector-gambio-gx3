@@ -11,7 +11,6 @@ class Status extends Module
     private $defaultLanguage = null;
 
     private $jtlStats = array(
-        'pending' => 'In Bearbeitung',
         'paid' => 'Bezahlt',
         'shipped' => 'Versendet',
         'completed' => 'Bezahlt &amp; Versendet',

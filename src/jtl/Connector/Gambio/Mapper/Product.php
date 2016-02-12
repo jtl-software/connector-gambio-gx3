@@ -20,6 +20,7 @@ class Product extends BaseMapper
 
     protected $mapperConfig = array(
         "table" => "products",
+        /*
         "query" => "SELECT p.*, q.quantity_unit_id, c.code_isbn, c.code_mpn, c.code_upc, c.google_export_condition, c.google_export_availability_id, g.google_category
             FROM products p 
             LEFT JOIN products_quantity_unit q ON q.products_id = p.products_id
@@ -27,6 +28,7 @@ class Product extends BaseMapper
             LEFT JOIN products_google_categories g ON g.products_id = p.products_id
             LEFT JOIN jtl_connector_link l ON CONVERT(p.products_id, CHAR(16)) = l.endpointId COLLATE utf8_unicode_ci AND l.type = 64 
             WHERE l.hostId IS NULL",
+        */
         "where" => "products_id",
         "identity" => "getId",
         "mapPull" => array(
@@ -81,13 +83,13 @@ class Product extends BaseMapper
             "products_status" => "isActive",
             "products_startpage" => "isTopProduct",
             "products_tax_class_id" => null,
-            "ProductI18n|addI18n" => "i18ns",
             "Product2Category|addCategory" => "categories",
             "ProductPrice|addPrice" => "prices",
             "ProductSpecialPrice|addSpecialPrice" => "specialPrices",
             "ProductVariation|addVariation" => "variations",
             "ProductInvisibility|addInvisibility|true" => "invisibilities",
             "ProductAttr|addAttribute|true" => "attributes",
+            "ProductI18n|addI18n" => "i18ns",
             "products_image" => null,
             "products_shippingtime" => null,
             "gm_min_order" => null,
@@ -98,6 +100,22 @@ class Product extends BaseMapper
 
     public function pull($data = null, $limit = null)
     {
+        $this->mapperConfig['query'] = '
+          SELECT j . * , q.quantity_unit_id, c.code_isbn, c.code_mpn, c.code_upc, c.google_export_condition, c.google_export_availability_id, g.google_category
+          FROM (
+            SELECT p . *
+            FROM products p
+            LEFT JOIN jtl_connector_link l ON CONVERT( p.products_id, CHAR( 16 ) ) = l.endpointId
+            COLLATE utf8_unicode_ci
+            AND l.type=64
+            WHERE l.hostId IS NULL
+            LIMIT '.$limit.'
+          ) AS j
+          LEFT JOIN products_quantity_unit q ON q.products_id = j.products_id
+          LEFT JOIN products_item_codes c ON c.products_id = j.products_id
+          LEFT JOIN products_google_categories g ON g.products_id = j.products_id
+        ';
+
         $return = parent::pull($data, $limit);
 
         if (count($return) < $limit) {
@@ -263,6 +281,9 @@ class Product extends BaseMapper
                     $codes->google_export_condition = $i18n->getValue();
                 } elseif($i18n->getName() === 'Google Verfuegbarkeit ID') {
                     $codes->google_export_availability_id = $i18n->getValue();
+                } elseif($i18n->getName() === 'Wesentliche Produktmerkmale') {
+                    $language_id = $this->locale2id($i18n->getLanguageISO());
+                    $this->db->query('UPDATE products_description SET checkout_information="'.$i18n->getValue().'" WHERE products_id="'.$data->getId()->getEndpoint().'" && language_id='.$language_id);
                 }
             }
         }

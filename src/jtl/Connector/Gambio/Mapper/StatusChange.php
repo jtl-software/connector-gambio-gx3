@@ -1,7 +1,6 @@
 <?php
 namespace jtl\Connector\Gambio\Mapper;
 
-use jtl\Connector\Gambio\Mapper\BaseMapper;
 use jtl\Connector\Model\StatusChange as StatusChangeModel;
 use jtl\Connector\Model\CustomerOrder;
 

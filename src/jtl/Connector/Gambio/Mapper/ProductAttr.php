@@ -226,5 +226,7 @@ class ProductAttr extends BaseMapper
 
             return array($checkoutInfo);
         }
+
+        return array();
     }
 }

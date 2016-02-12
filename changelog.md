@@ -1,5 +1,8 @@
 1.5
 ------
+- [acde288]
+  added delivery note push (tracking codes)
+
 - [d78603f]
   fixed mapping table creation
   fixed order item price

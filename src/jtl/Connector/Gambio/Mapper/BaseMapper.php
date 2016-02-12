@@ -220,10 +220,11 @@ class BaseMapper
                         $obj->{$this->mapperConfig['identity']}()->setEndpoint($insertResult->getKey());
                     }
                 }
-
+                /*
                 if (method_exists(get_class($this), 'pushDone')) {
                     $this->pushDone($model, $dbObj, $obj);
                 }
+                */
             } else {
                 foreach ($dbObj as $key => $value) {
                     $parentDbObj->$key = $value;
@@ -248,6 +249,10 @@ class BaseMapper
                         }
                     }
                 }
+            }
+
+            if (method_exists(get_class($this), 'pushDone')) {
+                $this->pushDone($model, $dbObj, $obj);
             }
 
             $return[] = $model;
