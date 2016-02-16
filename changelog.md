@@ -1,8 +1,16 @@
-1.5
+1.6
 ------
+- [9a546a9]
+  improved product pull queries
+  added delivery tax rate
+  added order discounts
+  removed pending status
+
 - [acde288]
   added delivery note push (tracking codes)
 
+1.5
+------
 - [d78603f]
   fixed mapping table creation
   fixed order item price
