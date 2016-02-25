@@ -56,6 +56,10 @@ class Image extends BaseMapper
             FROM products p
             LEFT JOIN jtl_connector_link l ON CONCAT("pID_",p.products_id) = l.endpointId AND l.type = 16
             WHERE l.hostId IS NULL && p.products_image IS NOT NULL && p.products_image != ""';
+        $combisQuery = 'SELECT CONCAT("vID_",p.products_properties_combis_id) image_id, p.combi_image as image_name, CONCAT(p.products_id, "_", p.products_properties_combis_id) foreignKey, 1 image_nr, "product" type
+            FROM products_properties_combis p
+            LEFT JOIN jtl_connector_link l ON CONCAT("vID_",p.products_properties_combis_id) = l.endpointId AND l.type = 16
+            WHERE l.hostId IS NULL && p.combi_image IS NOT NULL && p.combi_image != ""';
         $categoriesQuery = 'SELECT CONCAT("cID_",p.categories_id) image_id, p.categories_image as image_name, p.categories_id foreignKey, "category" type, 1 image_nr
             FROM categories p
             LEFT JOIN jtl_connector_link l ON CONCAT("cID_",p.categories_id) = l.endpointId AND l.type = 16
@@ -67,10 +71,11 @@ class Image extends BaseMapper
 
         $dbResult = $this->db->query($query);
         $dbResultDefault = $this->db->query($defaultQuery);
+        $dbResultCombis = $this->db->query($combisQuery);
         $dbResultCategories = $this->db->query($categoriesQuery);
         $dbResultManufacturers = $this->db->query($manufacturersQuery);
 
-        $dbResult = array_merge($dbResult, $dbResultDefault, $dbResultCategories, $dbResultManufacturers);
+        $dbResult = array_merge($dbResult, $dbResultDefault, $dbResultCombis, $dbResultCategories, $dbResultManufacturers);
 
         $current = array_slice($dbResult, 0, $limit);
 
@@ -135,49 +140,70 @@ class Image extends BaseMapper
 
                 case ImageRelationType::TYPE_PRODUCT:
                     if ($data->getSort() == 1) {
-                        $imgId = $data->getId()->getEndpoint();
+                        if (strpos($data->getForeignKey()->getEndpoint(), '_') !== false) {
+                            $this->delete($data);
 
-                        if (!empty($imgId)) {
-                            $prevImgQuery = $this->db->query('SELECT image_name FROM products_images WHERE image_id = "'.$imgId.'"');
-                            if (count($prevImgQuery) > 0) {
-                                $prevImage = $prevImgQuery[0]['image_name'];
-                            }
+                            $combisId = explode('_', $data->getForeignKey()->getEndpoint());
+                            $combisId = $combisId[1];
 
-                            if (!empty($prevImage)) {
-                                @unlink($this->shopConfig['shop']['path'].$this->shopConfig['img']['original'].$prevImage);
-                                foreach ($this->thumbConfig as $folder => $sizes) {
-                                    unlink($this->shopConfig['shop']['path'].$this->shopConfig['img'][$folder].$prevImage);
+                            if (!empty($combisId)) {
+                                $imgFileName = substr($data->getFilename(), strrpos($data->getFilename(), '/') + 1);
+
+                                if (!rename($data->getFilename(), $this->shopConfig['shop']['path'] . 'images/product_images/properties_combis_images/' . $imgFileName)) {
+                                    throw new \Exception('Cannot move uploaded image file');
                                 }
+
+                                $combisObj = new \stdClass();
+                                $combisObj->combi_image = $imgFileName;
+
+                                $this->db->updateRow($combisObj, 'products_properties_combis', 'products_properties_combis_id', $combisId);
+                                $this->db->query('INSERT INTO jtl_connector_link SET hostId="'.$data->getId()->getHost().'", endpointId="vID_'.$combisId.'" , type=16');
+                            }
+                        } else {
+                            $imgId = $data->getId()->getEndpoint();
+
+                            if (!empty($imgId)) {
+                                $prevImgQuery = $this->db->query('SELECT image_name FROM products_images WHERE image_id = "' . $imgId . '"');
+                                if (count($prevImgQuery) > 0) {
+                                    $prevImage = $prevImgQuery[0]['image_name'];
+                                }
+
+                                if (!empty($prevImage)) {
+                                    @unlink($this->shopConfig['shop']['path'] . $this->shopConfig['img']['original'] . $prevImage);
+                                    foreach ($this->thumbConfig as $folder => $sizes) {
+                                        unlink($this->shopConfig['shop']['path'] . $this->shopConfig['img'][$folder] . $prevImage);
+                                    }
+                                }
+
+                                $this->db->query('DELETE FROM products_images WHERE image_id="' . $imgId . '"');
                             }
 
-                            $this->db->query('DELETE FROM products_images WHERE image_id="'.$imgId.'"');
+                            $oldImage = $this->db->query('SELECT products_image FROM products WHERE products_id = "' . $data->getForeignKey()->getEndpoint() . '"');
+                            $oldImage = $oldImage[0]['products_image'];
+
+                            if (!empty($oldImage)) {
+                                @unlink($this->shopConfig['shop']['path'] . $this->shopConfig['img']['original'] . $oldImage);
+                            }
+
+                            $imgFileName = substr($data->getFilename(), strrpos($data->getFilename(), '/') + 1);
+
+                            if (!rename($data->getFilename(), $this->shopConfig['shop']['path'] . $this->shopConfig['img']['original'] . $imgFileName)) {
+                                throw new \Exception('Cannot move uploaded image file');
+                            }
+
+                            $this->generateThumbs($imgFileName, $oldImage);
+
+                            $productsObj = new \stdClass();
+                            $productsObj->products_image = $imgFileName;
+
+                            $this->db->updateRow($productsObj, 'products', 'products_id', $data->getForeignKey()->getEndpoint());
+
+                            $data->getId()->setEndpoint('pID_' . $data->getForeignKey()->getEndpoint());
+
+                            $this->db->query('DELETE FROM jtl_connector_link WHERE endpointId="' . $data->getId()->getEndpoint() . '"');
+                            $this->db->query('DELETE FROM jtl_connector_link WHERE hostId=' . $data->getId()->getHost() . ' && type=16');
+                            $this->db->query('INSERT INTO jtl_connector_link SET hostId="' . $data->getId()->getHost() . '", endpointId="' . $data->getId()->getEndpoint() . '" , type=16');
                         }
-
-                        $oldImage = $this->db->query('SELECT products_image FROM products WHERE products_id = "'.$data->getForeignKey()->getEndpoint().'"');
-                        $oldImage = $oldImage[0]['products_image'];
-
-                        if (!empty($oldImage)) {
-                            @unlink($this->shopConfig['shop']['path'].$this->shopConfig['img']['original'].$oldImage);
-                        }
-
-                        $imgFileName = substr($data->getFilename(), strrpos($data->getFilename(), '/') + 1);
-
-                        if (!rename($data->getFilename(), $this->shopConfig['shop']['path'].$this->shopConfig['img']['original'].$imgFileName)) {
-                            throw new \Exception('Cannot move uploaded image file');
-                        }
-
-                        $this->generateThumbs($imgFileName, $oldImage);
-
-                        $productsObj = new \stdClass();
-                        $productsObj->products_image = $imgFileName;
-
-                        $this->db->updateRow($productsObj, 'products', 'products_id', $data->getForeignKey()->getEndpoint());
-
-                        $data->getId()->setEndpoint('pID_'.$data->getForeignKey()->getEndpoint());
-
-                        $this->db->query('DELETE FROM jtl_connector_link WHERE endpointId="'.$data->getId()->getEndpoint().'"');
-                        $this->db->query('DELETE FROM jtl_connector_link WHERE hostId='.$data->getId()->getHost().' && type=16');
-                        $this->db->query('INSERT INTO jtl_connector_link SET hostId="'.$data->getId()->getHost().'", endpointId="'.$data->getId()->getEndpoint().'" , type=16');
                     } else {
                         $oldImage = null;
                         $imgObj = new \stdClass();
@@ -299,17 +325,36 @@ class Image extends BaseMapper
 
                         $this->db->query('DELETE FROM products_images WHERE products_id="'.$data->getForeignKey()->getEndpoint().'"');
                     } elseif ($data->getSort() == 1) {
-                        $oldImage = $this->db->query('SELECT products_image FROM products WHERE products_id = "'.$data->getForeignKey()->getEndpoint().'"');
-                        $oldImage = $oldImage[0]['products_image'];
+                        if (strpos($data->getForeignKey()->getEndpoint(), '_') !== false) {
+                            $combisId = explode('_', $data->getForeignKey()->getEndpoint());
+                            $combisId = $combisId[1];
 
-                        if (isset($oldImage)) {
-                            @unlink($this->shopConfig['shop']['path'].$this->shopConfig['img']['original'].$oldImage);
+                            if (!empty($combisId)) {
+                                $oldCImage = $this->db->query('SELECT combi_image FROM products_properties_combis WHERE products_properties_combis_id = "' . $combisId . '"');
+                                $oldCImage = $oldCImage[0]['combi_image'];
+
+                                if (isset($oldCImage)) {
+                                    @unlink($this->shopConfig['shop']['path'] . 'images/product_images/properties_combis_images/' . $oldCImage);
+                                }
+
+                                $combisObj = new \stdClass();
+                                $combisObj->combi_image = null;
+
+                                $this->db->updateRow($combisObj, 'products_properties_combis', 'products_properties_combis_id', $combisId);
+                            }
+                        } else {
+                            $oldImage = $this->db->query('SELECT products_image FROM products WHERE products_id = "' . $data->getForeignKey()->getEndpoint() . '"');
+                            $oldImage = $oldImage[0]['products_image'];
+
+                            if (isset($oldImage)) {
+                                @unlink($this->shopConfig['shop']['path'] . $this->shopConfig['img']['original'] . $oldImage);
+                            }
+
+                            $productsObj = new \stdClass();
+                            $productsObj->products_image = null;
+
+                            $this->db->updateRow($productsObj, 'products', 'products_id', $data->getForeignKey()->getEndpoint());
                         }
-
-                        $productsObj = new \stdClass();
-                        $productsObj->products_image = null;
-
-                        $this->db->updateRow($productsObj, 'products', 'products_id', $data->getForeignKey()->getEndpoint());
                     } else {
                         if ($data->getId()->getEndpoint() != '') {
                             $oldImageQuery = $this->db->query('SELECT image_name FROM products_images WHERE image_id = "'.$data->getId()->getEndpoint().'"');
@@ -355,6 +400,17 @@ class Image extends BaseMapper
             WHERE l.hostId IS NULL
         ");
 
+        $combiQuery = $this->db->query("
+            SELECT p.*
+            FROM (
+                SELECT CONCAT('vID_',p.products_properties_combis_id) as imgId
+                FROM products_properties_combis p
+                WHERE p.combi_image IS NOT NULL && p.combi_image != ''
+            ) p
+            LEFT JOIN jtl_connector_link l ON p.imgId = l.endpointId AND l.type = 16
+            WHERE l.hostId IS NULL
+        ");
+
         $categoryQuery = $this->db->query("
             SELECT c.*
             FROM (
@@ -384,6 +440,7 @@ class Image extends BaseMapper
         ");
 
         $totalImages += count($productQuery);
+        $totalImages += count($combiQuery);
         $totalImages += count($categoryQuery);
         $totalImages += count($manufacturersQuery);
         $totalImages += count($imageQuery);
@@ -398,7 +455,11 @@ class Image extends BaseMapper
         } elseif ($data['type'] == ImageRelationType::TYPE_MANUFACTURER) {
             return $this->shopConfig['shop']['fullUrl'].'images/'.$data['image_name'];
         } else {
-            return $this->shopConfig['shop']['fullUrl'].$this->shopConfig['img']['original'].$data['image_name'];
+            if (strpos($data['image_id'], 'vID_') !== false) {
+                return $this->shopConfig['shop']['fullUrl'].'images/product_images/properties_combis_images/'.$data['image_name'];
+            } else {
+                return $this->shopConfig['shop']['fullUrl'] . $this->shopConfig['img']['original'] . $data['image_name'];
+            }
         }
     }
 

@@ -45,7 +45,7 @@ class Product extends BaseMapper
             "unitId" => null,
             "basePriceDivisor" => "products_vpe_value",
             "considerBasePrice" => null,
-            "isActive" => "products_status",
+            "isActive" => null,
             "isTopProduct" => "products_startpage",
             "considerStock" => null,
             "considerVariationStock" => null,
@@ -138,6 +138,7 @@ class Product extends BaseMapper
                 $varcombi->setSort(intval($combi['sort_order']));
                 $varcombi->setConsiderStock(true);
                 $varcombi->setConsiderVariationStock(true);
+                $varcombi->setIsActive(true);
 
                 $i18nStatus = $this->db->query('SELECT * FROM shipping_status WHERE shipping_status_id=' . $combi['combi_shipping_status_id']);
 
@@ -283,7 +284,7 @@ class Product extends BaseMapper
                     $codes->google_export_availability_id = $i18n->getValue();
                 } elseif($i18n->getName() === 'Wesentliche Produktmerkmale') {
                     $language_id = $this->locale2id($i18n->getLanguageISO());
-                    $this->db->query('UPDATE products_description SET checkout_information="'.$i18n->getValue().'" WHERE products_id="'.$data->getId()->getEndpoint().'" && language_id='.$language_id);
+                    $this->db->query('UPDATE products_description SET checkout_information="'.$this->db->escapeString($i18n->getValue()).'" WHERE products_id="'.$data->getId()->getEndpoint().'" && language_id='.$language_id);
                 }
             }
         }
@@ -387,6 +388,11 @@ class Product extends BaseMapper
         }
 
         return $data;
+    }
+
+    protected function isActive($data)
+    {
+        return true;
     }
 
     protected function gm_show_date_added($data)

@@ -1,5 +1,8 @@
 1.6
 ------
+- [9c4f2c5]
+  workaround for shipping name
+
 - [9a546a9]
   improved product pull queries
   added delivery tax rate
