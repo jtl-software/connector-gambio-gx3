@@ -70,7 +70,7 @@ class ProductI18n extends BaseMapper
             return $sql[0]['products_vpe_name'];
         }
     }
-
+/*
     public function push($parent, $dbObj = null)
     {
         $id = $parent->getId()->getEndpoint();
@@ -85,9 +85,84 @@ class ProductI18n extends BaseMapper
 
         return parent::push($parent, $dbObj);
     }
+*/
 
     protected function gm_url_keywords($data)
     {
         return $this->cleanName($data->getUrlPath());
+    }
+
+    public function push($parent, $dbObj = null)
+    {
+        $pId = $parent->getId()->getEndpoint();
+
+        if(!empty($pId)) {
+            $data = $parent->getI18ns();
+
+            $currentResults = $this->db->query('SELECT d.language_id FROM products_description d WHERE d.products_id="'.$pId.'"');
+
+            $current = array();
+
+            foreach ($currentResults as $cLang) {
+                $current[] = $cLang['language_id'];
+            }
+
+            $new = array();
+
+            foreach ($data as $obj) {
+                if (!$this->type) {
+                    $this->type = $obj->getModelType();
+                }
+
+                $dbObj = new \stdClass();
+
+                foreach ($this->mapperConfig['mapPush'] as $endpoint => $host) {
+                    if (is_null($host) && method_exists(get_class($this), $endpoint)) {
+                        $dbObj->$endpoint = $this->$endpoint($obj, null, $parent);
+                    } else {
+                        $value = null;
+
+                        $getMethod = 'get' . ucfirst($host);
+
+                        if (isset($obj) && method_exists($obj, $getMethod)) {
+                            $value = $obj->$getMethod();
+                        }
+
+                        if (isset($value)) {
+                            if ($this->type->getProperty($host)->isIdentity()) {
+                                $value = $value->getEndpoint();
+                            } else {
+                                $type = $this->type->getProperty($host)->getType();
+                                if ($type == "DateTime") {
+                                    $value = $value->format('Y-m-d H:i:s');
+                                } elseif ($type == "boolean") {
+                                    settype($value, "integer");
+                                }
+                            }
+
+                            $dbObj->$endpoint = $value;
+                        }
+                    }
+                }
+
+                $new[] = $dbObj;
+            }
+
+            foreach ($new as $newObj) {
+                $existsKey = array_search($newObj->language_id, $current);
+
+                if ($existsKey === false) {
+                    $this->db->deleteInsertRow($newObj, $this->mapperConfig['table'], array('products_id', 'language_id'), array($newObj->products_id, $newObj->language_id));
+                } else {
+                    $this->db->updateRow($newObj, $this->mapperConfig['table'], array('products_id', 'language_id'), array($newObj->products_id, $newObj->language_id));
+                }
+
+                unset($current[$existsKey]);
+            }
+
+            foreach ($current as $delId) {
+                $this->db->query('DELETE FROM '.$this->mapperConfig['table'].' WHERE products_id="'.$pId.'" && language_id="'.$delId.'"');
+            }
+        }
     }
 }

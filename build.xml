@@ -85,7 +85,7 @@
     </target>
 
     <target name="zip">
-        <zip destfile="./dist/jtl_connector_gambio_${version}.zip" basedir="./dist" prefix="jtlconnector/"/>
+        <zip destfile="./dist/jtl_connector_gambio_${version}.zip" basedir="./dist" prefix="jtlconnector/" includeemptydirs="false"/>
     </target>
 
     <target name="clean">

@@ -256,10 +256,11 @@ class CustomerOrder extends BaseMapper
 
                         if (count($rateResult) > 0 && isset($rateResult[0]['tax_rate'])) {
                             $vat = floatval($rateResult[0]['tax_rate']);
-
+                            /*
                             if ($vat > 0) {
                                 $price = ($price / (1 + ($vat / 100)));
                             }
+                            */
                         }
                     }
                 }
@@ -279,6 +280,7 @@ class CustomerOrder extends BaseMapper
                 $discount->setQuantity(1);
                 $discount->setVat(0);
                 $discount->setPrice(floatval($total['value']));
+                $discount->setPriceGross(floatval($total['value']));
 
                 //$sum += floatval($total['value']);
 
@@ -293,6 +295,7 @@ class CustomerOrder extends BaseMapper
                 $coupon->setQuantity(1);
                 $coupon->setVat(0);
                 $coupon->setPrice(floatval($total['value']));
+                $coupon->setPriceGross(floatval($total['value']));
 
                 $model->addItem($coupon);
             }

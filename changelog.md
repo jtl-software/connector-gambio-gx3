@@ -1,8 +1,18 @@
-1.6
+1.7
 ------
+- [d99d025]
+  raised version
+
+- [b688c31]
+  added varcombi images
+  fixed payment status mapping
+  refactored plugin autoloader
+
 - [9c4f2c5]
   workaround for shipping name
 
+1.6
+------
 - [9a546a9]
   improved product pull queries
   added delivery tax rate
