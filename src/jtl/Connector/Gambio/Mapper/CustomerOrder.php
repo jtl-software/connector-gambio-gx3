@@ -294,8 +294,8 @@ class CustomerOrder extends BaseMapper
                 $coupon->setId($this->identity($total['orders_total_id']));
                 $coupon->setQuantity(1);
                 $coupon->setVat(0);
-                $coupon->setPrice(floatval($total['value']));
-                $coupon->setPriceGross(floatval($total['value']));
+                $coupon->setPrice(floatval($total['value']) * -1);
+                $coupon->setPriceGross(floatval($total['value']) * -1);
 
                 $model->addItem($coupon);
             }
