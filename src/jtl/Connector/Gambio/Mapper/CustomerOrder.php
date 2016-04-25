@@ -228,17 +228,22 @@ class CustomerOrder extends BaseMapper
         $shipping->setQuantity(1);
         $shipping->setVat(0);
 
-        $sum = 0;
-
         $totalData = $this->db->query('SELECT class,value,title FROM orders_total WHERE orders_id='.$data['orders_id']);
+
+        $vatExcl = false;
+        foreach ($totalData as $total) {
+            if ($total['class'] == 'ot_subtotal_no_tax') {
+                $vatExcl = true;
+                break;
+            }
+        }
 
         foreach ($totalData as $total) {
             if ($total['class'] == 'ot_total') {
-                //$sum += floatval($total['value']);
-                $model->setTotalSum(floatval($total['value']));
+                $model->setTotalSumGross(floatval($total['value']));
             }
-            if ($total['class'] == 'ot_tax') {
-                //$sum -= floatval($total['value']);
+            if ($total['class'] == 'ot_total_netto' || $total['class'] == 'ot_subtotal_no_tax') {
+                $model->setTotalSum(floatval($total['value']));
             }
             if ($total['class'] == 'ot_shipping') {
                 $vat = 0;
@@ -256,16 +261,16 @@ class CustomerOrder extends BaseMapper
 
                         if (count($rateResult) > 0 && isset($rateResult[0]['tax_rate'])) {
                             $vat = floatval($rateResult[0]['tax_rate']);
-                            /*
-                            if ($vat > 0) {
-                                $price = ($price / (1 + ($vat / 100)));
-                            }
-                            */
                         }
                     }
                 }
 
-                $shipping->setPrice($price);
+                if (!$vatExcl) {
+                    $shipping->setPriceGross($price);
+                } else {
+                    $shipping->setPrice($price);
+                }
+
                 $shipping->setVat($vat);
                 $shipping->setName($total['title']);
 
@@ -282,8 +287,6 @@ class CustomerOrder extends BaseMapper
                 $discount->setPrice(floatval($total['value']));
                 $discount->setPriceGross(floatval($total['value']));
 
-                //$sum += floatval($total['value']);
-
                 $model->addItem($discount);
             }
             if ($total['class'] == 'ot_coupon' || $total['class'] == 'ot_gv') {
@@ -294,8 +297,8 @@ class CustomerOrder extends BaseMapper
                 $coupon->setId($this->identity($total['orders_total_id']));
                 $coupon->setQuantity(1);
                 $coupon->setVat(0);
-                $coupon->setPrice(floatval($total['value']) * -1);
-                $coupon->setPriceGross(floatval($total['value']) * -1);
+                $coupon->setPrice(abs(floatval($total['value'])) * -1);
+                $coupon->setPriceGross(abs(floatval($total['value'])) * -1);
 
                 $model->addItem($coupon);
             }

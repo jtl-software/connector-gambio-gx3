@@ -1,5 +1,8 @@
 1.7
 ------
+- [5fbf854]
+  fixed coupon price
+
 - [5326be5]
   workaround to update i18ns instead of delete/insert
 

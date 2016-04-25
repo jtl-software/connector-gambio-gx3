@@ -30,7 +30,8 @@ class CategoryI18n extends \jtl\Connector\Gambio\Mapper\BaseMapper
             "categories_meta_keywords" => "metaKeywords",
             "categories_meta_title" => "titleTag",
             "gm_url_keywords" => null,
-            "categories_heading_title" => null
+            "categories_heading_title" => null,
+            "gm_alt_text" => null
         )
     );
 
@@ -59,6 +60,21 @@ class CategoryI18n extends \jtl\Connector\Gambio\Mapper\BaseMapper
                     if ($i18n->getLanguageISO() == $data->getLanguageISO()) {
                         return $i18n->getValue();
                     }                               
+                }
+            }
+        }
+
+        return '';
+    }
+
+    protected function gm_alt_text($data, $return, $parent)
+    {
+        foreach ($parent->getAttributes() as $attr) {
+            foreach ($attr->getI18ns() as $i18n) {
+                if ($i18n->getName() == "Alternativer Text") {
+                    if ($i18n->getLanguageISO() == $data->getLanguageISO()) {
+                        return $i18n->getValue();
+                    }
                 }
             }
         }

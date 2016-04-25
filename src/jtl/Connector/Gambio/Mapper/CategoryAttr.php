@@ -25,18 +25,24 @@ class CategoryAttr extends BaseMapper
             $attrs[] = $this->createAttr($field, $name, $data[$field], $data);
         }
 
-        $hlQuery = $this->db->query('SELECT c.categories_heading_title,l.code 
+        $hlQuery = $this->db->query('SELECT c.categories_heading_title,c.gm_alt_text,l.code 
             FROM categories_description c
             LEFT JOIN languages l ON l.languages_id=c.language_id
             WHERE c.categories_id='.$data['categories_id']);
 
         if (count($hlQuery) >  0) {
             $hlAttr = new CategoryAttrModel();
-            $hlAttr->setId($this->identity(2));
+            $hlAttr->setId($this->identity('heading_title'));
             $hlAttr->setCategoryId($this->identity($data['categories_id']));
             $hlAttr->setIsTranslated(true);
 
+            $altAttr = new CategoryAttrModel();
+            $altAttr->setId($this->identity('alt_text'));
+            $altAttr->setCategoryId($this->identity($data['categories_id']));
+            $altAttr->setIsTranslated(true);
+
             $hlAttrI18ns = array();
+            $altAttrI18ns = array();
 
             foreach ($hlQuery as $headline) {
                 $hlAttrI18n = new CategoryAttrI18nModel();
@@ -45,11 +51,21 @@ class CategoryAttr extends BaseMapper
                 $hlAttrI18n->setName('Überschrift');
                 $hlAttrI18n->setValue($headline['categories_heading_title']);
 
+                $altAttrI18n = new CategoryAttrI18nModel();
+                $altAttrI18n->setCategoryAttrId($altAttr->getId());
+                $altAttrI18n->setLanguageISO($this->fullLocale($headline['code']));
+                $altAttrI18n->setName('Alternativer Text');
+                $altAttrI18n->setValue($headline['gm_alt_text']);
+
                 $hlAttrI18ns[] = $hlAttrI18n;
+                $altAttrI18ns[] = $altAttrI18n;
             }
 
             $hlAttr->setI18ns($hlAttrI18ns);
+            $altAttr->setI18ns($altAttrI18ns);
+
             $attrs[] = $hlAttr;
+            $attrs[] = $altAttr;
         }
 
         return $attrs;

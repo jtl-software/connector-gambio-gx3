@@ -14,7 +14,9 @@ class Image extends BaseMapper
             "relationType" => "type",
             "foreignKey" => "foreignKey",
             "remoteUrl" => null,
-            "sort" => "image_nr"
+            "sort" => "image_nr",
+            "name" => "image_name",
+            "i18ns" => "ImageI18n|addI18n|true"
         )
     );
 
@@ -100,7 +102,11 @@ class Image extends BaseMapper
                         @unlink($this->shopConfig['shop']['path'].'images/categories/'.$oldImage);
                     }
 
-                    $imgFileName = substr($data->getFilename(), strrpos($data->getFilename(), '/') + 1);
+                    if (empty($data->getName())) {
+                        $imgFileName = substr($data->getFilename(), strrpos($data->getFilename(), '/') + 1);
+                    } else {
+                        $imgFileName = $data->getName();
+                    }
 
                     if (!rename($data->getFilename(), $this->shopConfig['shop']['path'].'images/categories/'.$imgFileName)) {
                         throw new \Exception('Cannot move uploaded image file');
@@ -123,7 +129,11 @@ class Image extends BaseMapper
                         @unlink($this->shopConfig['shop']['path'].'images/'.$oldImage);
                     }
 
-                    $imgFileName = substr($data->getFilename(), strrpos($data->getFilename(), '/') + 1);
+                    if (empty($data->getName())) {
+                        $imgFileName = substr($data->getFilename(), strrpos($data->getFilename(), '/') + 1);
+                    } else {
+                        $imgFileName = $data->getName();
+                    }
 
                     if (!rename($data->getFilename(), $this->shopConfig['shop']['path'].'images/manufacturers/'.$imgFileName)) {
                         throw new \Exception('Cannot move uploaded image file');
@@ -147,7 +157,11 @@ class Image extends BaseMapper
                             $combisId = $combisId[1];
 
                             if (!empty($combisId)) {
-                                $imgFileName = substr($data->getFilename(), strrpos($data->getFilename(), '/') + 1);
+                                if (empty($data->getName())) {
+                                    $imgFileName = substr($data->getFilename(), strrpos($data->getFilename(), '/') + 1);
+                                } else {
+                                    $imgFileName = $data->getName();
+                                }
 
                                 if (!rename($data->getFilename(), $this->shopConfig['shop']['path'] . 'images/product_images/properties_combis_images/' . $imgFileName)) {
                                     throw new \Exception('Cannot move uploaded image file');
@@ -185,7 +199,11 @@ class Image extends BaseMapper
                                 @unlink($this->shopConfig['shop']['path'] . $this->shopConfig['img']['original'] . $oldImage);
                             }
 
-                            $imgFileName = substr($data->getFilename(), strrpos($data->getFilename(), '/') + 1);
+                            if (empty($data->getName())) {
+                                $imgFileName = substr($data->getFilename(), strrpos($data->getFilename(), '/') + 1);
+                            } else {
+                                $imgFileName = $data->getName();
+                            }
 
                             if (!rename($data->getFilename(), $this->shopConfig['shop']['path'] . $this->shopConfig['img']['original'] . $imgFileName)) {
                                 throw new \Exception('Cannot move uploaded image file');
@@ -237,7 +255,11 @@ class Image extends BaseMapper
 
                         $imgObj->image_id = $data->getId()->getEndpoint();
 
-                        $imgFileName = substr($data->getFilename(), strrpos($data->getFilename(), '/') + 1);
+                        if (empty($data->getName())) {
+                            $imgFileName = substr($data->getFilename(), strrpos($data->getFilename(), '/') + 1);
+                        } else {
+                            $imgFileName = $data->getName();
+                        }
 
                         if (!rename($data->getFilename(), $this->shopConfig['shop']['path'].$this->shopConfig['img']['original'].$imgFileName)) {
                             throw new \Exception('Cannot move uploaded image file');

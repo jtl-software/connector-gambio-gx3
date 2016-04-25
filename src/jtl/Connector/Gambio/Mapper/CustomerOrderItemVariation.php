@@ -1,7 +1,8 @@
 <?php
 namespace jtl\Connector\Gambio\Mapper;
 
-use jtl\Connector\Gambio\Mapper\BaseMapper;
+use jtl\Connector\Model\CustomerOrderItemVariation as CustomerOrderItemVariationModel;
+use jtl\Connector\Model\Identity;
 
 class CustomerOrderItemVariation extends BaseMapper
 {
@@ -32,6 +33,24 @@ class CustomerOrderItemVariation extends BaseMapper
             "orders_id" => null
         )
     );
+
+    public function pull($data, $limit)
+    {
+        $oldVars = parent::pull($data, $limit);
+        $newVars = array();
+
+        $newVarsQuery = $this->db->query('SELECT * FROM orders_products_properties WHERE orders_products_id="'.$data['orders_products_id'].'"');
+        foreach($newVarsQuery as $variation) {
+            $var = new CustomerOrderItemVariationModel();
+            $var->setId(new Identity($variation['orders_products_properties_id']));
+            $var->setCustomerOrderItemId(new Identity($variation['orders_products_id']));
+            $var->setProductVariationName($variation['properties_name']);
+            $var->setValueName($variation['values_name']);
+            $newVars[] = $var;
+        }
+
+        return array_merge($oldVars, $newVars);
+    }
 
     protected function surcharge($data)
     {
