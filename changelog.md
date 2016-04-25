@@ -1,11 +1,19 @@
-1.7
+1.9
 ------
+- [76733de]
+  added image i18ns pull
+  added additional category attr
+  fixed order tax calculations
+  fixed order variations
+
 - [5fbf854]
   fixed coupon price
 
 - [5326be5]
   workaround to update i18ns instead of delete/insert
 
+1.7
+------
 - [d99d025]
   raised version
 
