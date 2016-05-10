@@ -1,5 +1,9 @@
 1.9
 ------
+- [db9abdd]
+  changed category i18n push to delta update instead delete/insert
+  append variation values for order item names
+
 - [1115d0d]
   updated changelog
 
