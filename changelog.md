@@ -1,5 +1,8 @@
 1.9
 ------
+- [1115d0d]
+  updated changelog
+
 - [76733de]
   added image i18ns pull
   added additional category attr

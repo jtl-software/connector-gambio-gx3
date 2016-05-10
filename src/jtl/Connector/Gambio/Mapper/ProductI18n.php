@@ -70,22 +70,6 @@ class ProductI18n extends BaseMapper
             return $sql[0]['products_vpe_name'];
         }
     }
-/*
-    public function push($parent, $dbObj = null)
-    {
-        $id = $parent->getId()->getEndpoint();
-
-        if (!empty($id)) {
-            $this->db->query('DELETE FROM products_description WHERE products_id='.$id);
-        }
-
-        foreach ($parent->getI18ns() as $i18n) {
-            $i18n->setProductId($parent->getId());
-        }
-
-        return parent::push($parent, $dbObj);
-    }
-*/
 
     protected function gm_url_keywords($data)
     {

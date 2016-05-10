@@ -88,12 +88,6 @@ class Category extends \jtl\Connector\Gambio\Mapper\BaseMapper
             $data->getParentCategoryId()->setEndpoint(static::$idCache[$data->getParentCategoryId()->getHost()]);
         }
 
-        $id = $data->getId()->getEndpoint();
-
-        if (!empty($id)) {
-            $this->db->query('DELETE FROM categories_description WHERE categories_id='.$id);
-        }
-
         return parent::push($data, $dbObj);
     }
 

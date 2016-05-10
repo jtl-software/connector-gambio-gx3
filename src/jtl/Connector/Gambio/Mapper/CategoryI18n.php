@@ -35,6 +35,80 @@ class CategoryI18n extends \jtl\Connector\Gambio\Mapper\BaseMapper
         )
     );
 
+    public function push($parent, $dbObj = null)
+    {
+        $cId = $parent->getId()->getEndpoint();
+
+        if(!empty($cId)) {
+            $data = $parent->getI18ns();
+
+            $currentResults = $this->db->query('SELECT d.language_id FROM categories_description d WHERE d.categories_id="'.$cId.'"');
+
+            $current = array();
+
+            foreach ($currentResults as $cLang) {
+                $current[] = $cLang['language_id'];
+            }
+
+            $new = array();
+
+            foreach ($data as $obj) {
+                if (!$this->type) {
+                    $this->type = $obj->getModelType();
+                }
+
+                $dbObj = new \stdClass();
+
+                foreach ($this->mapperConfig['mapPush'] as $endpoint => $host) {
+                    if (is_null($host) && method_exists(get_class($this), $endpoint)) {
+                        $dbObj->$endpoint = $this->$endpoint($obj, null, $parent);
+                    } else {
+                        $value = null;
+
+                        $getMethod = 'get' . ucfirst($host);
+
+                        if (isset($obj) && method_exists($obj, $getMethod)) {
+                            $value = $obj->$getMethod();
+                        }
+
+                        if (isset($value)) {
+                            if ($this->type->getProperty($host)->isIdentity()) {
+                                $value = $value->getEndpoint();
+                            } else {
+                                $type = $this->type->getProperty($host)->getType();
+                                if ($type == "DateTime") {
+                                    $value = $value->format('Y-m-d H:i:s');
+                                } elseif ($type == "boolean") {
+                                    settype($value, "integer");
+                                }
+                            }
+
+                            $dbObj->$endpoint = $value;
+                        }
+                    }
+                }
+
+                $new[] = $dbObj;
+            }
+
+            foreach ($new as $newObj) {
+                $existsKey = array_search($newObj->language_id, $current);
+
+                if ($existsKey === false) {
+                    $this->db->deleteInsertRow($newObj, $this->mapperConfig['table'], array('categories_id', 'language_id'), array($newObj->categories_id, $newObj->language_id));
+                } else {
+                    $this->db->updateRow($newObj, $this->mapperConfig['table'], array('categories_id', 'language_id'), array($newObj->categories_id, $newObj->language_id));
+                }
+
+                unset($current[$existsKey]);
+            }
+
+            foreach ($current as $delId) {
+                $this->db->query('DELETE FROM '.$this->mapperConfig['table'].' WHERE categories_id="'.$cId.'" && language_id="'.$delId.'"');
+            }
+        }
+    }
+
     protected function languageISO($data)
     {
         return $this->fullLocale($data['code']);
@@ -47,8 +121,6 @@ class CategoryI18n extends \jtl\Connector\Gambio\Mapper\BaseMapper
 
     protected function categories_id($data, $return, $parent)
     {
-        $return->setCategoryId($this->identity($parent->getId()->getEndpoint()));
-
         return $parent->getId()->getEndpoint();
     }
 

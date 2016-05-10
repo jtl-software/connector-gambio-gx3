@@ -38,7 +38,18 @@ class CustomerOrderItem extends BaseMapper
             "CustomerOrderItemVariation|addVariation" => "variations"
         )
     );
-    
+
+    public function addData($model, $data)
+    {
+        $append = [];
+
+        foreach ($model->getVariations() as $variation) {
+            $append[] = $variation->getValueName();
+        }
+
+        $model->setName($model->getName().' ('.implode(', ', $append).')');
+    }
+
     public function push($parent, $dbObj = null)
     {
         $return = [];
