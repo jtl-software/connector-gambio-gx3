@@ -253,7 +253,7 @@ class Product extends BaseMapper
                     $this->db->query('DELETE FROM personal_offers_by_customers_status_'.$group['customers_status_id'].' WHERE products_id='.$id);
                 }
 
-                $this->db->query('DELETE FROM specials WHERE products_id='.$id);
+                //$this->db->query('DELETE FROM specials WHERE products_id='.$id);
                 $this->db->query('DELETE FROM products_attributes WHERE products_id='.$id);
             }            
         }
