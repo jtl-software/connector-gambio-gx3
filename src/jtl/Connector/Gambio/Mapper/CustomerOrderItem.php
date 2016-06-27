@@ -47,7 +47,9 @@ class CustomerOrderItem extends BaseMapper
             $append[] = $variation->getValueName();
         }
 
-        $model->setName($model->getName().' ('.implode(', ', $append).')');
+        if (count($append) > 0) {
+            $model->setName($model->getName() . ' (' . implode(', ', $append) . ')');
+        }
     }
 
     public function push($parent, $dbObj = null)
