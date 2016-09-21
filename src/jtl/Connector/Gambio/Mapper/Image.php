@@ -52,24 +52,24 @@ class Image extends BaseMapper
 
         $query = 'SELECT p.image_id, p.image_name, p.products_id foreignKey, "product" type, (p.image_nr + 1) image_nr
             FROM products_images p
-            LEFT JOIN jtl_connector_link l ON p.image_id = l.endpointId AND l.type = 16
-            WHERE l.hostId IS NULL';
+            LEFT JOIN jtl_connector_link_image l ON p.image_id = l.endpoint_id
+            WHERE l.host_id IS NULL';
         $defaultQuery = 'SELECT CONCAT("pID_",p.products_id) image_id, p.products_image image_name, p.products_id foreignKey, 1 image_nr, "product" type
             FROM products p
-            LEFT JOIN jtl_connector_link l ON CONCAT("pID_",p.products_id) = l.endpointId AND l.type = 16
-            WHERE l.hostId IS NULL && p.products_image IS NOT NULL && p.products_image != ""';
+            LEFT JOIN jtl_connector_link_image l ON CONCAT("pID_",p.products_id) = l.endpoint_id
+            WHERE l.host_id IS NULL && p.products_image IS NOT NULL && p.products_image != ""';
         $combisQuery = 'SELECT CONCAT("vID_",p.products_properties_combis_id) image_id, p.combi_image as image_name, CONCAT(p.products_id, "_", p.products_properties_combis_id) foreignKey, 1 image_nr, "product" type
             FROM products_properties_combis p
-            LEFT JOIN jtl_connector_link l ON CONCAT("vID_",p.products_properties_combis_id) = l.endpointId AND l.type = 16
-            WHERE l.hostId IS NULL && p.combi_image IS NOT NULL && p.combi_image != ""';
+            LEFT JOIN jtl_connector_link_image l ON CONCAT("vID_",p.products_properties_combis_id) = l.endpoint_id
+            WHERE l.host_id IS NULL && p.combi_image IS NOT NULL && p.combi_image != ""';
         $categoriesQuery = 'SELECT CONCAT("cID_",p.categories_id) image_id, p.categories_image as image_name, p.categories_id foreignKey, "category" type, 1 image_nr
             FROM categories p
-            LEFT JOIN jtl_connector_link l ON CONCAT("cID_",p.categories_id) = l.endpointId AND l.type = 16
-            WHERE l.hostId IS NULL && p.categories_image IS NOT NULL && p.categories_image != ""';
+            LEFT JOIN jtl_connector_link_image l ON CONCAT("cID_",p.categories_id) = l.endpoint_id
+            WHERE l.host_id IS NULL && p.categories_image IS NOT NULL && p.categories_image != ""';
         $manufacturersQuery = 'SELECT CONCAT("mID_",m.manufacturers_id) image_id, m.manufacturers_image as image_name, m.manufacturers_id foreignKey, "manufacturer" type, 1 image_nr
             FROM manufacturers m
-            LEFT JOIN jtl_connector_link l ON CONCAT("mID_",m.manufacturers_id) = l.endpointId AND l.type = 16
-            WHERE l.hostId IS NULL && m.manufacturers_image IS NOT NULL && m.manufacturers_image != ""';
+            LEFT JOIN jtl_connector_link_image l ON CONCAT("mID_",m.manufacturers_id) = l.endpoint_id
+            WHERE l.host_id IS NULL && m.manufacturers_image IS NOT NULL && m.manufacturers_image != ""';
 
         $dbResult = $this->db->query($query);
         $dbResultDefault = $this->db->query($defaultQuery);
@@ -171,7 +171,7 @@ class Image extends BaseMapper
                                 $combisObj->combi_image = $imgFileName;
 
                                 $this->db->updateRow($combisObj, 'products_properties_combis', 'products_properties_combis_id', $combisId);
-                                $this->db->query('INSERT INTO jtl_connector_link SET hostId="'.$data->getId()->getHost().'", endpointId="vID_'.$combisId.'" , type=16');
+                                $this->db->query('INSERT INTO jtl_connector_link_image SET host_id="'.$data->getId()->getHost().'", endpoint_id="vID_'.$combisId.'"');
                             }
                         } else {
                             $imgId = $data->getId()->getEndpoint();
@@ -218,9 +218,9 @@ class Image extends BaseMapper
 
                             $data->getId()->setEndpoint('pID_' . $data->getForeignKey()->getEndpoint());
 
-                            $this->db->query('DELETE FROM jtl_connector_link WHERE endpointId="' . $data->getId()->getEndpoint() . '"');
-                            $this->db->query('DELETE FROM jtl_connector_link WHERE hostId=' . $data->getId()->getHost() . ' && type=16');
-                            $this->db->query('INSERT INTO jtl_connector_link SET hostId="' . $data->getId()->getHost() . '", endpointId="' . $data->getId()->getEndpoint() . '" , type=16');
+                            $this->db->query('DELETE FROM jtl_connector_link_image WHERE endpoint_id="' . $data->getId()->getEndpoint() . '"');
+                            $this->db->query('DELETE FROM jtl_connector_link_image WHERE host_id=' . $data->getId()->getHost());
+                            $this->db->query('INSERT INTO jtl_connector_link_image SET host_id="' . $data->getId()->getHost() . '", endpoint_id="' . $data->getId()->getEndpoint() . '"');
                         }
                     } else {
                         $oldImage = null;
@@ -274,8 +274,8 @@ class Image extends BaseMapper
                         $newIdQuery = $this->db->deleteInsertRow($imgObj, 'products_images', array('image_nr', 'products_id'), array($imgObj->image_nr, $imgObj->products_id));
                         $newId = $newIdQuery->getKey();
 
-                        $this->db->query('DELETE FROM jtl_connector_link WHERE hostId='.$data->getId()->getHost().' && type=16');
-                        $this->db->query('INSERT INTO jtl_connector_link SET hostId="'.$data->getId()->getHost().'", endpointId="'.$newId.'" , type=16');
+                        $this->db->query('DELETE FROM jtl_connector_link_image WHERE host_id='.$data->getId()->getHost());
+                        $this->db->query('INSERT INTO jtl_connector_link_image SET host_id="'.$data->getId()->getHost().'", endpoint_id="'.$newId.'"');
 
                         $data->getId()->setEndpoint($newId);
                     }
@@ -399,7 +399,7 @@ class Image extends BaseMapper
                 }
             }
 
-            $this->db->query('DELETE FROM jtl_connector_link WHERE type=16 && endpointId="'.$data->getId()->getEndpoint().'"');
+            $this->db->query('DELETE FROM jtl_connector_link_image WHERE endpoint_id="'.$data->getId()->getEndpoint().'"');
 
             return $data;
         } else {
@@ -418,8 +418,8 @@ class Image extends BaseMapper
                 FROM products p
                 WHERE p.products_image IS NOT NULL && p.products_image != ''
             ) p
-            LEFT JOIN jtl_connector_link l ON p.imgId = l.endpointId AND l.type = 16
-            WHERE l.hostId IS NULL
+            LEFT JOIN jtl_connector_link_image l ON p.imgId = l.endpoint_id
+            WHERE l.host_id IS NULL
         ");
 
         $combiQuery = $this->db->query("
@@ -429,8 +429,8 @@ class Image extends BaseMapper
                 FROM products_properties_combis p
                 WHERE p.combi_image IS NOT NULL && p.combi_image != ''
             ) p
-            LEFT JOIN jtl_connector_link l ON p.imgId = l.endpointId AND l.type = 16
-            WHERE l.hostId IS NULL
+            LEFT JOIN jtl_connector_link_image l ON p.imgId = l.endpoint_id
+            WHERE l.host_id IS NULL
         ");
 
         $categoryQuery = $this->db->query("
@@ -440,8 +440,8 @@ class Image extends BaseMapper
                 FROM categories c
                 WHERE c.categories_image IS NOT NULL && c.categories_image != ''
             ) c
-            LEFT JOIN jtl_connector_link l ON c.imgId = l.endpointId AND l.type = 16
-            WHERE l.hostId IS NULL
+            LEFT JOIN jtl_connector_link_image l ON c.imgId = l.endpoint_id
+            WHERE l.host_id IS NULL
         ");
 
         $manufacturersQuery = $this->db->query("
@@ -451,14 +451,14 @@ class Image extends BaseMapper
                 FROM manufacturers m
                 WHERE m.manufacturers_image IS NOT NULL && m.manufacturers_image != ''
             ) m
-            LEFT JOIN jtl_connector_link l ON m.imgId = l.endpointId AND l.type = 16
-            WHERE l.hostId IS NULL
+            LEFT JOIN jtl_connector_link_image l ON m.imgId = l.endpoint_id
+            WHERE l.host_id IS NULL
         ");
 
         $imageQuery = $this->db->query("
             SELECT i.* FROM products_images i
-            LEFT JOIN jtl_connector_link l ON i.image_id = l.endpointId AND l.type = 16
-            WHERE l.hostId IS NULL
+            LEFT JOIN jtl_connector_link_image l ON i.image_id = l.endpoint_id
+            WHERE l.host_id IS NULL
         ");
 
         $totalImages += count($productQuery);

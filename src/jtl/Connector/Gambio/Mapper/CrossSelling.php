@@ -12,8 +12,8 @@ class CrossSelling extends BaseMapper
                 FROM products_xsell 
                 WHERE products_xsell.products_id = p.products_id
             ) xsells FROM products p
-            LEFT JOIN jtl_connector_link l ON p.products_id = l.endpointId AND l.type = 1024
-            WHERE l.hostId IS NULL HAVING xsells > 0",
+            LEFT JOIN jtl_connector_link_crossselling l ON p.products_id = l.endpoint_id
+            WHERE l.host_id IS NULL HAVING xsells > 0",
         "mapPull" => array(
             "id" => "products_id",
             "productId" => "products_id",

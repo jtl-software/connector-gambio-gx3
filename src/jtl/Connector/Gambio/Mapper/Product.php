@@ -105,10 +105,9 @@ class Product extends BaseMapper
           FROM (
             SELECT p . *
             FROM products p
-            LEFT JOIN jtl_connector_link l ON CONVERT( p.products_id, CHAR( 16 ) ) = l.endpointId
+            LEFT JOIN jtl_connector_link_product l ON CONVERT( p.products_id, CHAR( 16 ) ) = l.endpoint_id
             COLLATE utf8_unicode_ci
-            AND l.type=64
-            WHERE l.hostId IS NULL
+            WHERE l.host_id IS NULL
             LIMIT '.$limit.'
           ) AS j
           LEFT JOIN products_quantity_unit q ON q.products_id = j.products_id
@@ -125,8 +124,8 @@ class Product extends BaseMapper
             SELECT c.*,p.products_price 
             FROM products_properties_combis c 
             LEFT JOIN products p ON p.products_id=c.products_id 
-            LEFT JOIN jtl_connector_link l ON CONCAT(c.products_id,"_",c.products_properties_combis_id) = l.endpointId AND l.type = 64 
-            WHERE l.hostId IS NULL'.$limitQuery);
+            LEFT JOIN jtl_connector_link_product l ON CONCAT(c.products_id,"_",c.products_properties_combis_id) = l.endpoint_id 
+            WHERE l.host_id IS NULL'.$limitQuery);
 
             foreach ($combis as $combi) {
                 $varcombi = new ProductModel();
@@ -354,7 +353,7 @@ class Product extends BaseMapper
                     $this->db->query('DELETE FROM products_properties_combis_values WHERE products_properties_combis_id='.$combiId);
                     $this->db->query('DELETE FROM products_properties_combis WHERE products_properties_combis_id='.$combiId);
 
-                    $this->db->query('DELETE FROM jtl_connector_link WHERE type=64 && endpointId="'.$id.'"');
+                    $this->db->query('DELETE FROM jtl_connector_link_product WHERE endpoint_id="'.$id.'"');
                 }
                 catch (\Exception $e) {                
                 }
@@ -380,7 +379,7 @@ class Product extends BaseMapper
                         $this->db->query('DELETE FROM personal_offers_by_customers_status_'.$group['customers_status_id'].' WHERE products_id='.$id);
                     }
 
-                    $this->db->query('DELETE FROM jtl_connector_link WHERE type=64 && endpointId="'.$id.'"');
+                    $this->db->query('DELETE FROM jtl_connector_link_product WHERE endpoint_id="'.$id.'"');
                 }
                 catch (\Exception $e) {                
                 }
@@ -572,13 +571,13 @@ class Product extends BaseMapper
 
         $products = $this->db->query('SELECT p.products_id
             FROM products p             
-            LEFT JOIN jtl_connector_link l ON CONVERT(p.products_id, CHAR(16)) = l.endpointId COLLATE utf8_unicode_ci AND l.type = 64 
-            WHERE l.hostId IS NULL');
+            LEFT JOIN jtl_connector_link_product l ON CONVERT(p.products_id, CHAR(16)) = l.endpoint_id COLLATE utf8_unicode_ci 
+            WHERE l.host_id IS NULL');
 
         $combis = $this->db->query('SELECT c.products_properties_combis_id
             FROM products_properties_combis c 
-            LEFT JOIN jtl_connector_link l ON CONCAT(c.products_id,"_",c.products_properties_combis_id) = l.endpointId AND l.type = 64 
-            WHERE l.hostId IS NULL');
+            LEFT JOIN jtl_connector_link_product l ON CONCAT(c.products_id,"_",c.products_properties_combis_id) = l.endpoint_id 
+            WHERE l.host_id IS NULL');
 
         $count += count($products);
         $count += count($combis);

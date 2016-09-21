@@ -6,3 +6,4 @@ build/**
 dist/**
 db/connector.s3db
 .idea/**
+/db/version

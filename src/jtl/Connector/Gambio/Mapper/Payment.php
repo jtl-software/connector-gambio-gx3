@@ -8,8 +8,8 @@ class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
     protected $mapperConfig = array(
         "table" => "jtl_connector_payment",
         "query" => "SELECT p.* FROM jtl_connector_payment p
-            LEFT JOIN jtl_connector_link l ON p.id = l.endpointId AND l.type = 512
-            WHERE l.hostId IS NULL",
+            LEFT JOIN jtl_connector_link_payment l ON p.id = l.endpoint_id
+            WHERE l.host_id IS NULL",
         "where" => "id",
         "identity" => "getId",
         "mapPull" => array(
@@ -28,8 +28,8 @@ class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
         $additional = array();
 
         $payments = $this->db->query('SELECT p.* FROM jtl_connector_payment p
-            LEFT JOIN jtl_connector_link l ON p.id = l.endpointId AND l.type = 512
-            WHERE l.hostId IS NULL');
+            LEFT JOIN jtl_connector_link_payment l ON p.id = l.endpoint_id
+            WHERE l.host_id IS NULL');
 
         foreach ($payments as $payment) {
             $additional[] = $this->generateModel($payment);
@@ -54,8 +54,8 @@ class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
 
         $results = $this->db->query('SELECT p.orders_id, p.transaction_id, p.payment_date, p.grossamount
           FROM paypal_transactions p
-          LEFT JOIN jtl_connector_link l ON p.transaction_id = l.endpointId COLLATE utf8_unicode_ci AND l.type = 512
-          WHERE l.hostId IS NULL && p.paymentstatus="Completed"');
+          LEFT JOIN jtl_connector_link_payment l ON p.transaction_id = l.endpoint_id COLLATE utf8_unicode_ci
+          WHERE l.host_id IS NULL && p.paymentstatus="Completed"');
 
         foreach ($results as $paymentData) {
             $payment = new PaymentModel();

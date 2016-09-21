@@ -52,6 +52,8 @@ class Gambio extends BaseConnector
             $session->shopConfig += $this->readConfigDb($db);
         }
 
+        $this->update($db);
+
         $this->setPrimaryKeyMapper(new PrimaryKeyMapper());
         $this->setTokenLoader(new TokenLoader());
         $this->setChecksumLoader(new ChecksumLoader());
@@ -97,6 +99,19 @@ class Gambio extends BaseConnector
         return array(
             'settings' => $return
         );
+    }
+
+    private function update($db)
+    {
+        if(version_compare(file_get_contents(CONNECTOR_DIR.'/db/version'), CONNECTOR_VERSION) == -1) {
+            foreach (new \DirectoryIterator(CONNECTOR_DIR.'/db/updates') as $updateFile) {
+                if($updateFile->isDot()) continue;
+
+                if(version_compare(file_get_contents(CONNECTOR_DIR.'/db/version'), $updateFile->getBasename('.php')) == -1) {
+                    include(CONNECTOR_DIR.'/db/updates/'.$updateFile);
+                }
+            }
+        }
     }
 
     public function canHandle()
