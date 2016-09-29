@@ -21,6 +21,7 @@ class ProductI18n extends BaseMapper
             "shortDescription" => "products_short_description",
             "titleTag" => "products_meta_title",
             "unitName" => null,
+            "measurementUnitName" => null,
             "deliveryStatus" => null,
             "urlPath" => "gm_url_keywords"
         ),
@@ -68,6 +69,19 @@ class ProductI18n extends BaseMapper
 
         if(count($sql) > 0) {
             return $sql[0]['products_vpe_name'];
+        }
+    }
+
+    protected function measurementUnitName($data)
+    {
+        $sql = $this->db->query('SELECT q.unit_name
+          FROM products_quantity_unit p
+          LEFT JOIN quantity_unit_description q
+          ON q.quantity_unit_id = p.quantity_unit_id
+          WHERE p.products_id='.$data['products_id'].' && q.language_id='.$data['language_id']);
+
+        if(count($sql) > 0) {
+            return $sql[0]['unit_name'];
         }
     }
 

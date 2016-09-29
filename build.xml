@@ -5,6 +5,7 @@
         <mkdir dir="./dist" />
         <mkdir dir="./dist/config" />
         <mkdir dir="./dist/db" />
+        <mkdir dir="./dist/db/updates" />
         <mkdir dir="./dist/logs" />
         <mkdir dir="./dist/install" />
         <mkdir dir="./dist/plugins" />
@@ -19,6 +20,7 @@
             <fileset dir="./db">
                 <include name="connector.s3db" />
                 <include name=".htaccess" />
+                <include name="updates/*" />
             </fileset>
         </copy>
         <copy todir="./dist/logs">
