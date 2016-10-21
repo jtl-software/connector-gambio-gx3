@@ -76,7 +76,7 @@ class Product extends BaseMapper
             "products_date_added" => "creationDate",
             "products_date_available" => "availableFrom",
             "products_weight" => "productWeight",
-            "manufacturers_id" => "manufacturerId",
+            "manufacturers_id" => null,
             "products_vpe" => null,
             "products_vpe_value" => "basePriceDivisor",
             "products_vpe_status" => null,
@@ -514,6 +514,17 @@ class Product extends BaseMapper
     protected function manufacturerId($data)
     {
         return $this->replaceZero($data['manufacturers_id']);
+    }
+
+    protected function manufacturers_id($data)
+    {
+        $id = $data->getManufacturerId()->getEndpoint();
+
+        if ($id !== '') {
+            return $id;
+        }
+
+        return 0;
     }
 
     protected function unitId($data)

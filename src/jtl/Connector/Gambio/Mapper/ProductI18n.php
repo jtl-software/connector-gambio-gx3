@@ -27,14 +27,14 @@ class ProductI18n extends BaseMapper
         ),
         "mapPush" => array(
             "language_id" => null,
-            "products_id" => "productId",
             "products_name" => "name",
             "products_description" => "description",
             "products_meta_description" => "metaDescription",
             "products_meta_keywords" => "metaKeywords",
             "products_short_description" => "shortDescription",
             "products_meta_title" => "titleTag",
-            "gm_url_keywords" => null
+            "gm_url_keywords" => null,
+            "checkout_information" => null
         )
     );
     
@@ -90,6 +90,11 @@ class ProductI18n extends BaseMapper
         return $this->cleanName($data->getUrlPath());
     }
 
+    protected function checkout_information($data)
+    {
+        return '';
+    }
+
     public function push($parent, $dbObj = null)
     {
         $pId = $parent->getId()->getEndpoint();
@@ -113,6 +118,7 @@ class ProductI18n extends BaseMapper
                 }
 
                 $dbObj = new \stdClass();
+                $dbObj->products_id = $pId;
 
                 foreach ($this->mapperConfig['mapPush'] as $endpoint => $host) {
                     if (is_null($host) && method_exists(get_class($this), $endpoint)) {
