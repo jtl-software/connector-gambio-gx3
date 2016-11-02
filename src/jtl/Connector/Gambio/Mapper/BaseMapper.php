@@ -212,7 +212,11 @@ class BaseMapper
                         $insertResult = $this->db->updateRow($dbObj, $this->mapperConfig['table'], $whereKey, $whereValue);
 
                         $insertResult->setKey($currentId);
-                    } else {                    
+                    } else {
+                        if (isset($this->mapperConfig['where'])) {
+                            unset($dbObj->{$this->mapperConfig['where']});
+                        }
+
                         $insertResult = $this->db->deleteInsertRow($dbObj, $this->mapperConfig['table'], $whereKey, $whereValue);
                     }
 

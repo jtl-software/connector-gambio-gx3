@@ -45,7 +45,7 @@ class Category extends \jtl\Connector\Gambio\Mapper\BaseMapper
 
     protected function parent_id($data)
     {
-        return is_null($data->getParentCategoryId()->getEndpoint()) ? 0 : $data->getParentCategoryId()->getEndpoint();
+        return empty($data->getParentCategoryId()->getEndpoint()) ? 0 : $data->getParentCategoryId()->getEndpoint();
     }
 
     public function pull($parent = null, $limit = null)
