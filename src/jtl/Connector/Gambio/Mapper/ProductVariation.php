@@ -311,7 +311,7 @@ class ProductVariation extends BaseMapper
                 $combiId->endpointId = $parent->getMasterProductId()->getEndpoint() . '_' . $result->getKey();
                 $combiId->hostId = $parent->getId()->getHost();
                 $combiId->type = 64;
-                $this->db->deleteInsertRow($combiId, 'jtl_connector_link', 'endpointId', $combiId->endpointId);
+                $this->db->deleteInsertRow($combiId, 'jtl_connector_link_product', 'endpointId', $combiId->endpointId);
             }
         }
 

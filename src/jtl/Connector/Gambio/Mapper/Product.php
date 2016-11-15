@@ -249,11 +249,11 @@ class Product extends BaseMapper
         } else {
             if (!empty($id)) {
                 foreach ($this->getCustomerGroups() as $group) {
-                    $this->db->query('DELETE FROM personal_offers_by_customers_status_'.$group['customers_status_id'].' WHERE products_id='.$id);
+                    $this->db->query('DELETE FROM personal_offers_by_customers_status_'.$group['customers_status_id'].' WHERE products_id="'.$id.'"');
                 }
 
                 //$this->db->query('DELETE FROM specials WHERE products_id='.$id);
-                $this->db->query('DELETE FROM products_attributes WHERE products_id='.$id);
+                $this->db->query('DELETE FROM products_attributes WHERE products_id="'.$id.'"');
             }            
         }
 
@@ -266,7 +266,7 @@ class Product extends BaseMapper
             static::$idCache[$data->getId()->getHost()] = $data->getId()->getEndpoint();
         }
 
-        $checkCodes = $this->db->query('SELECT products_id FROM products_item_codes WHERE products_id='.$data->getId()->getEndpoint());
+        $checkCodes = $this->db->query('SELECT products_id FROM products_item_codes WHERE products_id="'.$data->getId()->getEndpoint().'"');
 
         $codes = new \stdClass();
         $codes->products_id = $data->getId()->getEndpoint();
