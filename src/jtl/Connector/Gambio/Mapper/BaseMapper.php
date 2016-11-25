@@ -357,7 +357,9 @@ class BaseMapper
      */
     public function fullLocale($country)
     {
-        return Language::convert($country);
+        if (isset($country)) {
+            return Language::convert($country);
+        }
     }
 
     /**
@@ -366,10 +368,12 @@ class BaseMapper
      */
     public function locale2id($locale)
     {
-        $iso2 = Language::convert(null, $locale);
-        $dbResult = $this->db->query('SELECT languages_id FROM languages WHERE code="'.$iso2.'"');
+        if (isset($locale)) {
+            $iso2 = Language::convert(null, $locale);
+            $dbResult = $this->db->query('SELECT languages_id FROM languages WHERE code="' . $iso2 . '"');
 
-        return $dbResult[0]['languages_id'];
+            return $dbResult[0]['languages_id'];
+        }
     }
 
     /**
@@ -379,9 +383,25 @@ class BaseMapper
      */
     public function id2locale($id)
     {
-        $dbResult = $this->db->query('SELECT code FROM languages WHERE languages_id="'.$id.'"');
+        if (isset($id)) {
+            $dbResult = $this->db->query('SELECT code FROM languages WHERE languages_id="' . $id . '"');
 
-        return $this->fullLocale($dbResult[0]['code']);
+            return $this->fullLocale($dbResult[0]['code']);
+        }
+    }
+
+    /**
+     * get full locale by gambio directory string
+     * @param $string
+     * @return Ambigous
+     */
+    public function string2locale($string)
+    {
+        if (isset($string)) {
+            $dbResult = $this->db->query('SELECT code FROM languages WHERE directory="' . $string . '"');
+
+            return $this->fullLocale($dbResult[0]['code']);
+        }
     }
 
     /**
