@@ -301,42 +301,51 @@ class Product extends BaseMapper
     {
         $id = null;
 
+        $skip = true;
+
         foreach ($data->getI18ns() as $i18n) {
+            $name = $i18n->getName();
             $language_id = $this->locale2id($i18n->getLanguageISO());
 
             $dbResult = $this->db->query('SELECT code FROM languages WHERE languages_id='.$language_id);
 
             if ($dbResult[0]['code'] == $this->shopConfig['settings']['DEFAULT_LANGUAGE']) {
-                $sql = $this->db->query('SELECT quantity_unit_id FROM quantity_unit_description WHERE language_id='.$language_id.' && unit_name="'.$i18n->getUnitName().'"');
+                $sql = $this->db->query('SELECT quantity_unit_id FROM quantity_unit_description WHERE language_id='.$language_id.' && unit_name="'.$name.'"');
                 if (count($sql) > 0) {
                     $id = $sql[0]['quantity_unit_id'];
                 }
             }
+
+            if (!empty($name)) {
+                $skip = false;
+            }
         }
 
-        if (is_null($id)) {
-            $newUnit = new \stdClass();
-            $newUnit->quantity_unit_id = null;
-            $idResult = $this->db->insertRow($newUnit, 'quantity_unit');
-            $id = $idResult->getKey();
-        } else {
-            $this->db->query('DELETE FROM quantity_unit_description WHERE quantity_unit_id='.$id);
+        if ($skip === false) {
+            if (is_null($id)) {
+                $newUnit = new \stdClass();
+                $newUnit->quantity_unit_id = null;
+                $idResult = $this->db->insertRow($newUnit, 'quantity_unit');
+                $id = $idResult->getKey();
+            } else {
+                $this->db->query('DELETE FROM quantity_unit_description WHERE quantity_unit_id=' . $id);
+            }
+
+            foreach ($data->getI18ns() as $i18n) {
+                $unit = new \stdClass();
+                $unit->language_id = $this->locale2id($i18n->getLanguageISO());
+                $unit->quantity_unit_id = $id;
+                $unit->unit_name = $i18n->getUnitName();
+
+                $this->db->insertRow($unit, 'quantity_unit_description');
+            }
+
+            $quantityProduct = new \stdClass();
+            $quantityProduct->products_id = $data->getId()->getEndpoint();
+            $quantityProduct->quantity_unit_id = $id;
+
+            $this->db->deleteInsertRow($quantityProduct, 'products_quantity_unit', 'products_id', $quantityProduct->products_id);
         }
-
-        foreach ($data->getI18ns() as $i18n) {
-            $unit = new \stdClass();
-            $unit->language_id = $this->locale2id($i18n->getLanguageISO());
-            $unit->quantity_unit_id = $id;
-            $unit->unit_name = $i18n->getUnitName();
-
-            $this->db->insertRow($unit, 'quantity_unit_description');
-        }
-
-        $quantityProduct = new \stdClass();
-        $quantityProduct->products_id = $data->getId()->getEndpoint();
-        $quantityProduct->quantity_unit_id = $id;
-
-        $this->db->deleteInsertRow($quantityProduct, 'products_quantity_unit', 'products_id', $quantityProduct->products_id);
     }
 
     public function delete($data)

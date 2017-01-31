@@ -46,7 +46,7 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
 
         Logger::write(sprintf('Trying to get endpoint_id with host_id (%s) and type (%s) ... endpoint_id: (%s)', $hostId, $type, $endpoint_id), Logger::DEBUG, 'linker');
 
-        return $endpoint_id;
+        return (string) $endpoint_id;
     }
 
     public function save($endpointId, $hostId, $type)

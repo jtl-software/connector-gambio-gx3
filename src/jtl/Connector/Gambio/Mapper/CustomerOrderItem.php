@@ -7,7 +7,7 @@ class CustomerOrderItem extends BaseMapper
 {
     protected $mapperConfig = array(
         "table" => "orders_products",
-        "query" => "SELECT p.*,v.products_properties_combis_id FROM orders_products p LEFT JOIN orders_products_properties v ON v.orders_products_id=p.orders_products_id WHERE p.orders_id=[[orders_id]] GROUP BY p.orders_products_id",
+        "query" => "SELECT p.*,v.products_properties_combis_id FROM orders_products p LEFT JOIN orders_products_properties v ON v.orders_products_id=p.orders_products_id WHERE p.orders_id=[[orders_id]]",
         "where" => "orders_products_id",
         "getMethod" => "getItems",
         "identity" => "getId",
