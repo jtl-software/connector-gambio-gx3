@@ -8,7 +8,7 @@ class CrossSellingItem extends BaseMapper
 {
     public function pull($data)
     {
-        $query = 'SELECT x.* FROM products_xsell x WHERE x.products_id ='.$data['products_id'];
+        $query = 'SELECT x.* FROM products_xsell x WHERE x.products_id = "'.$data['products_id'].'"';
         $results = $this->db->query($query);
         
         foreach ($results as $xsell) {
