@@ -1,10 +1,10 @@
 <?php
 namespace jtl\Connector\Gambio\Mapper;
 
-use jtl\Connector\Gambio\Mapper\BaseMapper;
-
 class ProductPriceItem extends BaseMapper
 {
+    private static $parentPrice = null;
+
     protected $mapperConfig = array(
         "getMethod" => "getItems",
         "mapPull" => array(
@@ -37,11 +37,17 @@ class ProductPriceItem extends BaseMapper
         if (strpos($productId, '_') !== false) {
             $ids = explode('_', $productId);
 
+            if (is_null(static::$parentPrice)) {
+                $parentObj = $this->db->query('SELECT products_price FROM products WHERE products_id="' . $ids[0] . '"');
+
+                static::$parentPrice = $parentObj[0]['products_price'];
+            }
+
             foreach ($data->getItems() as $price) {
                 $obj = new \stdClass();
 
                 if (is_null($data->getCustomerGroupId()->getEndpoint()) || $data->getCustomerGroupId()->getEndpoint() == '') {
-                    $obj->combi_price = $price->getNetPrice();
+                    $obj->combi_price = $price->getNetPrice() - static::$parentPrice;
                     $obj->combi_price_type = 'fix';
 
                     $this->db->updateRow($obj, 'products_properties_combis', 'products_properties_combis_id', $ids[1]);
@@ -52,6 +58,8 @@ class ProductPriceItem extends BaseMapper
                 $obj = new \stdClass();
 
                 if (is_null($data->getCustomerGroupId()->getEndpoint()) || $data->getCustomerGroupId()->getEndpoint() == '') {
+                    static::$parentPrice = $price->getNetPrice();
+
                     $obj->products_price = $price->getNetPrice();
 
                     $this->db->updateRow($obj, 'products', 'products_id', $productId);

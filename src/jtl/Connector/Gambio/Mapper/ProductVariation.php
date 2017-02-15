@@ -9,6 +9,7 @@ class ProductVariation extends BaseMapper
 {
     private static $variationIds;
     private static $valueIds;
+    private static $parentPrices = array();
 
     protected $mapperConfig = array(
         "table" => "products_properties_index",
@@ -238,6 +239,14 @@ class ProductVariation extends BaseMapper
                             }
                         }
                     }
+
+                    foreach ($parent->getPrices() as $price) {
+                        if (is_null($price->getCustomerGroupId()->getEndpoint()) || $price->getCustomerGroupId()->getEndpoint() == '') {
+                            $priceItem = $price->getItems()[0];
+                            static::$parentPrices[$parent->getId()->getHost()] = $priceItem->getNetPrice();
+                            break;
+                        }
+                    }
                 }
             }
             // varcombi child
@@ -265,7 +274,7 @@ class ProductVariation extends BaseMapper
                 foreach ($parent->getPrices() as $price) {
                     if (is_null($price->getCustomerGroupId()->getEndpoint()) || $price->getCustomerGroupId()->getEndpoint() == '') {
                         $priceItem = $price->getItems()[0];
-                        $combi->combi_price = $priceItem->getNetPrice();
+                        $combi->combi_price = $priceItem->getNetPrice() - static::$parentPrices[$parent->getMasterProductId()->getHost()];
                         break;
                     }
                 }
