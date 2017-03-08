@@ -57,7 +57,6 @@ class Product extends BaseMapper
             "variations" => "ProductVariation|addVariation",
             "invisibilities" => "ProductInvisibility|addInvisibility",
             "attributes" => "ProductAttr|addAttribute",
-            "varCombinations" => "ProductVarCombination|addVarCombination",
             "vat" => null,
             "isMasterProduct" => null,
             "measurementUnitId" => "quantity_unit_id",
