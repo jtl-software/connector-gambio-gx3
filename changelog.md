@@ -1,5 +1,53 @@
-1.9
+2.2
 ------
+- [b21d021]
+  CO-31 #resolve removed ProductVarCombination
+
+- [c1e3a62]
+  push varcombi prices as difference to master product price
+
+- [427d706]
+  added tmp fallback
+
+- [1544cd2]
+  bugfixes and improvements
+
+- [38d7f33]
+  ignore invalid languages
+
+- [993c6c1]
+  bugfix for varcombi links
+
+- [488941b]
+  bugfixes
+
+- [27ec22d]
+  bugfix for non-default db settings
+
+- [5c55d95]
+  fixes for gambio db changes
+
+- [338d82c]
+  fixed key mapper
+
+- [b8a1e54]
+  bugfixes for payment methods and measurement unit pull
+
+- [23b22e9]
+  refactored mapping to multiple tables
+  added update migrations
+
+- [1c7cf5a]
+  fixed variation name
+
+- [9122c68]
+  avoid deletion of special prices
+
+1.10
+------
+- [f8f81cb]
+  updated changelog
+
 - [db9abdd]
   changed category i18n push to delta update instead delete/insert
   append variation values for order item names
@@ -7,6 +55,8 @@
 - [1115d0d]
   updated changelog
 
+1.9
+------
 - [76733de]
   added image i18ns pull
   added additional category attr
