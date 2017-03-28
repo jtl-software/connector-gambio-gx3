@@ -123,7 +123,7 @@ class ProductAttr extends BaseMapper
                         $valDesc = new \stdClass();
                         $valDesc->additional_field_value_id = $valId;
                         $valDesc->language_id = $this->locale2id($i18n->getLanguageISO());
-                        $valDesc->value = $i18n->getName();
+                        $valDesc->value = $i18n->getValue();
 
                         $this->db->insertRow($valDesc, 'additional_field_value_descriptions');
                     }
