@@ -6,7 +6,7 @@ use jtl\Connector\Model\CrossSellingItem as CrossSellingItemModel;
 
 class CrossSellingItem extends BaseMapper
 {
-    public function pull($data)
+    public function pull($data, $limit = null)
     {
         $query = 'SELECT x.* FROM products_xsell x WHERE x.products_id = "'.$data['products_id'].'"';
         $results = $this->db->query($query);

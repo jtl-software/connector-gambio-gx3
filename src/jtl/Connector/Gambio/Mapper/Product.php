@@ -303,7 +303,7 @@ class Product extends BaseMapper
         $skip = true;
 
         foreach ($data->getI18ns() as $i18n) {
-            $name = $i18n->getName();
+            $name = $i18n->getUnitName();
             $language_id = $this->locale2id($i18n->getLanguageISO());
 
             $dbResult = $this->db->query('SELECT code FROM languages WHERE languages_id='.$language_id);

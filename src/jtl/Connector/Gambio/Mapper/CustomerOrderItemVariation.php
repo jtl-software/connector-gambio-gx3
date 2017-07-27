@@ -34,7 +34,7 @@ class CustomerOrderItemVariation extends BaseMapper
         )
     );
 
-    public function pull($data, $limit)
+    public function pull($data, $limit = null)
     {
         $oldVars = parent::pull($data, $limit);
         $newVars = array();

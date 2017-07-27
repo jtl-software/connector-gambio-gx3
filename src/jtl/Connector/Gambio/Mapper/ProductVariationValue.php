@@ -19,7 +19,7 @@ class ProductVariationValue extends BaseMapper
         )
     );
 
-    public function pull($data, $limit)
+    public function pull($data, $limit = null)
     {
         if (isset($data['options_id'])) {
             $this->mapperConfig = array(
