@@ -17,6 +17,8 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
         16 => 'image',
         32 => 'manufacturer',
         64 => 'product',
+        128 => 'specific',
+        256 => 'specific_value',
         512 => 'payment',
         1024 => 'crossselling',
         2048 => 'crossselling_group'

@@ -117,7 +117,6 @@ class BaseMapper
         foreach ($data as $obj) {
             $subMapper = [];
 
-            //$model = new $this->model();
             $model = $obj;
 
             if (!$this->type) {
@@ -297,8 +296,10 @@ class BaseMapper
 
         $return = array();
 
-        foreach ($dbResult as $data) {
-            $return[] = $this->generateModel($data);
+        if (isset($dbResult)) {
+            foreach ($dbResult as $data) {
+                $return[] = $this->generateModel($data);
+            }
         }
 
         return $return;

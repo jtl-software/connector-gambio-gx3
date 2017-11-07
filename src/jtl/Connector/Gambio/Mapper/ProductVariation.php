@@ -274,6 +274,13 @@ class ProductVariation extends BaseMapper
                 foreach ($parent->getPrices() as $price) {
                     if (is_null($price->getCustomerGroupId()->getEndpoint()) || $price->getCustomerGroupId()->getEndpoint() == '') {
                         $priceItem = $price->getItems()[0];
+
+                        if (is_null(static::$parentPrices[$parent->getMasterProductId()->getHost()])) {
+                            $parentObj = $this->db->query('SELECT products_price FROM products WHERE products_id="' . $combi->products_id . '"');
+
+                            static::$parentPrices[$parent->getMasterProductId()->getHost()] = $parentObj[0]['products_price'];
+                        }
+
                         $combi->combi_price = $priceItem->getNetPrice() - static::$parentPrices[$parent->getMasterProductId()->getHost()];
                         break;
                     }

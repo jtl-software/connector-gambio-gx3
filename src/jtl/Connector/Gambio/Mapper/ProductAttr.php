@@ -81,12 +81,13 @@ class ProductAttr extends BaseMapper
                             $sql = $this->db->query('SELECT additional_field_id FROM additional_field_descriptions WHERE language_id=' . $language_id . ' AND name="' . $i18n->getName() . '"');
                             if (count($sql) > 0) {
                                 $fieldId = $sql[0]['additional_field_id'];
-                                if ($data->getId()->getEndpoint() !== null) {
+                                $pId = $data->getId()->getEndpoint();
+                                if (!empty($pId)) {
                                     $this->db->query('
                                           DELETE v, d
                                           FROM additional_field_values v
                                           LEFT JOIN additional_field_value_descriptions d ON d.additional_field_value_id = v.additional_field_value_id
-                                          WHERE v.additional_field_id = ' . $fieldId . ' AND item_id=' . $data->getId()->getEndpoint()
+                                          WHERE v.additional_field_id = ' . $fieldId . ' AND item_id=' . $pId
                                     );
                                 }
                             } else {
