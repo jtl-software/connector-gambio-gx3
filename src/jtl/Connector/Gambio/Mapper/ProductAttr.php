@@ -60,83 +60,85 @@ class ProductAttr extends BaseMapper
                 }
             } else {
             */
-                foreach ($attr->getI18ns() as $i18n) {
-                    $field = array_search($i18n->getName(), $this->additions);
-                    if ($field) {
-                        $dbObj->$field = $i18n->getValue();
-                    } elseif ($i18n->getName() === 'Google Kategorie') {
-                        $obj = new \stdClass();
-                        $obj->products_id = $data->getId()->getEndpoint();
-                        $obj->google_category = $i18n->getValue();
-                        $this->db->deleteInsertRow($obj, 'products_google_categories', 'products_id', $obj->products_id);
-                    } elseif ($i18n->getName() === 'Google Zustand') {
-                        $this->db->query('UPDATE products_item_codes SET google_export_condition="'.$i18n->getValue().'" WHERE products_id="'.$data->getId()->getEndpoint().'"');
-                    } elseif ($i18n->getName() === 'Google Verfuegbarkeit ID') {
-                        $this->db->query('UPDATE products_item_codes SET google_export_availability_id="'.$i18n->getValue().'" WHERE products_id="'.$data->getId()->getEndpoint().'"');
-                    } else {
-                        $language_id = $this->locale2id($i18n->getLanguageISO());
-                        $dbResult = $this->db->query('SELECT code FROM languages WHERE languages_id=' . $language_id);
+            foreach ($attr->getI18ns() as $i18n) {
+                $pId = $data->getId()->getEndpoint();
+                $field = array_search($i18n->getName(), $this->additions);
 
-                        if ($dbResult[0]['code'] == $this->shopConfig['settings']['DEFAULT_LANGUAGE']) {
-                            $sql = $this->db->query('SELECT additional_field_id FROM additional_field_descriptions WHERE language_id=' . $language_id . ' AND name="' . $i18n->getName() . '"');
-                            if (count($sql) > 0) {
-                                $fieldId = $sql[0]['additional_field_id'];
-                                $pId = $data->getId()->getEndpoint();
-                                if (!empty($pId)) {
-                                    $this->db->query('
-                                          DELETE v, d
-                                          FROM additional_field_values v
-                                          LEFT JOIN additional_field_value_descriptions d ON d.additional_field_value_id = v.additional_field_value_id
-                                          WHERE v.additional_field_id = ' . $fieldId . ' AND item_id=' . $pId
-                                    );
-                                }
-                            } else {
-                                $field = new \stdClass();
-                                $field->field_key = 'product-' . uniqid();
-                                $field->item_type = 'product';
-                                $field->multilingual = strval($attr->getIsTranslated());
+                if ($field) {
+                    $dbObj->$field = $i18n->getValue();
+                } elseif ($i18n->getName() === 'Google Kategorie') {
+                    $obj = new \stdClass();
+                    $obj->products_id = $data->getId()->getEndpoint();
+                    $obj->google_category = $i18n->getValue();
+                    $this->db->deleteInsertRow($obj, 'products_google_categories', 'products_id', $obj->products_id);
+                } elseif ($i18n->getName() === 'Google Zustand' && !empty($pId)) {
+                    $this->db->query('UPDATE products_item_codes SET google_export_condition="'.$i18n->getValue().'" WHERE products_id="'.$pId.'"');
+                } elseif ($i18n->getName() === 'Google Verfuegbarkeit ID' && !empty($pId)) {
+                    $this->db->query('UPDATE products_item_codes SET google_export_availability_id="'.$i18n->getValue().'" WHERE products_id="'.$pId.'"');
+                } else {
+                    $language_id = $this->locale2id($i18n->getLanguageISO());
+                    $dbResult = $this->db->query('SELECT code FROM languages WHERE languages_id=' . $language_id);
 
-                                $insResult = $this->db->insertRow($field, 'additional_fields');
-                                $fieldId = $insResult->getKey();
+                    if ($dbResult[0]['code'] == $this->shopConfig['settings']['DEFAULT_LANGUAGE']) {
+                        $sql = $this->db->query('SELECT additional_field_id FROM additional_field_descriptions WHERE language_id=' . $language_id . ' AND name="' . $i18n->getName() . '"');
+                        if (count($sql) > 0) {
+                            $fieldId = $sql[0]['additional_field_id'];
 
-                                foreach ($attr->getI18ns() as $i18n) {
-                                    $fieldDesc = new \stdClass();
-                                    $fieldDesc->additional_field_id = $fieldId;
-                                    $fieldDesc->language_id = $this->locale2id($i18n->getLanguageISO());
-                                    $fieldDesc->name = $i18n->getName();
+                            if (!empty($pId)) {
+                                $this->db->query('
+                                      DELETE v, d
+                                      FROM additional_field_values v
+                                      LEFT JOIN additional_field_value_descriptions d ON d.additional_field_value_id = v.additional_field_value_id
+                                      WHERE v.additional_field_id = ' . $fieldId . ' AND item_id=' . $pId
+                                );
+                            }
+                        } else {
+                            $field = new \stdClass();
+                            $field->field_key = 'product-' . uniqid();
+                            $field->item_type = 'product';
+                            $field->multilingual = strval($attr->getIsTranslated());
 
-                                    $this->db->deleteInsertRow($fieldDesc, 'additional_field_descriptions', array('additional_field_id', 'language_id'), array($fieldDesc->additional_field_id, $fieldDesc->language_id));
-                                }
+                            $insResult = $this->db->insertRow($field, 'additional_fields');
+                            $fieldId = $insResult->getKey();
+
+                            foreach ($attr->getI18ns() as $i18n) {
+                                $fieldDesc = new \stdClass();
+                                $fieldDesc->additional_field_id = $fieldId;
+                                $fieldDesc->language_id = $this->locale2id($i18n->getLanguageISO());
+                                $fieldDesc->name = $i18n->getName();
+
+                                $this->db->deleteInsertRow($fieldDesc, 'additional_field_descriptions', array('additional_field_id', 'language_id'), array($fieldDesc->additional_field_id, $fieldDesc->language_id));
                             }
                         }
                     }
                 }
+            }
 
-                $value = new \stdClass();
-                $value->additional_field_id = $fieldId;
-                $value->item_id = $data->getId()->getEndpoint();
+            $value = new \stdClass();
+            $value->additional_field_id = $fieldId;
+            $value->item_id = $data->getId()->getEndpoint();
 
-                $valIns = $this->db->insertRow($value, 'additional_field_values');
-                $valId = $valIns->getKey();
+            $valIns = $this->db->insertRow($value, 'additional_field_values');
+            $valId = $valIns->getKey();
 
-                if ($attr->getIsTranslated() === true) {
-                    foreach ($attr->getI18ns() as $i18n) {
-                        $valDesc = new \stdClass();
-                        $valDesc->additional_field_value_id = $valId;
-                        $valDesc->language_id = $this->locale2id($i18n->getLanguageISO());
-                        $valDesc->value = $i18n->getValue();
-
-                        $this->db->insertRow($valDesc, 'additional_field_value_descriptions');
-                    }
-                } else {
+            if ($attr->getIsTranslated() === true) {
+                foreach ($attr->getI18ns() as $i18n) {
                     $valDesc = new \stdClass();
                     $valDesc->additional_field_value_id = $valId;
-                    $valDesc->language_id = 0;
-                    $valDesc->value = $attr->getI18ns()[0]->getValue();
+                    $valDesc->language_id = $this->locale2id($i18n->getLanguageISO());
+                    $valDesc->value = $i18n->getValue();
 
                     $this->db->insertRow($valDesc, 'additional_field_value_descriptions');
                 }
-            //}
+            } else {
+                $valDesc = new \stdClass();
+                $valDesc->additional_field_value_id = $valId;
+                $valDesc->language_id = 0;
+                $valDesc->value = $attr->getI18ns()[0]->getValue();
+
+                $this->db->insertRow($valDesc, 'additional_field_value_descriptions');
+            }
+            // }
         }
 
         return $data->getAttributes();

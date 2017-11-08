@@ -394,7 +394,7 @@ class Image extends BaseMapper
             }
 
             foreach ($this->thumbConfig as $folder => $sizes) {
-                if (!is_null($oldImage)) {
+                if (isset($oldImage) && file_exists($this->shopConfig['shop']['path'].$this->shopConfig['img'][$folder].$oldImage)) {
                     unlink($this->shopConfig['shop']['path'].$this->shopConfig['img'][$folder].$oldImage);
                 }
             }
