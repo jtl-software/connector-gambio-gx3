@@ -7,13 +7,14 @@ class CustomerOrderItem extends BaseMapper
 {
     protected $mapperConfig = array(
         "table" => "orders_products",
-        "query" => "SELECT p.*,v.products_properties_combis_id FROM orders_products p LEFT JOIN orders_products_properties v ON v.orders_products_id=p.orders_products_id WHERE p.orders_id=[[orders_id]]",
+        //"query" => "SELECT p.*,v.products_properties_combis_id FROM orders_products p LEFT JOIN orders_products_properties v ON v.orders_products_id=p.orders_products_id WHERE p.orders_id=[[orders_id]]",
+        "query" => "SELECT p.* FROM orders_products p WHERE p.orders_id=[[orders_id]]",
         "where" => "orders_products_id",
         "getMethod" => "getItems",
         "identity" => "getId",
         "mapPull" => array(
             "id" => "orders_products_id",
-            "productId" => null,
+            "productId" => "products_id",
             "customerOrderId" => "orders_id",
             "quantity" => "products_quantity",
             "name" => "products_name",
@@ -115,10 +116,15 @@ class CustomerOrderItem extends BaseMapper
         return $return;
     }
 
+    /*
     protected function productId($data)
     {
-        return !empty($data['products_properties_combis_id']) ? $data['products_id'].'_'.$data['products_properties_combis_id'] : $data['products_properties_combis_id'];
+        if (!empty($data['products_properties_combis_id'])) {
+        }
+
+        return $data['products_id'];
     }
+    */
 
     protected function price($data)
     {
