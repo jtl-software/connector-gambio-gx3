@@ -18,6 +18,7 @@ class Category extends \jtl\Connector\Gambio\Mapper\BaseMapper
             "i18ns" => "CategoryI18n|addI18n",
             "invisibilities" => "CategoryInvisibility|addInvisibility",
             "attributes" => "CategoryAttr|addAttribute",
+            "isActive" => null
         ),
         "mapPush" => array(
             "categories_id" => "id",
@@ -46,6 +47,11 @@ class Category extends \jtl\Connector\Gambio\Mapper\BaseMapper
     protected function parent_id($data)
     {
         return empty($data->getParentCategoryId()->getEndpoint()) ? 0 : $data->getParentCategoryId()->getEndpoint();
+    }
+
+    protected function isActive($data)
+    {
+        return true;
     }
 
     public function pull($parent = null, $limit = null)

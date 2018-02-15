@@ -13,7 +13,7 @@ class ProductVariation extends BaseMapper
 
     protected $mapperConfig = array(
         "table" => "products_properties_index",
-        "query" => 'SELECT * FROM products_properties_index WHERE products_id=[[products_id]] GROUP BY properties_id',
+        "query" => 'SELECT properties_id, products_id, properties_sort_order FROM products_properties_index WHERE products_id=[[products_id]] GROUP BY properties_id, products_id, properties_sort_order',
         "where" => "products_properties_combis_id",
         "getMethod" => "getVariations",
         "mapPull" => array(

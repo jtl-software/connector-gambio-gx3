@@ -15,7 +15,7 @@ class ProductStockLevel extends BaseMapper
         return array($stockLevel);
     }
 
-    public function push(ProductStockLevelModel $stockLevel)
+    public function push($stockLevel, $dbObj = null)
     {
         $productId = $stockLevel->getProductId()->getEndpoint();
 

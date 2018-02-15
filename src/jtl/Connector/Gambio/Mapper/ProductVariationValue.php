@@ -9,7 +9,7 @@ class ProductVariationValue extends BaseMapper
 
     protected $mapperConfig = array(
         "table" => "products_properties_index",
-        "query" => 'SELECT * FROM products_properties_index WHERE products_id=[[products_id]] && properties_id=[[properties_id]] GROUP BY properties_values_id',
+        "query" => 'SELECT properties_values_id, properties_id, value_sort_order FROM products_properties_index WHERE products_id=[[products_id]] && properties_id=[[properties_id]] GROUP BY properties_values_id, properties_id, value_sort_order',
         "getMethod" => "getValues",
         "mapPull" => array(
             "id" => "properties_values_id",
@@ -19,7 +19,7 @@ class ProductVariationValue extends BaseMapper
         )
     );
 
-    public function pull($data, $limit = null)
+    public function pull($data = null, $limit = null)
     {
         if (isset($data['options_id'])) {
             $this->mapperConfig = array(
