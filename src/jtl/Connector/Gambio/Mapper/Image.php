@@ -218,6 +218,10 @@ class Image extends BaseMapper
 
                             $data->getId()->setEndpoint('pID_' . $data->getForeignKey()->getEndpoint());
 
+                            foreach($data->getI18ns() as $i18n) {
+                                $this->db->query('UPDATE products_description SET gm_alt_text="'.$i18n->getAltText().'" WHERE products_id="'.$data->getForeignKey()->getEndpoint().'" && language_id='.$this->locale2id($i18n->getLanguageISO()));
+                            }
+
                             $this->db->query('DELETE FROM jtl_connector_link_image WHERE endpoint_id="' . $data->getId()->getEndpoint() . '"');
                             $this->db->query('DELETE FROM jtl_connector_link_image WHERE host_id=' . $data->getId()->getHost());
                             $this->db->query('INSERT INTO jtl_connector_link_image SET host_id="' . $data->getId()->getHost() . '", endpoint_id="' . $data->getId()->getEndpoint() . '"');
@@ -242,6 +246,7 @@ class Image extends BaseMapper
                             }
 
                             $this->db->query('DELETE FROM products_images WHERE image_id="'.$imgId.'"');
+                            $this->db->query('DELETE FROM gm_prd_img_alt WHERE image_id="'.$imgId.'"');
                         }
 
                         $oldImageQuery = $this->db->query('SELECT image_name FROM products_images WHERE products_id = "'.$data->getForeignKey()->getEndpoint().'" && image_nr='.($data->getSort() - 1));
@@ -253,7 +258,7 @@ class Image extends BaseMapper
                             @unlink($this->shopConfig['shop']['path'].$this->shopConfig['img']['original'].$oldImage);
                         }
 
-                        $imgObj->image_id = $data->getId()->getEndpoint();
+                        //$imgObj->image_id = $data->getId()->getEndpoint();
 
                         if (empty($data->getName())) {
                             $imgFileName = substr($data->getFilename(), strrpos($data->getFilename(), '/') + 1);
@@ -272,7 +277,12 @@ class Image extends BaseMapper
                         $imgObj->image_nr = ($data->getSort() - 1);
 
                         $newIdQuery = $this->db->deleteInsertRow($imgObj, 'products_images', array('image_nr', 'products_id'), array($imgObj->image_nr, $imgObj->products_id));
+
                         $newId = $newIdQuery->getKey();
+
+                        foreach($data->getI18ns() as $i18n) {
+                            $this->db->query('INSERT INTO gm_prd_img_alt SET gm_alt_text="'.$i18n->getAltText().'", products_id="'.$imgObj->products_id.'", image_id="'.$newId.'", language_id='.$this->locale2id($i18n->getLanguageISO()));
+                        }
 
                         $this->db->query('DELETE FROM jtl_connector_link_image WHERE host_id='.$data->getId()->getHost());
                         $this->db->query('INSERT INTO jtl_connector_link_image SET host_id="'.$data->getId()->getHost().'", endpoint_id="'.$newId.'"');
