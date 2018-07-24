@@ -1,7 +1,8 @@
-2.8.1
+2.9
 ------
- CO-244 Consider allow_tax flag on order_items when pulling a CustomerOrder
-
+ - CO-244 Consider allow_tax flag on order_items when pulling a CustomerOrder
+ - Implement GambioHub-Payments support
+ 
 2.2
 ------
 
