@@ -1,5 +1,10 @@
+2.8.1
+------
+ CO-244 Consider allow_tax flag on order_items when pulling a CustomerOrder
+
 2.2
 ------
+
 - [b21d021]
   CO-31 #resolve removed ProductVarCombination
 
