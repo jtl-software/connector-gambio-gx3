@@ -19,7 +19,7 @@ class CustomerOrderItem extends BaseMapper
             "name" => "products_name",
             "price" => null,
             "priceGross" => null,
-            "vat" => "products_tax",
+            "vat" => null,
             "sku" => "products_model",
             "variations" => "CustomerOrderItemVariation|addVariation",
             "type" => null
@@ -136,6 +136,11 @@ class CustomerOrderItem extends BaseMapper
         if ($data['allow_tax'] == "1") {
             return $data['products_price'];
         }
+    }
+
+    protected function vat($data)
+    {
+        return ($data['allow_tax'] == "1" ? $data['products_tax'] : 0);
     }
 
     protected function products_price($data)
