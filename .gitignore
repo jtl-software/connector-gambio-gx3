@@ -3,6 +3,7 @@ composer.lock
 config/config.json
 logs/**
 build/**
+plugins/rpcview
 dist/**
 db/connector.s3db
 .idea/**
