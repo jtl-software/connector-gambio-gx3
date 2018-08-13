@@ -273,8 +273,9 @@ class CustomerOrder extends BaseMapper
         $shipping->setVat(0);
         
         $totalData = $this->db->query('SELECT class,value,title FROM orders_total WHERE orders_id=' . $data['orders_id']);
-        
-        $vatExcl = false;
+        $taxRate = $this->db->query('SELECT tax_rate FROM orders_tax_sum_items WHERE orders_id=' . $data['orders_id']);
+
+        $vatExcl = isset($taxRate[0]['tax_rate']) && (float)$taxRate[0]['tax_rate'] === 0.;
         foreach ($totalData as $total) {
             if ($total['class'] == 'ot_subtotal_no_tax') {
                 $vatExcl = true;
@@ -296,7 +297,7 @@ class CustomerOrder extends BaseMapper
                 list($shippingModule, $shippingName) = explode('_', $data['shipping_class']);
                 
                 $moduleTaxClass = $this->db->query('SELECT configuration_value FROM configuration WHERE configuration_key ="MODULE_SHIPPING_' . strtoupper($shippingModule) . '_TAX_CLASS"');
-                if (count($moduleTaxClass) > 0) {
+                if (!$vatExcl && count($moduleTaxClass) > 0) {
                     if (!empty($moduleTaxClass[0]['configuration_value']) && !empty($data['delivery_country_iso_code_2'])) {
                         $rateResult = $this->db->query('SELECT r.tax_rate FROM countries c
                           LEFT JOIN zones_to_geo_zones z ON z.zone_country_id = c.countries_id
