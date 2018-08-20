@@ -17,6 +17,13 @@ class ProductAttr extends BaseMapper
         'options_template' => 'Optionen Vorlage'
     );
 
+    protected $ignoreAttributes = [
+        'Wesentliche Produktmerkmale',
+        'Google Kategorie',
+        'Google Zustand',
+        'Google Verfuegbarkeit ID'
+    ];
+
     public function pull($data = null, $limit = null) {
         $attrs = array();
 
@@ -45,36 +52,16 @@ class ProductAttr extends BaseMapper
         $dbObj->products_status = 1;
 
         foreach ($data->getAttributes() as $attr) {
-            /*
-            if ($attr->getIsCustomProperty() === false) {
-                foreach ($attr->getI18ns() as $i18n) {
-                    $field = array_search($i18n->getName(), $this->additions);
-                    if ($field) {
-                        $dbObj->$field = $i18n->getValue();
-                    } elseif ($i18n->getName() === 'Google Kategorie') {
-                        $obj = new \stdClass();
-                        $obj->products_id = $data->getId()->getEndpoint();
-                        $obj->google_category = $i18n->getValue();
-                        $this->db->deleteInsertRow($obj, 'products_google_categories', 'products_id', $obj->products_id);
-                    }
-                }
-            } else {
-            */
             foreach ($attr->getI18ns() as $i18n) {
                 $pId = $data->getId()->getEndpoint();
                 $field = array_search($i18n->getName(), $this->additions);
 
-                if ($field) {
-                    $dbObj->$field = $i18n->getValue();
-                } elseif ($i18n->getName() === 'Google Kategorie') {
-                    $obj = new \stdClass();
-                    $obj->products_id = $data->getId()->getEndpoint();
-                    $obj->google_category = $i18n->getValue();
-                    $this->db->deleteInsertRow($obj, 'products_google_categories', 'products_id', $obj->products_id);
-                } elseif ($i18n->getName() === 'Google Zustand' && !empty($pId)) {
-                    $this->db->query('UPDATE products_item_codes SET google_export_condition="'.$i18n->getValue().'" WHERE products_id="'.$pId.'"');
-                } elseif ($i18n->getName() === 'Google Verfuegbarkeit ID' && !empty($pId)) {
-                    $this->db->query('UPDATE products_item_codes SET google_export_availability_id="'.$i18n->getValue().'" WHERE products_id="'.$pId.'"');
+                $ignoreAttribute = in_array($i18n->getName(), $this->ignoreAttributes) || $field;
+                if($ignoreAttribute) {
+                    if($field) {
+                        $dbObj->$field = $i18n->getValue();
+                    }
+                    break;
                 } else {
                     $language_id = $this->locale2id($i18n->getLanguageISO());
                     $dbResult = $this->db->query('SELECT code FROM languages WHERE languages_id=' . $language_id);
@@ -114,31 +101,32 @@ class ProductAttr extends BaseMapper
                 }
             }
 
-            $value = new \stdClass();
-            $value->additional_field_id = $fieldId;
-            $value->item_id = $data->getId()->getEndpoint();
+            if (!$ignoreAttribute) {
+                $value = new \stdClass();
+                $value->additional_field_id = $fieldId;
+                $value->item_id = $data->getId()->getEndpoint();
 
-            $valIns = $this->db->insertRow($value, 'additional_field_values');
-            $valId = $valIns->getKey();
+                $valIns = $this->db->insertRow($value, 'additional_field_values');
+                $valId = $valIns->getKey();
 
-            if ($attr->getIsTranslated() === true) {
-                foreach ($attr->getI18ns() as $i18n) {
+                if ($attr->getIsTranslated() === true) {
+                    foreach ($attr->getI18ns() as $i18n) {
+                        $valDesc = new \stdClass();
+                        $valDesc->additional_field_value_id = $valId;
+                        $valDesc->language_id = $this->locale2id($i18n->getLanguageISO());
+                        $valDesc->value = $i18n->getValue();
+
+                        $this->db->insertRow($valDesc, 'additional_field_value_descriptions');
+                    }
+                } else {
                     $valDesc = new \stdClass();
                     $valDesc->additional_field_value_id = $valId;
-                    $valDesc->language_id = $this->locale2id($i18n->getLanguageISO());
-                    $valDesc->value = $i18n->getValue();
+                    $valDesc->language_id = 0;
+                    $valDesc->value = $attr->getI18ns()[0]->getValue();
 
                     $this->db->insertRow($valDesc, 'additional_field_value_descriptions');
                 }
-            } else {
-                $valDesc = new \stdClass();
-                $valDesc->additional_field_value_id = $valId;
-                $valDesc->language_id = 0;
-                $valDesc->value = $attr->getI18ns()[0]->getValue();
-
-                $this->db->insertRow($valDesc, 'additional_field_value_descriptions');
             }
-            // }
         }
 
         return $data->getAttributes();

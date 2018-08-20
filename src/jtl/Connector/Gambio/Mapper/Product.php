@@ -22,11 +22,11 @@ class Product extends BaseMapper
         "table" => "products",
         /*
         "query" => "SELECT p.*, q.quantity_unit_id, c.code_isbn, c.code_mpn, c.code_upc, c.google_export_condition, c.google_export_availability_id, g.google_category
-            FROM products p 
+            FROM products p
             LEFT JOIN products_quantity_unit q ON q.products_id = p.products_id
             LEFT JOIN products_item_codes c ON c.products_id = p.products_id
             LEFT JOIN products_google_categories g ON g.products_id = p.products_id
-            LEFT JOIN jtl_connector_link l ON CONVERT(p.products_id, CHAR(16)) = l.endpointId COLLATE utf8_unicode_ci AND l.type = 64 
+            LEFT JOIN jtl_connector_link l ON CONVERT(p.products_id, CHAR(16)) = l.endpointId COLLATE utf8_unicode_ci AND l.type = 64
             WHERE l.hostId IS NULL",
         */
         "where" => "products_id",
@@ -87,7 +87,7 @@ class Product extends BaseMapper
             "ProductSpecialPrice|addSpecialPrice" => "specialPrices",
             "ProductVariation|addVariation" => "variations",
             "ProductInvisibility|addInvisibility|true" => "invisibilities",
-            "ProductAttr|addAttribute|true" => "attributes",
+            //"ProductAttr|addAttribute|true" => "attributes",
             "ProductI18n|addI18n" => "i18ns",
             "products_image" => null,
             "products_shippingtime" => null,
@@ -240,11 +240,11 @@ class Product extends BaseMapper
         $isVarCombi = !empty($masterId);
 
         $id = $data->getId()->getEndpoint();
-        
+
         if ($isVarCombi) {
             $this->mapperConfig['mapPush'] = array(
                 "ProductVariation|addVariation" => "variations"
-            );            
+            );
         } else {
             if (!empty($id)) {
                 foreach ($this->getCustomerGroups() as $group) {
@@ -253,10 +253,10 @@ class Product extends BaseMapper
 
                 //$this->db->query('DELETE FROM specials WHERE products_id='.$id);
                 $this->db->query('DELETE FROM products_attributes WHERE products_id="'.$id.'"');
-            }            
+            }
         }
 
-        return parent::push($data, $dbObj);        
+        return parent::push($data, $dbObj);
     }
 
     protected function pushDone($returnModel, $dbObj, $data)
@@ -283,9 +283,16 @@ class Product extends BaseMapper
                 } elseif($i18n->getName() === 'Wesentliche Produktmerkmale') {
                     $language_id = $this->locale2id($i18n->getLanguageISO());
                     $this->db->query('UPDATE products_description SET checkout_information="'.$this->db->escapeString($i18n->getValue()).'" WHERE products_id="'.$data->getId()->getEndpoint().'" && language_id='.$language_id);
+                } elseif ($i18n->getName() === 'Google Kategorie') {
+                    $obj = new \stdClass();
+                    $obj->products_id = $data->getId()->getEndpoint();
+                    $obj->google_category = $i18n->getValue();
+                    $this->db->deleteInsertRow($obj, 'products_google_categories', 'products_id', $obj->products_id);
                 }
             }
         }
+
+        $attributes = (new ProductAttr())->push($data);
 
         if (count($checkCodes) > 0) {
             $this->db->updateRow($codes, 'products_item_codes', 'products_id', $codes->products_id);
@@ -363,7 +370,7 @@ class Product extends BaseMapper
 
                     $this->db->query('DELETE FROM jtl_connector_link_product WHERE endpoint_id="'.$id.'"');
                 }
-                catch (\Exception $e) {                
+                catch (\Exception $e) {
                 }
             }
         } else {
@@ -383,13 +390,17 @@ class Product extends BaseMapper
                     $this->db->query('DELETE FROM categories_index WHERE products_id='.$id);
                     $this->db->query('DELETE FROM products_item_codes WHERE products_id='.$id);
 
+                    //General product attribute values cleanings
+                    $this->db->query('DELETE FROM additional_field_value_descriptions WHERE additional_field_value_id IN (SELECT `additional_field_value_id` FROM `additional_field_values` afv LEFT JOIN additional_fields af ON afv.additional_field_id = af.additional_field_id WHERE af.item_type = \'product\' AND item_id NOT IN (SELECT products_id FROM products WHERE 1))');
+                    $this->db->query('DELETE afv FROM `additional_field_values` afv LEFT JOIN additional_fields af ON afv.additional_field_id = af.additional_field_id WHERE af.item_type = \'product\' AND item_id NOT IN (SELECT products_id FROM products WHERE 1)');
+
                     foreach ($this->getCustomerGroups() as $group) {
                         $this->db->query('DELETE FROM personal_offers_by_customers_status_'.$group['customers_status_id'].' WHERE products_id='.$id);
                     }
 
                     $this->db->query('DELETE FROM jtl_connector_link_product WHERE endpoint_id="'.$id.'"');
                 }
-                catch (\Exception $e) {                
+                catch (\Exception $e) {
                 }
             }
         }
@@ -425,7 +436,7 @@ class Product extends BaseMapper
 
     protected function considerBasePrice($data)
     {
-        return $data['products_vpe_status'] == 1 ? true : false;        
+        return $data['products_vpe_status'] == 1 ? true : false;
     }
 
     protected function products_vpe($data)
@@ -548,7 +559,7 @@ class Product extends BaseMapper
     protected function considerVariationStock($data)
     {
         $check = $this->db->query('SELECT products_id FROM products_attributes WHERE products_id='.$data['products_id']);
-        
+
         return count($check) > 0 ? true : false;
     }
 
@@ -571,7 +582,7 @@ class Product extends BaseMapper
     protected function products_tax_class_id($data)
     {
         $sql = $this->db->query('SELECT r.tax_class_id FROM zones_to_geo_zones z LEFT JOIN tax_rates r ON z.geo_zone_id=r.tax_zone_id WHERE z.zone_country_id = '.$this->shopConfig['settings']['STORE_COUNTRY'].' && r.tax_rate='.$data->getVat());
-        
+
         if (empty($sql)) {
             $sql = $this->db->query('SELECT tax_class_id FROM tax_rates WHERE tax_rates_id='.$this->connectorConfig->tax_rate);
         }
