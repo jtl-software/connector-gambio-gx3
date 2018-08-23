@@ -291,8 +291,10 @@ class Product extends BaseMapper
                 }
             }
         }
-
-        $attributes = (new ProductAttr())->push($data);
+        
+        if ($data->getMasterProductId()->getHost() === 0) {
+            $attributes = (new ProductAttr())->push($data);
+        }
 
         if (count($checkCodes) > 0) {
             $this->db->updateRow($codes, 'products_item_codes', 'products_id', $codes->products_id);
