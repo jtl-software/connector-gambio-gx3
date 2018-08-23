@@ -230,30 +230,29 @@ class Product extends BaseMapper
 
     public function push($data, $dbObj = null)
     {
-        $masterId = $data->getMasterProductId()->getEndpoint();
+        if(is_null($dbObj)) {
+            $dbObj = new \stdClass();
+        }
 
+        $masterId = $data->getMasterProductId()->getEndpoint();
         if (empty($masterId) && isset(static::$idCache[$data->getMasterProductId()->getHost()])) {
             $masterId = static::$idCache[$data->getMasterProductId()->getHost()];
             $data->getMasterProductId()->setEndpoint($masterId);
         }
 
         $isVarCombi = !empty($masterId);
-
         $id = $data->getId()->getEndpoint();
-
         if ($isVarCombi) {
-            $this->mapperConfig['mapPush'] = array(
+            $this->mapperConfig['mapPush'] = [
                 "ProductVariation|addVariation" => "variations"
-            );
-        } else {
-            if (!empty($id)) {
-                foreach ($this->getCustomerGroups() as $group) {
-                    $this->db->query('DELETE FROM personal_offers_by_customers_status_'.$group['customers_status_id'].' WHERE products_id="'.$id.'"');
-                }
-
-                //$this->db->query('DELETE FROM specials WHERE products_id='.$id);
-                $this->db->query('DELETE FROM products_attributes WHERE products_id="'.$id.'"');
+            ];
+        } elseif(!empty($id)) {
+            foreach ($this->getCustomerGroups() as $group) {
+                $this->db->query('DELETE FROM personal_offers_by_customers_status_' . $group['customers_status_id'] . ' WHERE products_id="' . $id . '"');
             }
+
+            //$this->db->query('DELETE FROM specials WHERE products_id='.$id);
+            $this->db->query('DELETE FROM products_attributes WHERE products_id="' . $id . '"');
         }
 
         return parent::push($data, $dbObj);

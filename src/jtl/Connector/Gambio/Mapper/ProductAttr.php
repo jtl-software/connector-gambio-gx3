@@ -49,6 +49,10 @@ class ProductAttr extends BaseMapper
     }
 
     public function push($data, $dbObj = null) {
+        if(is_null($dbObj)) {
+            $dbObj = new \stdClass();
+        }
+
         $dbObj->products_status = 1;
 
         foreach ($data->getAttributes() as $attr) {
