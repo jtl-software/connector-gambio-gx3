@@ -28,7 +28,7 @@ class ProductVariation extends BaseMapper
     
     public function pull($data = null, $limit = null)
     {
-        $checkCombi = $this->db->query('SELECT products_properties_combis_id FROM products_properties_index WHERE products_id=' . $data['products_id']);
+        $checkCombi = $this->db->query('SELECT products_properties_combis_id FROM products_properties_index WHERE products_id=' . $data[ 'products_id' ]);
         
         if (count($checkCombi) == 0) {
             $this->mapperConfig = [
@@ -64,7 +64,7 @@ class ProductVariation extends BaseMapper
                 foreach ($parent->getVariations() as $variation) {
                     // get variation name in default language
                     foreach ($variation->getI18ns() as $i18n) {
-                        if ($i18n->getLanguageISO() == $this->fullLocale($this->shopConfig['settings']['DEFAULT_LANGUAGE'])) {
+                        if ($i18n->getLanguageISO() == $this->fullLocale($this->shopConfig[ 'settings' ][ 'DEFAULT_LANGUAGE' ])) {
                             $varName = $i18n->getName();
                         }
                     }
@@ -74,10 +74,10 @@ class ProductVariation extends BaseMapper
                     
                     // use existing id or generate next available one
                     if (count($variationIdQuery) > 0) {
-                        $variationId = $variationIdQuery[0]['products_options_id'];
+                        $variationId = $variationIdQuery[ 0 ][ 'products_options_id' ];
                     } else {
                         $nextId = $this->db->query('SELECT max(products_options_id) + 1 AS nextID FROM products_options');
-                        $variationId = is_null($nextId[0]['nextID']) || $nextId[0]['nextID'] === 0 ? 1 : $nextId[0]['nextID'];
+                        $variationId = is_null($nextId[ 0 ][ 'nextID' ]) || $nextId[ 0 ][ 'nextID' ] === 0 ? 1 : $nextId[ 0 ][ 'nextID' ];
                     }
                     
                     // insert/update variation
@@ -95,7 +95,7 @@ class ProductVariation extends BaseMapper
                     foreach ($variation->getValues() as $value) {
                         // get value name in default language
                         foreach ($value->getI18ns() as $i18n) {
-                            if ($i18n->getLanguageISO() == $this->fullLocale($this->shopConfig['settings']['DEFAULT_LANGUAGE'])) {
+                            if ($i18n->getLanguageISO() == $this->fullLocale($this->shopConfig[ 'settings' ][ 'DEFAULT_LANGUAGE' ])) {
                                 $valueName = $i18n->getName();
                             }
                         }
@@ -105,10 +105,10 @@ class ProductVariation extends BaseMapper
                         
                         // use existing id or generate next available one
                         if (count($valueIdQuery) > 0) {
-                            $valueId = $valueIdQuery[0]['products_options_values_id'];
+                            $valueId = $valueIdQuery[ 0 ][ 'products_options_values_id' ];
                         } else {
                             $nextId = $this->db->query('SELECT max(products_options_values_id) + 1 AS nextID FROM products_options_values');
-                            $valueId = is_null($nextId[0]['nextID']) || $nextId[0]['nextID'] === 0 ? 1 : $nextId[0]['nextID'];
+                            $valueId = is_null($nextId[ 0 ][ 'nextID' ]) || $nextId[ 0 ][ 'nextID' ] === 0 ? 1 : $nextId[ 0 ][ 'nextID' ];
                         }
                         
                         // insert/update values
@@ -170,7 +170,7 @@ class ProductVariation extends BaseMapper
                     foreach ($parent->getVariations() as $variation) {
                         // get variation name in default language
                         foreach ($variation->getI18ns() as $i18n) {
-                            if ($i18n->getLanguageISO() == $this->fullLocale($this->shopConfig['settings']['DEFAULT_LANGUAGE'])) {
+                            if ($i18n->getLanguageISO() == $this->fullLocale($this->shopConfig[ 'settings' ][ 'DEFAULT_LANGUAGE' ])) {
                                 $varName = $i18n->getName();
                             }
                         }
@@ -180,7 +180,7 @@ class ProductVariation extends BaseMapper
                         
                         // use existing id or generate next available one
                         if (count($variationIdQuery) > 0) {
-                            $variationId = $variationIdQuery[0]['properties_id'];
+                            $variationId = $variationIdQuery[ 0 ][ 'properties_id' ];
                         } else {
                             $newProp = new \stdClass();
                             $newProp->sort_order = $variation->getSort();
@@ -204,7 +204,7 @@ class ProductVariation extends BaseMapper
                         foreach ($variation->getValues() as $value) {
                             // get value name in default language
                             foreach ($value->getI18ns() as $i18n) {
-                                if ($i18n->getLanguageISO() == $this->fullLocale($this->shopConfig['settings']['DEFAULT_LANGUAGE'])) {
+                                if ($i18n->getLanguageISO() == $this->fullLocale($this->shopConfig[ 'settings' ][ 'DEFAULT_LANGUAGE' ])) {
                                     $valueName = $i18n->getName();
                                     $langId = $this->locale2id($i18n->getLanguageISO());
                                     break;
@@ -220,7 +220,7 @@ class ProductVariation extends BaseMapper
                             
                             // use existing id or generate next available one
                             if (count($valueIdQuery) > 0) {
-                                $valueId = $valueIdQuery[0]['properties_values_id'];
+                                $valueId = $valueIdQuery[ 0 ][ 'properties_values_id' ];
                             } else {
                                 $newVal = new \stdClass();
                                 $newVal->properties_id = $variationId;
@@ -247,8 +247,8 @@ class ProductVariation extends BaseMapper
                     
                     foreach ($parent->getPrices() as $price) {
                         if (is_null($price->getCustomerGroupId()->getEndpoint()) || $price->getCustomerGroupId()->getEndpoint() == '') {
-                            $priceItem = $price->getItems()[0];
-                            static::$parentPrices[$parent->getId()->getHost()] = $priceItem->getNetPrice();
+                            $priceItem = $price->getItems()[ 0 ];
+                            static::$parentPrices[ $parent->getId()->getHost() ] = $priceItem->getNetPrice();
                             break;
                         }
                     }
@@ -261,9 +261,8 @@ class ProductVariation extends BaseMapper
                 $combiId = explode('_', $id);
                 
                 if (!empty($id)) {
-                    $combi->products_properties_combis_id = $combiId[1];
+                    $combi->products_properties_combis_id = $combiId[ 1 ];
                 }
-                
                 $combi->products_id = $parent->getMasterProductId()->getEndpoint();
                 $combi->sort_order = $parent->getSort();
                 $combi->combi_model = $parent->getSku();
@@ -274,24 +273,27 @@ class ProductVariation extends BaseMapper
                 $combi->combi_price_type = 'fix';
                 $combi->vpe_value = $parent->getBasePriceDivisor();
                 $combi->products_vpe_id = $this->getVpe($parent);
-                
                 foreach ($parent->getPrices() as $price) {
                     if (is_null($price->getCustomerGroupId()->getEndpoint()) || $price->getCustomerGroupId()->getEndpoint() == '') {
-                        $priceItem = $price->getItems()[0];
+                        $priceItem = $price->getItems()[ 0 ];
                         
-                        if (is_null(static::$parentPrices[$parent->getMasterProductId()->getHost()])) {
+                        if (is_null(static::$parentPrices[ $parent->getMasterProductId()->getHost() ])) {
                             $parentObj = $this->db->query('SELECT products_price FROM products WHERE products_id="' . $combi->products_id . '"');
                             
-                            static::$parentPrices[$parent->getMasterProductId()->getHost()] = $parentObj[0]['products_price'];
+                            static::$parentPrices[ $parent->getMasterProductId()->getHost() ] = $parentObj[ 0 ][ 'products_price' ];
                         }
                         
-                        $combi->combi_price = $priceItem->getNetPrice() - static::$parentPrices[$parent->getMasterProductId()->getHost()];
+                        $combi->combi_price = $priceItem->getNetPrice() - static::$parentPrices[ $parent->getMasterProductId()->getHost() ];
                         break;
                     }
                 }
                 
-                $result = $this->db->deleteInsertRow($combi, 'products_properties_combis',
-                    'products_properties_combis_id', $combi->products_properties_combis_id);
+                if (isset($combi->products_properties_combis_id)) {
+                    $result = $this->db->updateRow($combi, 'products_properties_combis',
+                        'products_properties_combis_id', $combi->products_properties_combis_id);
+                } else {
+                    $result = $this->db->insertRow($combi, 'products_properties_combis');
+                }
                 
                 $combi->products_properties_combis_id = $result->getKey();
                 
@@ -301,7 +303,7 @@ class ProductVariation extends BaseMapper
                     $varI18ns = [];
                     foreach ($variation->getI18ns() as $varI18n) {
                         $langId = $this->locale2id($varI18n->getLanguageISO());
-                        $varI18ns[$langId] = $varI18n->getName();
+                        $varI18ns[ $langId ] = $varI18n->getName();
                     }
                     
                     foreach ($variation->getValues() as $value) {
@@ -312,7 +314,7 @@ class ProductVariation extends BaseMapper
                             $index->properties_id = $variation->getId()->getEndpoint();
                             $index->products_properties_combis_id = $combi->products_properties_combis_id;
                             $index->properties_values_id = $this->getValueId($value, $variation);
-                            $index->properties_name = $varI18ns[$index->language_id];
+                            $index->properties_name = $varI18ns[ $index->language_id ];
                             $index->properties_sort_order = $variation->getSort();
                             $index->values_name = $i18n->getName();
                             $index->value_sort_order = $value->getSort();
@@ -338,7 +340,8 @@ class ProductVariation extends BaseMapper
                 $combiId = new \StdClass();
                 $combiId->endpoint_id = $parent->getMasterProductId()->getEndpoint() . '_' . $result->getKey();
                 $combiId->host_id = $parent->getId()->getHost();
-                $this->db->deleteInsertRow($combiId, 'jtl_connector_link_product', 'endpoint_id', $combiId->endpoint_id);
+                $this->db->deleteInsertRow($combiId, 'jtl_connector_link_product', 'endpoint_id',
+                    $combiId->endpoint_id);
             }
         }
         
@@ -347,11 +350,11 @@ class ProductVariation extends BaseMapper
     
     private function getVariationId($variation)
     {
-        if (isset(static::$variationIds[$variation->getId()->getHost()])) {
-            return static::$variationIds[$variation->getId()->getHost()];
+        if (isset(static::$variationIds[ $variation->getId()->getHost() ])) {
+            return static::$variationIds[ $variation->getId()->getHost() ];
         } else {
             foreach ($variation->getI18ns() as $i18n) {
-                if ($i18n->getLanguageISO() == $this->fullLocale($this->shopConfig['settings']['DEFAULT_LANGUAGE'])) {
+                if ($i18n->getLanguageISO() == $this->fullLocale($this->shopConfig[ 'settings' ][ 'DEFAULT_LANGUAGE' ])) {
                     $varName = $i18n->getName();
                 }
             }
@@ -359,9 +362,9 @@ class ProductVariation extends BaseMapper
             $variationIdQuery = $this->db->query('SELECT properties_id FROM properties_description WHERE properties_name="' . $varName . '"');
             
             if (count($variationIdQuery) > 0) {
-                static::$variationIds[$variation->getId()->getHost()] = $variationIdQuery[0]['properties_id'];
+                static::$variationIds[ $variation->getId()->getHost() ] = $variationIdQuery[ 0 ][ 'properties_id' ];
                 
-                return $variationIdQuery[0]['properties_id'];
+                return $variationIdQuery[ 0 ][ 'properties_id' ];
             }
         }
         
@@ -370,11 +373,11 @@ class ProductVariation extends BaseMapper
     
     private function getValueId($value, $variation)
     {
-        if (isset(static::$valueIds[$value->getId()->getHost()])) {
-            return static::$valueIds[$value->getId()->getHost()];
+        if (isset(static::$valueIds[ $value->getId()->getHost() ])) {
+            return static::$valueIds[ $value->getId()->getHost() ];
         } else {
             foreach ($value->getI18ns() as $i18n) {
-                if ($i18n->getLanguageISO() == $this->fullLocale($this->shopConfig['settings']['DEFAULT_LANGUAGE'])) {
+                if ($i18n->getLanguageISO() == $this->fullLocale($this->shopConfig[ 'settings' ][ 'DEFAULT_LANGUAGE' ])) {
                     $valueName = $i18n->getName();
                     $langId = $this->locale2id($i18n->getLanguageISO());
                     break;
@@ -388,9 +391,9 @@ class ProductVariation extends BaseMapper
                 WHERE p.properties_id=' . $this->getVariationId($variation) . ' && d.language_id=' . $langId . ' && d.values_name="' . $valueName . '"');
             
             if (count($valueIdQuery) > 0) {
-                static::$valueIds[$value->getId()->getHost()] = $valueIdQuery[0]['properties_values_id'];
+                static::$valueIds[ $value->getId()->getHost() ] = $valueIdQuery[ 0 ][ 'properties_values_id' ];
                 
-                return $valueIdQuery[0]['properties_values_id'];
+                return $valueIdQuery[ 0 ][ 'properties_values_id' ];
             }
         }
         
@@ -406,10 +409,10 @@ class ProductVariation extends BaseMapper
                 $language_id = $this->locale2id($i18n->getLanguageISO());
                 $dbResult = $this->db->query('SELECT code FROM languages WHERE languages_id=' . $language_id);
                 
-                if ($dbResult[0]['code'] == $this->shopConfig['settings']['DEFAULT_LANGUAGE']) {
+                if ($dbResult[ 0 ][ 'code' ] == $this->shopConfig[ 'settings' ][ 'DEFAULT_LANGUAGE' ]) {
                     $sql = $this->db->query('SELECT products_vpe_id FROM products_vpe WHERE language_id=' . $language_id . ' && products_vpe_name="' . $name . '"');
                     if (count($sql) > 0) {
-                        return $sql[0]['products_vpe_id'];
+                        return $sql[ 0 ][ 'products_vpe_id' ];
                     }
                 }
             }
@@ -427,13 +430,13 @@ class ProductVariation extends BaseMapper
                 $language_id = $this->locale2id($i18n->getLanguageISO());
                 $dbResult = $this->db->query('SELECT code FROM languages WHERE languages_id=' . $language_id);
                 
-                if ($dbResult[0]['code'] == $this->shopConfig['settings']['DEFAULT_LANGUAGE']) {
+                if ($dbResult[ 0 ][ 'code' ] == $this->shopConfig[ 'settings' ][ 'DEFAULT_LANGUAGE' ]) {
                     $sql = $this->db->query('SELECT shipping_status_id FROM shipping_status WHERE language_id=' . $language_id . ' && shipping_status_name="' . $name . '"');
                     if (count($sql) > 0) {
-                        return $sql[0]['shipping_status_id'];
+                        return $sql[ 0 ][ 'shipping_status_id' ];
                     } else {
                         $nextId = $this->db->query('SELECT max(shipping_status_id) + 1 AS nextID FROM shipping_status');
-                        $id = is_null($nextId[0]['nextID']) || $nextId[0]['nextID'] === 0 ? 1 : $nextId[0]['nextID'];
+                        $id = is_null($nextId[ 0 ][ 'nextID' ]) || $nextId[ 0 ][ 'nextID' ] === 0 ? 1 : $nextId[ 0 ][ 'nextID' ];
                         
                         foreach ($data->getI18ns() as $i18n) {
                             $status = new \stdClass();
