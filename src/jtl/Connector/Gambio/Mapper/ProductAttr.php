@@ -7,16 +7,6 @@ use jtl\Connector\Model\ProductAttrI18n as ProductAttrI18nModel;
 
 class ProductAttr extends BaseMapper
 {
-    private $additions = array(
-        'products_status' => 'Aktiv',
-        'gm_price_status' => 'Preis-Status',
-        'gm_show_qty_info' => 'Lagerbestand anzeigen',
-        'gm_show_weight' => 'Gewicht anzeigen',
-        'products_fsk18' => 'FSK 18',
-        'product_template' => 'Produkt Vorlage',
-        'options_template' => 'Optionen Vorlage'
-    );
-
     protected $ignoreAttributes = [
         'Wesentliche Produktmerkmale',
         'Google Kategorie',
@@ -27,7 +17,7 @@ class ProductAttr extends BaseMapper
     public function pull($data = null, $limit = null) {
         $attrs = array();
 
-        foreach ($this->additions as $field => $name) {
+        foreach (Product::getSpecialAttributes() as $field => $name) {
             $attrs[] = $this->createAttr($field, $name, $data[$field], $data);
         }
 
@@ -49,22 +39,12 @@ class ProductAttr extends BaseMapper
     }
 
     public function push($data, $dbObj = null) {
-        if(is_null($dbObj)) {
-            $dbObj = new \stdClass();
-        }
-
-        $dbObj->products_status = 1;
-
+        $ignoreAttributes = array_merge($this->ignoreAttributes, Product::getSpecialAttributes());
         foreach ($data->getAttributes() as $attr) {
             foreach ($attr->getI18ns() as $i18n) {
                 $pId = $data->getId()->getEndpoint();
-                $field = array_search($i18n->getName(), $this->additions);
-
-                $ignoreAttribute = in_array($i18n->getName(), $this->ignoreAttributes) || $field;
+                $ignoreAttribute = in_array($i18n->getName(), $ignoreAttributes);
                 if($ignoreAttribute) {
-                    if($field) {
-                        $dbObj->$field = $i18n->getValue();
-                    }
                     break;
                 } else {
                     $language_id = $this->locale2id($i18n->getLanguageISO());
@@ -105,31 +85,29 @@ class ProductAttr extends BaseMapper
                 }
             }
 
-            if (!$ignoreAttribute) {
-                $value = new \stdClass();
-                $value->additional_field_id = $fieldId;
-                $value->item_id = $data->getId()->getEndpoint();
+            $value = new \stdClass();
+            $value->additional_field_id = $fieldId;
+            $value->item_id = $data->getId()->getEndpoint();
 
-                $valIns = $this->db->insertRow($value, 'additional_field_values');
-                $valId = $valIns->getKey();
+            $valIns = $this->db->insertRow($value, 'additional_field_values');
+            $valId = $valIns->getKey();
 
-                if ($attr->getIsTranslated() === true) {
-                    foreach ($attr->getI18ns() as $i18n) {
-                        $valDesc = new \stdClass();
-                        $valDesc->additional_field_value_id = $valId;
-                        $valDesc->language_id = $this->locale2id($i18n->getLanguageISO());
-                        $valDesc->value = $i18n->getValue();
-
-                        $this->db->insertRow($valDesc, 'additional_field_value_descriptions');
-                    }
-                } else {
+            if ($attr->getIsTranslated() === true) {
+                foreach ($attr->getI18ns() as $i18n) {
                     $valDesc = new \stdClass();
                     $valDesc->additional_field_value_id = $valId;
-                    $valDesc->language_id = 0;
-                    $valDesc->value = $attr->getI18ns()[0]->getValue();
+                    $valDesc->language_id = $this->locale2id($i18n->getLanguageISO());
+                    $valDesc->value = $i18n->getValue();
 
                     $this->db->insertRow($valDesc, 'additional_field_value_descriptions');
                 }
+            } else {
+                $valDesc = new \stdClass();
+                $valDesc->additional_field_value_id = $valId;
+                $valDesc->language_id = 0;
+                $valDesc->value = $attr->getI18ns()[0]->getValue();
+
+                $this->db->insertRow($valDesc, 'additional_field_value_descriptions');
             }
         }
 
