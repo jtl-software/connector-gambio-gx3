@@ -1,4 +1,5 @@
 <?php
+
 namespace jtl\Connector\Gambio\Mapper;
 
 use jtl\Connector\Model\Identity;
@@ -14,7 +15,8 @@ class ProductAttr extends BaseMapper
         'Google Verfuegbarkeit ID'
     ];
 
-    public function pull($data = null, $limit = null) {
+    public function pull($data = null, $limit = null)
+    {
         $attrs = array();
 
         foreach (Product::getSpecialAttributes() as $field => $name) {
@@ -38,13 +40,14 @@ class ProductAttr extends BaseMapper
         return $attrs;
     }
 
-    public function push($data, $dbObj = null) {
+    public function push($data, $dbObj = null)
+    {
         $ignoreAttributes = array_merge($this->ignoreAttributes, Product::getSpecialAttributes());
         foreach ($data->getAttributes() as $attr) {
             foreach ($attr->getI18ns() as $i18n) {
                 $pId = $data->getId()->getEndpoint();
                 $ignoreAttribute = in_array($i18n->getName(), $ignoreAttributes);
-                if($ignoreAttribute) {
+                if ($ignoreAttribute) {
                     break;
                 } else {
                     $language_id = $this->locale2id($i18n->getLanguageISO());
@@ -139,13 +142,13 @@ class ProductAttr extends BaseMapper
           SELECT f.*, v.additional_field_value_id
           FROM additional_field_values v
           LEFT JOIN additional_fields f ON f.additional_field_id = v.additional_field_id
-          WHERE v.item_id="'.$data['products_id'].'"');
+          WHERE v.item_id="' . $data['products_id'] . '"');
 
         foreach ($fields as $attrData) {
             $attr = new ProductAttrModel();
             $attr->setProductId(new Identity($data['products_id']));
             $attr->setId(new Identity($attrData['additional_field_id']));
-            $attr->setIsTranslated((bool) $attrData['multilingual']);
+            $attr->setIsTranslated((bool)$attrData['multilingual']);
             $attr->setIsCustomProperty(true);
 
             $multiLang = $attr->getIsTranslated() ? ' AND d.language_id = v.language_id' : '';
@@ -154,8 +157,8 @@ class ProductAttr extends BaseMapper
                 SELECT v.value, d.name, d.language_id as lang
                 FROM additional_field_value_descriptions v
                 LEFT JOIN additional_field_values f ON f.additional_field_value_id = v.additional_field_value_id
-                LEFT JOIN additional_field_descriptions d ON d.additional_field_id = f.additional_field_id'.$multiLang.'
-                WHERE v.additional_field_value_id = '.$attrData['additional_field_value_id']
+                LEFT JOIN additional_field_descriptions d ON d.additional_field_id = f.additional_field_id' . $multiLang . '
+                WHERE v.additional_field_value_id = ' . $attrData['additional_field_value_id']
             );
 
             foreach ($values as $valueData) {
@@ -179,7 +182,7 @@ class ProductAttr extends BaseMapper
         $multiData = $this->db->query('
           SELECT language_id, checkout_information
           FROM products_description
-          WHERE products_id="'.$data['products_id'].'" && checkout_information != ""');
+          WHERE products_id="' . $data['products_id'] . '" && checkout_information != ""');
 
         if (count($multiData) > 0) {
             $checkoutInfo = new ProductAttrModel();
