@@ -142,4 +142,28 @@ class BaseController extends Controller
 
         return $action;
     }
+
+    /**
+     * @param *I18n[] $i18ns
+     * @param string $shortCode
+     * @return *I18n
+     * @throws \RuntimeException
+     */
+    public static function findI18n(array $i18ns, $shortCode)
+    {
+        $returnI18n = reset($i18ns);
+        $langIso = \jtl\Connector\Core\Utilities\Language::convert($shortCode);
+
+        foreach($i18ns as $i18n) {
+            if(!method_exists($i18n, 'getLanguageISO')) {
+                throw new \RuntimeException('Given element does not seem to be a valid i18n object!');
+            }
+
+            if($i18n->getLanguageISO() === $langIso) {
+                $returnI18n = $i18n;
+                break;
+            }
+        }
+        return $returnI18n;
+    }
 }
