@@ -201,8 +201,8 @@
             "delete": true
         },
         "ManufacturerI18n": {
-            "pull": false,
-            "push": false,
+            "pull": true,
+            "push": true,
             "delete": false
         },
         "MeasurementUnit": {
