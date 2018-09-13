@@ -147,6 +147,7 @@ class Product extends BaseMapper
                 $varcombi->setConsiderStock(true);
                 $varcombi->setConsiderVariationStock(true);
                 $varcombi->setIsActive(true);
+                $varcombi->setPermitNegativeStock((bool)$this->shopConfig['settings']['STOCK_ALLOW_CHECKOUT']);
 
                 $i18nStatus = $this->db->query('SELECT * FROM shipping_status WHERE shipping_status_id=' . $combi['combi_shipping_status_id']);
 
