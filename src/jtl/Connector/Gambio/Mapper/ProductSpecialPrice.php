@@ -21,7 +21,7 @@ class ProductSpecialPrice extends BaseMapper
             "items" => "ProductSpecialPriceItem|addItem"
         ),
         "mapPush" => array(
-            "specials_id" => "id",
+            //"specials_id" => null,
             "products_id" => "productId",
             "status" => "isActive",
             "expires_date" => "activeUntilDate",
@@ -29,12 +29,7 @@ class ProductSpecialPrice extends BaseMapper
             "ProductSpecialPriceItem|addItem|true" => "items"
         )
     );
-    /*
-    protected function considerStockLimit($data)
-    {
-        return $data['specials_quantity'] == 0 ? false : true;
-    }
-    */
+    
     protected function considerDateLimit($data)
     {
         return $data['expires_date'] == '0000-00-00 00:00:00' ? false : true;
@@ -48,6 +43,8 @@ class ProductSpecialPrice extends BaseMapper
     public function push($parent, $dbObj = null)
     {
         $id = $parent->getId()->getEndpoint();
+    
+        $this->db->query('DELETE FROM `specials` WHERE `products_id` = ' . $id);
 
         if (!is_null($parent->getSpecialPrices())) {
             foreach ($parent->getSpecialPrices() as $special) {
