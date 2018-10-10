@@ -28,7 +28,7 @@ class Customer extends BaseMapper
             "lastName" => "customers_lastname",
             "company" => "entry_company",
             "street" => "entry_street_address",
-            "extraAddressLine" => "entry_suburb",
+            "extraAddressLine" => "entry_additional_info",
             "zipCode" => "entry_postcode",
             "city" => "entry_city",
             "countryIso" => null,
