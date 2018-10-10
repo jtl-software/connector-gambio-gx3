@@ -15,7 +15,7 @@ class CustomerOrderShippingAddress extends BaseMapper
             "lastName" => "delivery_lastname",
             "company" => "delivery_company",
             "street" => "delivery_street_address",
-            "extraAddressLine" => "delivery_suburb",
+            "extraAddressLine" => "delivery_additional_info",
             "zipCode" => "delivery_postcode",
             "city" => "delivery_city",
             "state" => "delivery_state",

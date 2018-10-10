@@ -14,7 +14,7 @@ class CustomerOrderBillingAddress extends BaseMapper
             "lastName" => "billing_lastname",
             "company" => "billing_company",
             "street" => "billing_street_address",
-            "extraAddressLine" => "billing_suburb",
+            "extraAddressLine" => "billing_additional_info",
             "zipCode" => "billing_postcode",
             "city" => "billing_city",
             "state" => "billing_state",
