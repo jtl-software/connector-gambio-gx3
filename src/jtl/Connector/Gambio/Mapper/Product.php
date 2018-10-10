@@ -97,6 +97,16 @@ class Product extends BaseMapper
         )
     );
 
+    protected static $specialAttributes = array(
+        'products_status' => 'Aktiv',
+        'gm_price_status' => 'Preis-Status',
+        'gm_show_qty_info' => 'Lagerbestand anzeigen',
+        'gm_show_weight' => 'Gewicht anzeigen',
+        'products_fsk18' => 'FSK 18',
+        'product_template' => 'Produkt Vorlage',
+        'options_template' => 'Optionen Vorlage'
+    );
+
     public function pull($data = null, $limit = null)
     {
         $this->mapperConfig['query'] = '
@@ -240,9 +250,9 @@ class Product extends BaseMapper
             $data->getMasterProductId()->setEndpoint($masterId);
         }
 
-        $isVarCombi = !empty($masterId);
+        $isVarCombiChild = !empty($masterId);
         $id = $data->getId()->getEndpoint();
-        if ($isVarCombi) {
+        if ($isVarCombiChild) {
             $this->mapperConfig['mapPush'] = [
                 "ProductVariation|addVariation" => "variations"
             ];
@@ -264,39 +274,50 @@ class Product extends BaseMapper
             static::$idCache[$data->getId()->getHost()] = $data->getId()->getEndpoint();
         }
 
+        $productsId = $data->getId()->getEndpoint();
+        if (empty($productsId) || $data->getMasterProductId()->getHost() !== 0) {
+            return;
+        }
+
         $checkCodes = $this->db->query('SELECT products_id FROM products_item_codes WHERE products_id="'.$data->getId()->getEndpoint().'"');
 
         $codes = new \stdClass();
-        $codes->products_id = $data->getId()->getEndpoint();
+        $codes->products_id = $productsId;
         $codes->code_isbn = $data->getIsbn();
         $codes->code_upc = $data->getUpc();
         $codes->code_mpn = $data->getManufacturerNumber();
         $codes->expiration_date = $data->getMinBestBeforeDate() ? $data->getMinBestBeforeDate()->format('Y-m-d') : '0000-00-00';
 
+        $dbObj->products_status = 1;
         foreach ($data->getAttributes() as $attr) {
             foreach ($attr->getI18ns() as $i18n) {
-                if ($i18n->getName() === 'Google Zustand') {
+                $specialAttribute = array_search($i18n->getName(), self::$specialAttributes);
+                if ($specialAttribute) {
+                    $dbObj->{$specialAttribute} = $i18n->getValue();
+                    break;
+                } elseif ($i18n->getName() === 'Google Zustand') {
                     $codes->google_export_condition = $i18n->getValue();
                 } elseif($i18n->getName() === 'Google Verfuegbarkeit ID') {
                     $codes->google_export_availability_id = $i18n->getValue();
                 } elseif($i18n->getName() === 'Wesentliche Produktmerkmale') {
                     $language_id = $this->locale2id($i18n->getLanguageISO());
-                    $this->db->query('UPDATE products_description SET checkout_information="'.$this->db->escapeString($i18n->getValue()).'" WHERE products_id="'.$data->getId()->getEndpoint().'" && language_id='.$language_id);
+                    $sql = 'INSERT INTO products_description (products_id,language_id,checkout_information) VALUES(' . $productsId . ',' . $language_id . ',"' . $this->db->escapeString($i18n->getValue()) . '") ' .
+                           'ON DUPLICATE KEY UPDATE checkout_information = "' . $this->db->escapeString($i18n->getValue()) . '";';
+                    $this->db->query($sql);
                 } elseif ($i18n->getName() === 'Google Kategorie') {
                     $obj = new \stdClass();
-                    $obj->products_id = $data->getId()->getEndpoint();
+                    $obj->products_id = $productsId;
                     $obj->google_category = $i18n->getValue();
-                    $this->db->deleteInsertRow($obj, 'products_google_categories', 'products_id', $obj->products_id);
+                    $this->db->deleteInsertRow($obj, 'products_google_categories', 'products_id', $productsId);
                 }
             }
         }
-        
-        if ($data->getMasterProductId()->getHost() === 0) {
-            $attributes = (new ProductAttr())->push($data);
-        }
+
+        $this->db->updateRow($dbObj, 'products', 'products_id', $productsId);
+        $attributes = (new ProductAttr())->push($data);
 
         if (count($checkCodes) > 0) {
-            $this->db->updateRow($codes, 'products_item_codes', 'products_id', $codes->products_id);
+            $this->db->updateRow($codes, 'products_item_codes', 'products_id', $productsId);
         } else {
             $this->db->insertRow($codes, 'products_item_codes');
         }
@@ -614,5 +635,13 @@ class Product extends BaseMapper
         $count += count($combis);
 
         return $count;
+    }
+
+    /**
+     * @return string[]
+     */
+    public static function getSpecialAttributes()
+    {
+        return self::$specialAttributes;
     }
 }

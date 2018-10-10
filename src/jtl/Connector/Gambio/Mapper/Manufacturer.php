@@ -1,7 +1,9 @@
 <?php
 namespace jtl\Connector\Gambio\Mapper;
 
+use jtl\Connector\Gambio\Controller\BaseController;
 use jtl\Connector\Gambio\Mapper\BaseMapper;
+use jtl\Connector\Model\ManufacturerI18n;
 
 class Manufacturer extends BaseMapper
 {
@@ -52,23 +54,40 @@ class Manufacturer extends BaseMapper
 
     public function push($data, $dbObj = null)
     {
-        $id = $data->getId()->getEndpoint();
-
-        if (!empty($id) && $id != '') {
-            $this->db->query('DELETE FROM manufacturers_info WHERE manufacturers_id='.$id);
-        }
-        
-        $url = $data->getWebsiteUrl();
-
+        /** @var \jtl\Connector\Model\Manufacturer $data */
         $return = parent::push($data, $dbObj);
 
-        $newId = $return->getId()->getEndpoint();
+        $props = ['manufacturers_url', 'manufacturers_meta_title', 'manufacturers_meta_description', 'manufacturers_meta_keywords'];
 
-        if(!empty($url) && !empty($newId)) {
-            $languages = $this->db->query('SELECT languages_id FROM languages');
+        $manufacturersInfoObj = new \stdClass();
+        $manufacturersInfoObj->manufacturers_id = $data->getId()->getEndpoint();
+        $manufacturersInfoObj->manufacturers_url = $data->getWebsiteUrl();
 
-            foreach ($languages as $language) {
-                $this->db->query('INSERT INTO manufacturers_info SET manufacturers_id='.$newId.', languages_id='.$language['languages_id'].', manufacturers_url="'.$url.'"');
+        $this->db->query('DELETE FROM manufacturers_info WHERE manufacturers_id = '. $manufacturersInfoObj->manufacturers_id);
+        $languages = $this->db->query('SELECT languages_id, code FROM languages');
+        foreach ($languages as $language) {
+            /** @var ManufacturerI18n $i18n */
+            $i18n = BaseController::findI18n($data->getI18ns(), $language['code']);
+            $manufacturersInfoObj->languages_id = $language['languages_id'];
+            $manufacturersInfoObj->manufacturers_meta_title = '';
+            $manufacturersInfoObj->manufacturers_meta_keywords = '';
+            $manufacturersInfoObj->manufacturers_meta_description = '';
+            if($i18n !== false) {
+                $manufacturersInfoObj->manufacturers_meta_title = $i18n->getTitleTag();
+                $manufacturersInfoObj->manufacturers_meta_keywords = $i18n->getMetaKeywords();
+                $manufacturersInfoObj->manufacturers_meta_description = $i18n->getMetaDescription();
+            }
+
+            $empty = true;
+            foreach($props as $prop) {
+                if(isset($manufacturersInfoObj->{$prop}) && !empty($manufacturersInfoObj->{$prop})) {
+                    $empty = false;
+                    break;
+                }
+            }
+
+            if(!$empty) {
+                $this->db->insertRow($manufacturersInfoObj, 'manufacturers_info');
             }
         }
 

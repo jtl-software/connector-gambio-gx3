@@ -201,8 +201,8 @@
             "delete": true
         },
         "ManufacturerI18n": {
-            "pull": false,
-            "push": false,
+            "pull": true,
+            "push": true,
             "delete": false
         },
         "MeasurementUnit": {
@@ -467,6 +467,7 @@
         "specific_value_images_supported": false,
         "var_combination_child_first": false,
         "variation_combinations_supported": true,
-        "variation_products_supported": true
+        "variation_products_supported": true,
+        "translated_attributes_supported": true
     }
 }

@@ -1,4 +1,5 @@
 <?php
+
 namespace jtl\Connector\Gambio\Mapper;
 
 use jtl\Connector\Model\Identity;
@@ -7,16 +8,6 @@ use jtl\Connector\Model\ProductAttrI18n as ProductAttrI18nModel;
 
 class ProductAttr extends BaseMapper
 {
-    private $additions = array(
-        'products_status' => 'Aktiv',
-        'gm_price_status' => 'Preis-Status',
-        'gm_show_qty_info' => 'Lagerbestand anzeigen',
-        'gm_show_weight' => 'Gewicht anzeigen',
-        'products_fsk18' => 'FSK 18',
-        'product_template' => 'Produkt Vorlage',
-        'options_template' => 'Optionen Vorlage'
-    );
-
     protected $ignoreAttributes = [
         'Wesentliche Produktmerkmale',
         'Google Kategorie',
@@ -24,10 +15,11 @@ class ProductAttr extends BaseMapper
         'Google Verfuegbarkeit ID'
     ];
 
-    public function pull($data = null, $limit = null) {
+    public function pull($data = null, $limit = null)
+    {
         $attrs = array();
 
-        foreach ($this->additions as $field => $name) {
+        foreach (Product::getSpecialAttributes() as $field => $name) {
             $attrs[] = $this->createAttr($field, $name, $data[$field], $data);
         }
 
@@ -48,23 +40,14 @@ class ProductAttr extends BaseMapper
         return $attrs;
     }
 
-    public function push($data, $dbObj = null) {
-        if(is_null($dbObj)) {
-            $dbObj = new \stdClass();
-        }
-
-        $dbObj->products_status = 1;
-
+    public function push($data, $dbObj = null)
+    {
+        $ignoreAttributes = array_merge($this->ignoreAttributes, Product::getSpecialAttributes());
         foreach ($data->getAttributes() as $attr) {
             foreach ($attr->getI18ns() as $i18n) {
                 $pId = $data->getId()->getEndpoint();
-                $field = array_search($i18n->getName(), $this->additions);
-
-                $ignoreAttribute = in_array($i18n->getName(), $this->ignoreAttributes) || $field;
-                if($ignoreAttribute) {
-                    if($field) {
-                        $dbObj->$field = $i18n->getValue();
-                    }
+                $ignoreAttribute = in_array($i18n->getName(), $ignoreAttributes);
+                if ($ignoreAttribute) {
                     break;
                 } else {
                     $language_id = $this->locale2id($i18n->getLanguageISO());
@@ -105,31 +88,29 @@ class ProductAttr extends BaseMapper
                 }
             }
 
-            if (!$ignoreAttribute) {
-                $value = new \stdClass();
-                $value->additional_field_id = $fieldId;
-                $value->item_id = $data->getId()->getEndpoint();
+            $value = new \stdClass();
+            $value->additional_field_id = $fieldId;
+            $value->item_id = $data->getId()->getEndpoint();
 
-                $valIns = $this->db->insertRow($value, 'additional_field_values');
-                $valId = $valIns->getKey();
+            $valIns = $this->db->insertRow($value, 'additional_field_values');
+            $valId = $valIns->getKey();
 
-                if ($attr->getIsTranslated() === true) {
-                    foreach ($attr->getI18ns() as $i18n) {
-                        $valDesc = new \stdClass();
-                        $valDesc->additional_field_value_id = $valId;
-                        $valDesc->language_id = $this->locale2id($i18n->getLanguageISO());
-                        $valDesc->value = $i18n->getValue();
-
-                        $this->db->insertRow($valDesc, 'additional_field_value_descriptions');
-                    }
-                } else {
+            if ($attr->getIsTranslated() === true) {
+                foreach ($attr->getI18ns() as $i18n) {
                     $valDesc = new \stdClass();
                     $valDesc->additional_field_value_id = $valId;
-                    $valDesc->language_id = 0;
-                    $valDesc->value = $attr->getI18ns()[0]->getValue();
+                    $valDesc->language_id = $this->locale2id($i18n->getLanguageISO());
+                    $valDesc->value = $i18n->getValue();
 
                     $this->db->insertRow($valDesc, 'additional_field_value_descriptions');
                 }
+            } else {
+                $valDesc = new \stdClass();
+                $valDesc->additional_field_value_id = $valId;
+                $valDesc->language_id = 0;
+                $valDesc->value = $attr->getI18ns()[0]->getValue();
+
+                $this->db->insertRow($valDesc, 'additional_field_value_descriptions');
             }
         }
 
@@ -161,13 +142,13 @@ class ProductAttr extends BaseMapper
           SELECT f.*, v.additional_field_value_id
           FROM additional_field_values v
           LEFT JOIN additional_fields f ON f.additional_field_id = v.additional_field_id
-          WHERE v.item_id="'.$data['products_id'].'"');
+          WHERE v.item_id="' . $data['products_id'] . '"');
 
         foreach ($fields as $attrData) {
             $attr = new ProductAttrModel();
             $attr->setProductId(new Identity($data['products_id']));
             $attr->setId(new Identity($attrData['additional_field_id']));
-            $attr->setIsTranslated((bool) $attrData['multilingual']);
+            $attr->setIsTranslated((bool)$attrData['multilingual']);
             $attr->setIsCustomProperty(true);
 
             $multiLang = $attr->getIsTranslated() ? ' AND d.language_id = v.language_id' : '';
@@ -176,8 +157,8 @@ class ProductAttr extends BaseMapper
                 SELECT v.value, d.name, d.language_id as lang
                 FROM additional_field_value_descriptions v
                 LEFT JOIN additional_field_values f ON f.additional_field_value_id = v.additional_field_value_id
-                LEFT JOIN additional_field_descriptions d ON d.additional_field_id = f.additional_field_id'.$multiLang.'
-                WHERE v.additional_field_value_id = '.$attrData['additional_field_value_id']
+                LEFT JOIN additional_field_descriptions d ON d.additional_field_id = f.additional_field_id' . $multiLang . '
+                WHERE v.additional_field_value_id = ' . $attrData['additional_field_value_id']
             );
 
             foreach ($values as $valueData) {
@@ -201,7 +182,7 @@ class ProductAttr extends BaseMapper
         $multiData = $this->db->query('
           SELECT language_id, checkout_information
           FROM products_description
-          WHERE products_id="'.$data['products_id'].'" && checkout_information != ""');
+          WHERE products_id="' . $data['products_id'] . '" && checkout_information != ""');
 
         if (count($multiData) > 0) {
             $checkoutInfo = new ProductAttrModel();
