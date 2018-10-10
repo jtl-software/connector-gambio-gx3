@@ -59,7 +59,7 @@ class Product extends BaseMapper
             "attributes" => "ProductAttr|addAttribute",
             "vat" => null,
             "isMasterProduct" => null,
-            "measurementUnitId" => "quantity_unit_id",
+            "measurementUnitId" => null,
             "isbn" => "code_isbn",
             "manufacturerNumber" => "code_mpn",
             "upc" => "code_upc",
@@ -109,25 +109,27 @@ class Product extends BaseMapper
 
     public function pull($data = null, $limit = null)
     {
-        $this->mapperConfig['query'] = '
-          SELECT j . * , q.quantity_unit_id, c.code_isbn, c.code_mpn, c.code_upc, c.google_export_condition, c.google_export_availability_id, g.google_category
-          FROM (
-            SELECT p . *
-            FROM products p
-            LEFT JOIN jtl_connector_link_product l ON CONVERT( p.products_id, CHAR( 16 ) ) = l.endpoint_id
-            COLLATE utf8_unicode_ci
-            WHERE l.host_id IS NULL
-            LIMIT '.$limit.'
-          ) AS j
-          LEFT JOIN products_quantity_unit q ON q.products_id = j.products_id
-          LEFT JOIN products_item_codes c ON c.products_id = j.products_id
-          LEFT JOIN products_google_categories g ON g.products_id = j.products_id
+        $this->mapperConfig['query'] =
+            'SELECT j . * , qud.unit_name, c.code_isbn, c.code_mpn, c.code_upc, c.google_export_condition, c.google_export_availability_id, g.google_category ' .
+            'FROM ( ' .
+            '  SELECT p . * ' .
+            '   FROM products p ' .
+            '   LEFT JOIN jtl_connector_link_product l ON CONVERT( p.products_id, CHAR( 16 ) ) = l.endpoint_id ' .
+            '   COLLATE utf8_unicode_ci ' .
+            '   WHERE l.host_id IS NULL ' .
+            '   LIMIT ' . $limit . ' ' .
+            ') AS j ' .
+            'LEFT JOIN products_quantity_unit pqu ON pqu.products_id = j.products_id ' .
+            'LEFT JOIN products_item_codes c ON c.products_id = j.products_id ' .
+            'LEFT JOIN products_google_categories g ON g.products_id = j.products_id ' .
+            'LEFT JOIN languages la ON la.code = \'' . $this->shopConfig['settings']['DEFAULT_LANGUAGE'] . '\' ' .
+            'LEFT JOIN quantity_unit_description qud ON pqu.quantity_unit_id = qud.quantity_unit_id AND qud.language_id = la.languages_id
         ';
 
         $return = parent::pull($data, $limit);
 
         if (count($return) < $limit) {
-            $limitQuery = isset($limit) ? ' LIMIT '.$limit : '';
+            $limitQuery = isset($limit) ? ' LIMIT ' . $limit : '';
 
             $combis = $this->db->query('
             SELECT c.*,p.products_price 
@@ -302,7 +304,7 @@ class Product extends BaseMapper
                 } elseif($i18n->getName() === 'Wesentliche Produktmerkmale') {
                     $language_id = $this->locale2id($i18n->getLanguageISO());
                     $sql = 'INSERT INTO products_description (products_id,language_id,checkout_information) VALUES(' . $productsId . ',' . $language_id . ',"' . $this->db->escapeString($i18n->getValue()) . '") ' .
-                           'ON DUPLICATE KEY UPDATE checkout_information = "' . $this->db->escapeString($i18n->getValue()) . '";';
+                        'ON DUPLICATE KEY UPDATE checkout_information = "' . $this->db->escapeString($i18n->getValue()) . '";';
                     $this->db->query($sql);
                 } elseif ($i18n->getName() === 'Google Kategorie') {
                     $obj = new \stdClass();
@@ -570,7 +572,16 @@ class Product extends BaseMapper
 
     protected function unitId($data)
     {
-        return $this->replaceZero($data['products_vpe']);
+        return !is_null($data['unit_name']) ? $data['unit_name'] : '';
+    }
+
+    protected function measurementUnitId($data)
+    {
+        if(!is_null($data['unit_name']) && MeasurementUnit::isMeasurementUnitByName($data['unit_name'])) {
+            return $data['unit_name'];
+        }
+
+        return '';
     }
 
     protected function considerStock($data)
