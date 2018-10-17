@@ -4,6 +4,7 @@ namespace jtl\Connector\Gambio\Mapper;
 
 use jtl\Connector\Model\CustomerOrder as CustomerOrderModel;
 use jtl\Connector\Payment\PaymentTypes;
+use jtl\Connector\Model\CustomerOrderItem;
 
 class CustomerOrder extends BaseMapper
 {
@@ -321,32 +322,32 @@ class CustomerOrder extends BaseMapper
 
                 $model->setShippingMethodName($total['title']);
             }
-            if ($total['class'] == 'ot_payment' || $total['class'] == 'ot_discount' || $total['class'] == 'ot_cod_fee') {
-                $discount = new \jtl\Connector\Model\CustomerOrderItem();
-                $discount->setType('product');
-                $discount->setName($total['title']);
-                $discount->setCustomerOrderId($this->identity($data['orders_id']));
-                $discount->setId($this->identity($total['orders_total_id']));
-                $discount->setQuantity(1);
-                $discount->setVat(0);
-                $discount->setPrice(floatval($total['value']));
-                $discount->setPriceGross(floatval($total['value']));
-
-                $model->addItem($discount);
+            
+            $discount = new CustomerOrderItem();
+            switch ($total['class']) {
+                case 'ot_cod_fee':
+                    $discount->setType(CustomerOrderItem::TYPE_SHIPPING);
+                    break;
+                
+                case 'ot_payment':
+                    $discount->setType(CustomerOrderItem::TYPE_PRODUCT);
+                    break;
+                
+                case 'ot_coupon':
+                case 'ot_gv':
+                case 'ot_discount':
+                    $discount->setType(CustomerOrderItem::TYPE_COUPON);
+                    break;
             }
-            if ($total['class'] == 'ot_coupon' || $total['class'] == 'ot_gv') {
-                $coupon = new \jtl\Connector\Model\CustomerOrderItem();
-                $coupon->setType('product');
-                $coupon->setName($total['title']);
-                $coupon->setCustomerOrderId($this->identity($data['orders_id']));
-                $coupon->setId($this->identity($total['orders_total_id']));
-                $coupon->setQuantity(1);
-                $coupon->setVat(0);
-                $coupon->setPrice(abs(floatval($total['value'])) * -1);
-                $coupon->setPriceGross(abs(floatval($total['value'])) * -1);
-
-                $model->addItem($coupon);
-            }
+            $discount->setName($total['title']);
+            $discount->setCustomerOrderId($this->identity($data['orders_id']));
+            $discount->setId($this->identity($total['orders_total_id']));
+            $discount->setQuantity(1);
+            $discount->setVat(0);
+            $discount->setPrice(floatval($total['value']) - (floatval($total['value'])*($taxRate[0]['tax_rate'] / 100)));
+            $discount->setPriceGross(floatval($total['value']));
+    
+            $model->addItem($discount);
         }
 
         $model->addItem($shipping);
