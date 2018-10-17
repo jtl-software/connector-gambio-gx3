@@ -323,31 +323,31 @@ class CustomerOrder extends BaseMapper
                 $model->setShippingMethodName($total['title']);
             }
             
-            $priceChange = new CustomerOrderItem();
+            $item = new CustomerOrderItem();
             switch ($total['class']) {
                 case 'ot_cod_fee':
-                    $priceChange->setType(CustomerOrderItem::TYPE_SHIPPING);
+                    $item->setType(CustomerOrderItem::TYPE_SHIPPING);
                     break;
                 
                     case 'ot_payment':
-                    $priceChange->setType(CustomerOrderItem::TYPE_PRODUCT);
+                    $item->setType(CustomerOrderItem::TYPE_PRODUCT);
                     break;
                 
                 case 'ot_coupon':
                 case 'ot_gv':
                 case 'ot_discount':
-                    $priceChange->setType(CustomerOrderItem::TYPE_COUPON);
+                    $item->setType(CustomerOrderItem::TYPE_COUPON);
                     break;
             }
-            $priceChange->setName($total['title']);
-            $priceChange->setCustomerOrderId($this->identity($data['orders_id']));
-            $priceChange->setId($this->identity($total['orders_total_id']));
-            $priceChange->setQuantity(1);
-            $priceChange->setVat(0);
-            $priceChange->setPrice(floatval($total['value']) - (floatval($total['value'])*($taxRate[0]['tax_rate'] / 100)));
-            $priceChange->setPriceGross(floatval($total['value']));
+            $item->setName($total['title']);
+            $item->setCustomerOrderId($this->identity($data['orders_id']));
+            $item->setId($this->identity($total['orders_total_id']));
+            $item->setQuantity(1);
+            $item->setVat(($vatExcl ? 0. : floatval($taxRate[0]['tax_rate'])));
+            //$item->setPrice(floatval($total['value']) - (floatval($total['value'])*($taxRate[0]['tax_rate'] / 100)));
+            $item->setPriceGross(floatval($total['value']));
     
-            $model->addItem($priceChange);
+            $model->addItem($item);
         }
 
         $model->addItem($shipping);
