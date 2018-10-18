@@ -1,7 +1,7 @@
 <?php
-
 namespace jtl\Connector\Gambio\Mapper;
 
+use jtl\Connector\Gambio\Util\MeasurementUnitHelper;
 use \jtl\Connector\Model\GlobalData as GlobalDataModel;
 use  \jtl\Connector\Model\Unit as UnitModel;
 use  \jtl\Connector\Model\UnitI18n;
@@ -37,15 +37,15 @@ class GlobalData extends \jtl\Connector\Gambio\Mapper\BaseMapper
         /** @var GlobalDataModel $globalData */
         $globalData = $this->generateModel(null);
 
-        $vpeSQL = 'SELECT pv.products_vpe_id id, pv.products_vpe_name name, l.code as lang FROM products_vpe pv LEFT JOIN languages l ON l.languages_id = pv.language_id';
-        $vpeResult = $this->db->query($vpeSQL);
-        $vpeUnits = [];
-        foreach ($vpeResult as $row) {
-            if (!isset($vpeUnits[$row['id']])) {
-                $vpeUnits[$row['id']] = [];
-            }
-            $vpeUnits[$row['id']][$row['lang']] = $row['name'];
-        }
+//        $vpeSQL = 'SELECT pv.products_vpe_id id, pv.products_vpe_name name, l.code as lang FROM products_vpe pv LEFT JOIN languages l ON l.languages_id = pv.language_id';
+//        $vpeResult = $this->db->query($vpeSQL);
+//        $vpeUnits = [];
+//        foreach ($vpeResult as $row) {
+//            if (!isset($vpeUnits[$row['id']])) {
+//                $vpeUnits[$row['id']] = [];
+//            }
+//            $vpeUnits[$row['id']][$row['lang']] = $row['name'];
+//        }
 
         $quSQL = 'SELECT qu.quantity_unit_id id, qu.unit_name name, l.code as lang FROM quantity_unit_description qu LEFT JOIN languages l ON l.languages_id = qu.language_id';
         $quResult = $this->db->query($quSQL);
@@ -57,17 +57,12 @@ class GlobalData extends \jtl\Connector\Gambio\Mapper\BaseMapper
             $quUnits[$row['id']][$row['lang']] = $row['name'];
         }
 
-        $units = $this->mergeVpeAndQuUnits($vpeUnits, $quUnits);
+        $units = self::prepareUnits($quUnits, $this->shopConfig['settings']['DEFAULT_LANGUAGE']);
         foreach ($units as $id => $unit) {
-            $isMeasurementUnit = MeasurementUnit::isMeasurementUnitByName($id);
             $gUnitId = new Identity($id);
             $gUnit = (new UnitModel())
                 ->setId($gUnitId);
 
-            if($isMeasurementUnit) {
-                $gMUnitId = new Identity($id);
-                $gMUnit = (new MeasurementUnitModel())->setId($gMUnitId);
-            }
 
             foreach ($unit as $lang => $name) {
                 $gUnit->addI18n(
@@ -77,64 +72,52 @@ class GlobalData extends \jtl\Connector\Gambio\Mapper\BaseMapper
                         ->setUnitId($gUnitId)
                 );
 
-                if($isMeasurementUnit) {
-                    $gMUnit->addI18n(
-                        (new MeasurementUnitI18n())
-                            ->setLanguageISO(Language::convert($lang))
-                            ->setName($name)
-                            ->setMeasurementUnitId($gMUnitId)
-                    );
-                }
             }
 
             $globalData->addUnit($gUnit);
-
-            if($isMeasurementUnit) {
-                $globalData->addMeasurementUnit($gMUnit);
-            }
         }
+
+//        $measurementUnits = self::prepareUnits($vpeUnits, $this->shopConfig['settings']['DEFAULT_LANGUAGE']);
+//        foreach ($measurementUnits as $id => $unit) {
+//            if(!MeasurementUnitHelper::isUnitByName($id)) {
+//                continue;
+//            }
+//
+//            $gMUnitId = new Identity($id);
+//            $gMUnit = (new MeasurementUnitModel())->setId($gMUnitId);
+//                $gMUnit
+//                    ->setCode(MeasurementUnitHelper::getUnitCode($id))
+//                    ->addI18n(
+//                        (new MeasurementUnitI18n())
+//                            ->setLanguageISO(Language::convert($lang))
+//                            ->setName($name)
+//                            ->setMeasurementUnitId($gMUnitId)
+//                    );
+//
+//                $globalData->addMeasurementUnit($gMUnit);
+//        }
 
         return [$globalData];
     }
 
     /**
-     * @param mixed[] $vpeUnits
-     * @param mixed[] $quUnits
+     * @param mixed[] $units
+     * @param string $defaultLanguage
      * @return string[]
      */
-    protected function mergeVpeAndQuUnits(array $vpeUnits, array $quUnits)
+    public static function prepareUnits(array $units, $defaultLanguage)
     {
-        $outer = [];
-        $inner = [];
-        if (count($vpeUnits) > count($quUnits)) {
-            $outer = $vpeUnits;
-            $inner = $quUnits;
-        } else {
-            $outer = $quUnits;
-            $inner = $vpeUnits;
-        }
-
-        $merged = [];
-        foreach ($outer as $oid => $outerNames) {
-            if (!isset($outerNames[$this->shopConfig['settings']['DEFAULT_LANGUAGE']])) {
+        $prepared = [];
+        foreach ($units as $id => $unitNames) {
+            if (!isset($unitNames[$defaultLanguage])) {
                 continue;
             }
 
-            $outerName = $outerNames[$this->shopConfig['settings']['DEFAULT_LANGUAGE']];
-            $unit = $outerNames;
-            foreach ($inner as $iid => $innerNames) {
-                $innerName = isset($innerNames[$this->shopConfig['settings']['DEFAULT_LANGUAGE']]) ? $innerNames[$this->shopConfig['settings']['DEFAULT_LANGUAGE']] : null;
-                if (!is_null($innerName) && $outerName === $innerName) {
-                    foreach ($innerNames as $lang => $name) {
-                        if (!isset($unit[$lang])) {
-                            $unit[$lang] = $name;
-                        }
-                    }
-                    break;
-                }
-            }
-            $merged[$outerName] = $unit;
+            $index = $unitNames[$defaultLanguage];
+
+            $prepared[$index] = $unitNames;
         }
-        return $merged;
+
+        return $prepared;
     }
 }
