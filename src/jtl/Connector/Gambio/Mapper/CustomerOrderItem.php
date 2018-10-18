@@ -1,4 +1,5 @@
 <?php
+
 namespace jtl\Connector\Gambio\Mapper;
 
 use jtl\Connector\Gambio\Mapper\BaseMapper;
@@ -76,8 +77,8 @@ class CustomerOrderItem extends BaseMapper
         $totals = [];
 
         $ot_shipping = new \stdClass();
-        $ot_shipping->title = $parent->getShippingMethodName().':';
-        $ot_shipping->text = number_format($shippingCosts, 2, ',', '.').' '.$parent->getCurrencyIso();
+        $ot_shipping->title = $parent->getShippingMethodName() . ':';
+        $ot_shipping->text = number_format($shippingCosts, 2, ',', '.') . ' ' . $parent->getCurrencyIso();
         $ot_shipping->value = $shippingCosts;
         $ot_shipping->sort_order = 30;
         $ot_shipping->class = 'ot_shipping';
@@ -85,7 +86,7 @@ class CustomerOrderItem extends BaseMapper
 
         $ot_subtotal = new \stdClass();
         $ot_subtotal->title = 'Zwischensumme:';
-        $ot_subtotal->text = number_format($sum, 2, ',', '.').' '.$parent->getCurrencyIso();
+        $ot_subtotal->text = number_format($sum, 2, ',', '.') . ' ' . $parent->getCurrencyIso();
         $ot_subtotal->value = $sum;
         $ot_subtotal->sort_order = 10;
         $ot_subtotal->class = 'ot_subtotal';
@@ -93,7 +94,7 @@ class CustomerOrderItem extends BaseMapper
 
         $ot_total = new \stdClass();
         $ot_total->title = '<b>Summe</b>:';
-        $ot_total->text = '<b> '.number_format($sum+$shippingCosts, 2, ',', '.').' '.$parent->getCurrencyIso().'</b>';
+        $ot_total->text = '<b> ' . number_format($sum + $shippingCosts, 2, ',', '.') . ' ' . $parent->getCurrencyIso() . '</b>';
         $ot_total->value = $sum + $shippingCosts;
         $ot_total->sort_order = 99;
         $ot_total->class = 'ot_total';
@@ -101,7 +102,7 @@ class CustomerOrderItem extends BaseMapper
 
         $ot_tax = new \stdClass();
         $ot_tax->title = 'Steuer:';
-        $ot_tax->text = number_format($taxes, 2, ',', '.').' '.$parent->getCurrencyIso();
+        $ot_tax->text = number_format($taxes, 2, ',', '.') . ' ' . $parent->getCurrencyIso();
         $ot_tax->value = $taxes;
         $ot_tax->sort_order = 30;
         $ot_tax->class = 'ot_tax';
