@@ -6,7 +6,7 @@ use \jtl\Connector\Gambio\Mapper\BaseMapper;
 use \jtl\Connector\Linker\ChecksumLinker;
 use \jtl\Connector\Core\Logger\Logger;
 
-class ProductVariation extends BaseMapper
+class ProductVariation extends Product
 {
     private static $variationIds;
     private static $valueIds;
@@ -46,7 +46,7 @@ class ProductVariation extends BaseMapper
             ];
         }
 
-        return parent::pull($data, $limit);
+        return BaseMapper::pull($data, $limit);
     }
 
     public function push($parent, $dbObj = null)
@@ -270,20 +270,27 @@ class ProductVariation extends BaseMapper
                 $combi->combi_quantity = $parent->getStockLevel()->getStockLevel();
                 $combi->combi_shipping_status_id = $this->getShippingtime($parent);
                 $combi->combi_weight = $parent->getProductWeight();
-                $combi->combi_price_type = 'fix';
-                $combi->vpe_value = $parent->getBasePriceDivisor();
-                $combi->products_vpe_id = $this->getVpe($parent);
+                $combi->combi_price_type = 'calc';
+                $combi->combi_price = 0.;
+                $combi->vpe_value = $this->products_vpe_value($parent);
+                $combi->products_vpe_id = $this->products_vpe($parent);
                 foreach ($parent->getPrices() as $price) {
                     if (is_null($price->getCustomerGroupId()->getEndpoint()) || $price->getCustomerGroupId()->getEndpoint() == '') {
-                        $priceItem = $price->getItems()[0];
+                        $combiPrice = $price->getItems()[0]->getNetPrice();
 
                         if (is_null(static::$parentPrices[$parent->getMasterProductId()->getHost()])) {
                             $parentObj = $this->db->query('SELECT products_price FROM products WHERE products_id="' . $combi->products_id . '"');
-
                             static::$parentPrices[$parent->getMasterProductId()->getHost()] = $parentObj[0]['products_price'];
                         }
 
-                        $combi->combi_price = $priceItem->getNetPrice() - static::$parentPrices[$parent->getMasterProductId()->getHost()];
+                        $parentPrice = static::$parentPrices[$parent->getMasterProductId()->getHost()];
+                        if($combiPrice > $parentPrice) {
+                            $combi->combi_price = ($combiPrice - static::$parentPrices[$parent->getMasterProductId()->getHost()]);
+                        } elseif ($combiPrice < $parentPrice) {
+                            $combi->combi_price_type = 'fix';
+                            $combi->combi_price = $combiPrice;
+                        }
+
                         break;
                     }
                 }
@@ -445,7 +452,7 @@ class ProductVariation extends BaseMapper
                             $status->shipping_status_name = $i18n->getDeliveryStatus();
 
                             $this->db->deleteInsertRow($status, 'shipping_status',
-                                ['shipping_status_id', 'langauge_id'],
+                                ['shipping_status_id', 'language_id'],
                                 [$status->shipping_status_id, $status->language_id]);
                         }
 

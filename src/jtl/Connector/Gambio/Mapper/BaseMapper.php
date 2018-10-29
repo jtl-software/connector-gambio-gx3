@@ -272,6 +272,21 @@ class BaseMapper
      */
     public function pull($parentData = null, $limit = null)
     {
+        $dbResult = $this->executeQuery($parentData, $limit);
+
+        $return = array();
+
+        if (isset($dbResult)) {
+            foreach ($dbResult as $data) {
+                $return[] = $this->generateModel($data);
+            }
+        }
+
+        return $return;
+    }
+
+    protected function executeQuery($parentData = null, $limit = null)
+    {
         $limitQuery = isset($limit) ? ' LIMIT '.$limit : '';
 
         if (isset($this->mapperConfig['query'])) {
@@ -292,17 +307,7 @@ class BaseMapper
             $query = 'SELECT * FROM '.$this->mapperConfig['table'].$limitQuery;
         }
 
-        $dbResult = $this->db->query($query);
-
-        $return = array();
-
-        if (isset($dbResult)) {
-            foreach ($dbResult as $data) {
-                $return[] = $this->generateModel($data);
-            }
-        }
-
-        return $return;
+        return $this->db->query($query);
     }
 
     /**

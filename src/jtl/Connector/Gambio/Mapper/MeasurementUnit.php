@@ -1,7 +1,6 @@
 <?php
 namespace jtl\Connector\Gambio\Mapper;
 
-use jtl\Connector\Gambio\Mapper\BaseMapper;
 
 class MeasurementUnit extends BaseMapper
 {
@@ -16,7 +15,7 @@ class MeasurementUnit extends BaseMapper
             "i18ns" => "MeasurementUnitI18n|addI18n"
         ),
         "mapPush" => array(
-        	"MeasurementUnitI18n|addI18n" => "i18ns"
+            "MeasurementUnitI18n|addI18n" => "i18ns"
         )
     );
 }

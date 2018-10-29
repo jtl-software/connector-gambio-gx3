@@ -1,7 +1,9 @@
 <?php
+
 namespace jtl\Connector\Gambio\Mapper;
 
 use \jtl\Connector\Gambio\Mapper\BaseMapper;
+use jtl\Connector\Model\Identity;
 use \jtl\Connector\Model\ProductStockLevel;
 use \jtl\Connector\Model\Product as ProductModel;
 use \jtl\Connector\Model\ProductStockLevel as ProductStockLevelModel;
@@ -13,6 +15,7 @@ use \jtl\Connector\Model\ProductVariationI18n as ProductVariationI18nModel;
 use \jtl\Connector\Model\ProductVariationValue as ProductVariationValueModel;
 use \jtl\Connector\Model\ProductVariationValueI18n as ProductVariationValueI18nModel;
 use \jtl\Connector\Model\ProductI18n as ProductI18nModel;
+use jtl\Connector\Gambio\Util\MeasurementUnitHelper;
 
 class Product extends BaseMapper
 {
@@ -59,7 +62,7 @@ class Product extends BaseMapper
             "attributes" => "ProductAttr|addAttribute",
             "vat" => null,
             "isMasterProduct" => null,
-            "measurementUnitId" => "quantity_unit_id",
+            "measurementUnitId" => null,
             "isbn" => "code_isbn",
             "manufacturerNumber" => "code_mpn",
             "upc" => "code_upc",
@@ -77,7 +80,7 @@ class Product extends BaseMapper
             "products_weight" => "productWeight",
             "manufacturers_id" => null,
             "products_vpe" => null,
-            "products_vpe_value" => "basePriceDivisor",
+            "products_vpe_value" => null,
             "products_vpe_status" => null,
             "products_status" => "isActive",
             "products_startpage" => "isTopProduct",
@@ -107,49 +110,74 @@ class Product extends BaseMapper
         'options_template' => 'Optionen Vorlage'
     );
 
+
     public function pull($data = null, $limit = null)
     {
-        $this->mapperConfig['query'] = '
-          SELECT j . * , q.quantity_unit_id, c.code_isbn, c.code_mpn, c.code_upc, c.google_export_condition, c.google_export_availability_id, g.google_category
-          FROM (
-            SELECT p . *
-            FROM products p
-            LEFT JOIN jtl_connector_link_product l ON CONVERT( p.products_id, CHAR( 16 ) ) = l.endpoint_id
-            COLLATE utf8_unicode_ci
-            WHERE l.host_id IS NULL
-            LIMIT '.$limit.'
-          ) AS j
-          LEFT JOIN products_quantity_unit q ON q.products_id = j.products_id
-          LEFT JOIN products_item_codes c ON c.products_id = j.products_id
-          LEFT JOIN products_google_categories g ON g.products_id = j.products_id
-        ';
+        $this->mapperConfig['query'] =
+            'SELECT j.* , qud.unit_name, pv.products_vpe_name vpe_name, c.code_isbn, c.code_mpn, c.code_upc, c.google_export_condition, c.google_export_availability_id, g.google_category ' . "\n" .
+            'FROM (' . "\n" .
+            '  SELECT p.* ' . "\n" .
+            '  FROM products p ' . "\n" .
+            '  LEFT JOIN jtl_connector_link_product l ON CONVERT( p.products_id, CHAR( 16 ) ) = l.endpoint_id ' . "\n" .
+            '  COLLATE utf8_unicode_ci ' . "\n" .
+            '  WHERE l.host_id IS NULL ' . "\n" .
+            '  LIMIT ' . $limit . "\n" .
+            ') AS j ' . "\n" .
+            'LEFT JOIN products_quantity_unit pqu ON pqu.products_id = j.products_id ' . "\n" .
+            'LEFT JOIN products_item_codes c ON c.products_id = j.products_id ' . "\n" .
+            'LEFT JOIN products_google_categories g ON g.products_id = j.products_id ' . "\n" .
+            'LEFT JOIN languages la ON la.code = \'' . $this->shopConfig['settings']['DEFAULT_LANGUAGE'] . '\' ' . "\n" .
+            'LEFT JOIN quantity_unit_description qud ON pqu.quantity_unit_id = qud.quantity_unit_id AND qud.language_id = la.languages_id ' . "\n" .
+            'LEFT JOIN products_vpe pv ON pv.products_vpe_id = j.products_vpe AND pv.language_id = la.languages_id'
+        ;
 
-        $return = parent::pull($data, $limit);
+        $dbResult = $this->executeQuery($data, $limit);
+
+        $return = array();
+        foreach ($dbResult as $data) {
+            /** @var \jtl\Connector\Model\Product $product */
+            $product = $this->generateModel($data);
+            $this->setMeasurementsData($product, $data);
+            $return[] = $product;
+        }
 
         if (count($return) < $limit) {
-            $limitQuery = isset($limit) ? ' LIMIT '.$limit : '';
+            $limitQuery = isset($limit) ? ' LIMIT ' . $limit : '';
 
-            $combis = $this->db->query('
-            SELECT c.*,p.products_price 
-            FROM products_properties_combis c 
-            LEFT JOIN products p ON p.products_id=c.products_id 
-            LEFT JOIN jtl_connector_link_product l ON CONCAT(c.products_id,"_",c.products_properties_combis_id) = l.endpoint_id 
-            WHERE l.host_id IS NULL'.$limitQuery);
+            $sql =
+                'SELECT j.* , qud.unit_name, pv.products_vpe_name vpe_name ' . "\n" .
+                'FROM (' . "\n" .
+                '  SELECT *' . "\n" .
+                '  FROM products_properties_combis c' . "\n" .
+                '  LEFT JOIN products p USING (products_id)' . "\n" .
+                '  LEFT JOIN jtl_connector_link_product l ON CONCAT(c.products_id,"_",c.products_properties_combis_id) = l.endpoint_id' . "\n" .
+                '  WHERE l.host_id IS NULL' . $limitQuery . "\n" .
+                ') AS j ' . "\n" .
+                'LEFT JOIN products_quantity_unit pqu ON pqu.products_id = j.products_id ' . "\n" .
+                'LEFT JOIN languages la ON la.code = \'' . $this->shopConfig['settings']['DEFAULT_LANGUAGE'] . '\' ' . "\n" .
+                'LEFT JOIN quantity_unit_description qud ON pqu.quantity_unit_id = qud.quantity_unit_id AND qud.language_id = la.languages_id ' . "\n" .
+                'LEFT JOIN products_vpe pv ON pv.products_vpe_id = j.products_vpe_id AND pv.language_id = la.languages_id'
+            ;
 
-            foreach ($combis as $combi) {
-                $varcombi = new ProductModel();
-                $varcombi->setMasterProductId($this->identity($combi['products_id']));
-                $varcombi->setId($this->identity($combi['products_id'] . '_' . $combi['products_properties_combis_id']));
-                $varcombi->setSku($combi['combi_model']);
-                $varcombi->setEan($combi['combi_ean']);
-                $varcombi->setProductWeight(floatval($combi['combi_weight']));
-                $varcombi->setSort(intval($combi['sort_order']));
-                $varcombi->setConsiderStock(true);
-                $varcombi->setConsiderVariationStock(true);
-                $varcombi->setIsActive(true);
-                $varcombi->setPermitNegativeStock((bool)$this->shopConfig['settings']['STOCK_ALLOW_CHECKOUT']);
+            $combis = $this->db->query($sql);
 
-                $i18nStatus = $this->db->query('SELECT * FROM shipping_status WHERE shipping_status_id=' . $combi['combi_shipping_status_id']);
+            foreach ($combis as $combiData) {
+                $varcombi = (new ProductModel())
+                    ->setMasterProductId($this->identity($combiData['products_id']))
+                    ->setId($this->identity($combiData['products_id'] . '_' . $combiData['products_properties_combis_id']))
+                    ->setSku($combiData['combi_model'])
+                    ->setEan($combiData['combi_ean'])
+                    ->setProductWeight(floatval($combiData['combi_weight']))
+                    ->setSort(intval($combiData['sort_order']))
+                    ->setConsiderStock(true)
+                    ->setConsiderVariationStock(true)
+                    ->setIsActive(true)
+                    ->setVat($this->vat($combiData))
+                ;
+
+                $this->setMeasurementsData($varcombi, $combiData, true);
+
+                $i18nStatus = $this->db->query('SELECT * FROM shipping_status WHERE shipping_status_id=' . $combiData['combi_shipping_status_id']);
 
                 foreach ($i18nStatus as $status) {
                     $i18n = new ProductI18nModel();
@@ -161,7 +189,7 @@ class Product extends BaseMapper
 
                 $stockLevel = new ProductStockLevelModel();
                 $stockLevel->setProductId($varcombi->getId());
-                $stockLevel->setStockLevel(floatval($combi['combi_quantity']));
+                $stockLevel->setStockLevel(floatval($combiData['combi_quantity']));
 
                 $varcombi->setStockLevel($stockLevel);
 
@@ -172,14 +200,14 @@ class Product extends BaseMapper
 
                 $defaultItem = new ProductPriceItemModel();
                 $defaultItem->setProductPriceId($default->getId());
-                $price = $combi['combi_price_type'] === 'calc' ? floatval($combi['products_price']) + floatval($combi['combi_price']) : floatval($combi['combi_price']);
+                $price = $combiData['combi_price_type'] === 'calc' ? floatval($combiData['products_price']) + floatval($combiData['combi_price']) : floatval($combiData['combi_price']);
                 $defaultItem->setNetPrice($price);
 
                 $default->addItem($defaultItem);
 
                 $varcombi->setprices(array($default));
 
-                $variationQuery = $this->db->query('SELECT * FROM products_properties_index WHERE products_properties_combis_id=' . $combi['products_properties_combis_id']);
+                $variationQuery = $this->db->query('SELECT * FROM products_properties_index WHERE products_properties_combis_id=' . $combiData['products_properties_combis_id']);
 
                 $variations = array();
 
@@ -239,9 +267,83 @@ class Product extends BaseMapper
         return $return;
     }
 
+    /**
+     * @param ProductModel $product
+     * @param mixed[] $data
+     * @param bool $isCombi
+     */
+    protected function setMeasurementsData(ProductModel $product, array $data, $isCombi = false)
+    {
+        $vpeName = (isset($data['vpe_name']) && !empty($data['vpe_name']) ? $data['vpe_name'] : null);
+        $vpeValue = (isset($data['products_vpe_value']) && !empty($data['products_vpe_value']) ? (float)$data['products_vpe_value'] : null);
+        if ($isCombi) {
+            $vpeValue = (isset($data['vpe_value']) && !empty($data['vpe_value']) ? (float)$data['vpe_value'] : null);
+        }
+
+        if (isset($data['unit_name']) && !empty($data['unit_name'])) {
+            $unitId = new Identity($data['unit_name']);
+            $product->setUnitId($unitId);
+            $product->setBasePriceUnitName($data['unit_name']);
+        }
+
+        if (!is_null($vpeName)) {
+            $measurementUnit = null;
+            $basePriceQuantity = 1.0;
+            if (MeasurementUnitHelper::isUnit($vpeName)) {
+                $measurementUnit = strtolower($vpeName);
+            } elseif (MeasurementUnitHelper::isUnitByName($vpeName)) {
+                $measurementUnit = MeasurementUnitHelper::getUnitCode($vpeName);
+            } elseif (MeasurementUnitHelper::isCombinedUnit($vpeName)) {
+                $splitted = MeasurementUnitHelper::splitCombinedUnit($vpeName);
+                $measurementUnit = $splitted['unit'];
+                $basePriceQuantity = $splitted['quantity'];
+            }
+
+            if (!is_null($measurementUnit) && MeasurementUnitHelper::isUnit($measurementUnit)) {
+                $measurementUnitId = new Identity(MeasurementUnitHelper::getUnitName($measurementUnit));
+                $product->setBasepriceUnitId($measurementUnitId);
+                $quantity = $vpeValue * $basePriceQuantity;
+                $product
+                    ->setMeasurementQuantity($quantity)
+                    ->setBasePriceUnitCode($measurementUnit)
+                    ->setMeasurementUnitCode($measurementUnit);
+
+                if ($quantity > 0) {
+                    $factor = MeasurementUnitHelper::getUnitFactor($measurementUnit);
+                    if ($factor !== 1 && $basePriceQuantity === 1.0) {
+                        $basePriceQuantity = $this->calculateBasePriceFactor($vpeValue);
+                    }
+                    $product
+                        ->setConsiderBasePrice(true)
+                        ->setBasePriceDivisor($quantity)
+                        ->setMeasurementUnitId($measurementUnitId)
+                        ->setBasePriceQuantity($basePriceQuantity);
+                }
+            }
+        }
+    }
+
+
+    /**
+     * @param float $number
+     * @return float
+     */
+    protected function calculateBasePriceFactor($number)
+    {
+        if (!is_numeric($number)) {
+            throw new \RuntimeException($number . ' is not a number!');
+        }
+
+        for ($i = 1; $i < $number; $i *= 10) {
+
+        }
+
+        return ($i / 10.);
+    }
+
     public function push($data, $dbObj = null)
     {
-        if(is_null($dbObj)) {
+        if (is_null($dbObj)) {
             $dbObj = new \stdClass();
         }
 
@@ -257,7 +359,7 @@ class Product extends BaseMapper
             $this->mapperConfig['mapPush'] = [
                 "ProductVariation|addVariation" => "variations"
             ];
-        } elseif(!empty($id)) {
+        } elseif (!empty($id)) {
             foreach ($this->getCustomerGroups() as $group) {
                 $this->db->query('DELETE FROM personal_offers_by_customers_status_' . $group['customers_status_id'] . ' WHERE products_id="' . $id . '"');
             }
@@ -280,7 +382,7 @@ class Product extends BaseMapper
             return;
         }
 
-        $checkCodes = $this->db->query('SELECT products_id FROM products_item_codes WHERE products_id="'.$data->getId()->getEndpoint().'"');
+        $checkCodes = $this->db->query('SELECT products_id FROM products_item_codes WHERE products_id="' . $data->getId()->getEndpoint() . '"');
 
         $codes = new \stdClass();
         $codes->products_id = $productsId;
@@ -298,12 +400,12 @@ class Product extends BaseMapper
                     break;
                 } elseif ($i18n->getName() === 'Google Zustand') {
                     $codes->google_export_condition = $i18n->getValue();
-                } elseif($i18n->getName() === 'Google Verfuegbarkeit ID') {
+                } elseif ($i18n->getName() === 'Google Verfuegbarkeit ID') {
                     $codes->google_export_availability_id = $i18n->getValue();
-                } elseif($i18n->getName() === 'Wesentliche Produktmerkmale') {
+                } elseif ($i18n->getName() === 'Wesentliche Produktmerkmale') {
                     $language_id = $this->locale2id($i18n->getLanguageISO());
                     $sql = 'INSERT INTO products_description (products_id,language_id,checkout_information) VALUES(' . $productsId . ',' . $language_id . ',"' . $this->db->escapeString($i18n->getValue()) . '") ' .
-                           'ON DUPLICATE KEY UPDATE checkout_information = "' . $this->db->escapeString($i18n->getValue()) . '";';
+                        'ON DUPLICATE KEY UPDATE checkout_information = "' . $this->db->escapeString($i18n->getValue()) . '";';
                     $this->db->query($sql);
                 } elseif ($i18n->getName() === 'Google Kategorie') {
                     $obj = new \stdClass();
@@ -323,10 +425,10 @@ class Product extends BaseMapper
             $this->db->insertRow($codes, 'products_item_codes');
         }
 
-        $this->updateMeasurementId($data);
+        $this->determineQuantityUnit($data);
     }
 
-    private function updateMeasurementId($data)
+    private function determineQuantityUnit($data)
     {
         $id = null;
 
@@ -336,10 +438,10 @@ class Product extends BaseMapper
             $name = $i18n->getUnitName();
             $language_id = $this->locale2id($i18n->getLanguageISO());
 
-            $dbResult = $this->db->query('SELECT code FROM languages WHERE languages_id='.$language_id);
+            $dbResult = $this->db->query('SELECT code FROM languages WHERE languages_id=' . $language_id);
 
             if ($dbResult[0]['code'] == $this->shopConfig['settings']['DEFAULT_LANGUAGE']) {
-                $sql = $this->db->query('SELECT quantity_unit_id FROM quantity_unit_description WHERE language_id='.$language_id.' && unit_name="'.$name.'"');
+                $sql = $this->db->query('SELECT quantity_unit_id FROM quantity_unit_description WHERE language_id=' . $language_id . ' && unit_name="' . $name . '"');
                 if (count($sql) > 0) {
                     $id = $sql[0]['quantity_unit_id'];
                 }
@@ -387,43 +489,41 @@ class Product extends BaseMapper
                     $combiId = explode('_', $id);
                     $combiId = $combiId[1];
 
-                    $this->db->query('DELETE FROM products_properties_index WHERE products_properties_combis_id='.$combiId);
-                    $this->db->query('DELETE FROM products_properties_combis_values WHERE products_properties_combis_id='.$combiId);
-                    $this->db->query('DELETE FROM products_properties_combis WHERE products_properties_combis_id='.$combiId);
+                    $this->db->query('DELETE FROM products_properties_index WHERE products_properties_combis_id=' . $combiId);
+                    $this->db->query('DELETE FROM products_properties_combis_values WHERE products_properties_combis_id=' . $combiId);
+                    $this->db->query('DELETE FROM products_properties_combis WHERE products_properties_combis_id=' . $combiId);
 
-                    $this->db->query('DELETE FROM jtl_connector_link_product WHERE endpoint_id="'.$id.'"');
-                }
-                catch (\Exception $e) {
+                    $this->db->query('DELETE FROM jtl_connector_link_product WHERE endpoint_id="' . $id . '"');
+                } catch (\Exception $e) {
                 }
             }
         } else {
             if (!empty($id) && $id != '') {
                 try {
-                    $this->db->query('DELETE FROM products WHERE products_id='.$id);
-                    $this->db->query('DELETE FROM products_to_categories WHERE products_id='.$id);
-                    $this->db->query('DELETE FROM products_description WHERE products_id='.$id);
-                    $this->db->query('DELETE FROM products_images WHERE products_id='.$id);
-                    $this->db->query('DELETE FROM products_attributes WHERE products_id='.$id);
-                    $this->db->query('DELETE FROM products_xsell WHERE products_id='.$id.' OR xsell_id='.$id);
-                    $this->db->query('DELETE FROM specials WHERE products_id='.$id);
-                    $this->db->query('DELETE FROM products_properties_index WHERE products_id='.$id);
-                    $this->db->query('DELETE v FROM products_properties_combis_values v LEFT JOIN products_properties_combis c ON c.products_properties_combis_id = v.products_properties_combis_id  WHERE c.products_id='.$id);
-                    $this->db->query('DELETE FROM products_properties_combis WHERE products_id='.$id);
-                    $this->db->query('DELETE FROM products_quantity_unit WHERE products_id='.$id);
-                    $this->db->query('DELETE FROM categories_index WHERE products_id='.$id);
-                    $this->db->query('DELETE FROM products_item_codes WHERE products_id='.$id);
+                    $this->db->query('DELETE FROM products WHERE products_id=' . $id);
+                    $this->db->query('DELETE FROM products_to_categories WHERE products_id=' . $id);
+                    $this->db->query('DELETE FROM products_description WHERE products_id=' . $id);
+                    $this->db->query('DELETE FROM products_images WHERE products_id=' . $id);
+                    $this->db->query('DELETE FROM products_attributes WHERE products_id=' . $id);
+                    $this->db->query('DELETE FROM products_xsell WHERE products_id=' . $id . ' OR xsell_id=' . $id);
+                    $this->db->query('DELETE FROM specials WHERE products_id=' . $id);
+                    $this->db->query('DELETE FROM products_properties_index WHERE products_id=' . $id);
+                    $this->db->query('DELETE v FROM products_properties_combis_values v LEFT JOIN products_properties_combis c ON c.products_properties_combis_id = v.products_properties_combis_id  WHERE c.products_id=' . $id);
+                    $this->db->query('DELETE FROM products_properties_combis WHERE products_id=' . $id);
+                    $this->db->query('DELETE FROM products_quantity_unit WHERE products_id=' . $id);
+                    $this->db->query('DELETE FROM categories_index WHERE products_id=' . $id);
+                    $this->db->query('DELETE FROM products_item_codes WHERE products_id=' . $id);
 
                     //General product attribute values cleanings
                     $this->db->query('DELETE FROM additional_field_value_descriptions WHERE additional_field_value_id IN (SELECT `additional_field_value_id` FROM `additional_field_values` afv LEFT JOIN additional_fields af ON afv.additional_field_id = af.additional_field_id WHERE af.item_type = \'product\' AND item_id NOT IN (SELECT products_id FROM products WHERE 1))');
                     $this->db->query('DELETE afv FROM `additional_field_values` afv LEFT JOIN additional_fields af ON afv.additional_field_id = af.additional_field_id WHERE af.item_type = \'product\' AND item_id NOT IN (SELECT products_id FROM products WHERE 1)');
 
                     foreach ($this->getCustomerGroups() as $group) {
-                        $this->db->query('DELETE FROM personal_offers_by_customers_status_'.$group['customers_status_id'].' WHERE products_id='.$id);
+                        $this->db->query('DELETE FROM personal_offers_by_customers_status_' . $group['customers_status_id'] . ' WHERE products_id=' . $id);
                     }
 
-                    $this->db->query('DELETE FROM jtl_connector_link_product WHERE endpoint_id="'.$id.'"');
-                }
-                catch (\Exception $e) {
+                    $this->db->query('DELETE FROM jtl_connector_link_product WHERE endpoint_id="' . $id . '"');
+                } catch (\Exception $e) {
                 }
             }
         }
@@ -453,7 +553,7 @@ class Product extends BaseMapper
 
     protected function isMasterProduct($data)
     {
-        $query = $this->db->query('SELECT products_properties_combis_id FROM products_properties_combis WHERE products_id='.$data['products_id']);
+        $query = $this->db->query('SELECT products_properties_combis_id FROM products_properties_combis WHERE products_id=' . $data['products_id']);
         return count($query) === 0 ? false : true;
     }
 
@@ -464,7 +564,11 @@ class Product extends BaseMapper
 
     protected function products_vpe($data)
     {
-        $name = $data->getBasePriceQuantity().' '.$data->getBasePriceUnitName();
+        /** @var ProductModel $data */
+        $name = $data->getBasePriceUnitName();
+        if($data->getConsiderBasePrice() && !is_null($data->getBasePriceQuantity()) && $data->getBasePriceQuantity() > 1.) {
+            $name = $data->getBasePriceQuantity() . $data->getBasePriceUnitName();
+        }
 
         if (!empty($name)) {
             foreach ($data->getI18ns() as $i18n) {
@@ -497,6 +601,15 @@ class Product extends BaseMapper
         return 0;
     }
 
+    protected function products_vpe_value($data)
+    {
+        $value = $data->getMeasurementQuantity();
+        if($data->getConsiderBasePrice() && $data->getBasePriceQuantity() > 0) {
+            $value /= $data->getBasePriceQuantity();
+        }
+        return $value;
+    }
+
     protected function products_shippingtime($data)
     {
         foreach ($data->getI18ns() as $i18n) {
@@ -504,10 +617,10 @@ class Product extends BaseMapper
 
             if (!empty($name)) {
                 $language_id = $this->locale2id($i18n->getLanguageISO());
-                $dbResult = $this->db->query('SELECT code FROM languages WHERE languages_id='.$language_id);
+                $dbResult = $this->db->query('SELECT code FROM languages WHERE languages_id=' . $language_id);
 
                 if ($dbResult[0]['code'] == $this->shopConfig['settings']['DEFAULT_LANGUAGE']) {
-                    $sql = $this->db->query('SELECT shipping_status_id FROM shipping_status WHERE language_id='.$language_id.' && shipping_status_name="'.$name.'"');
+                    $sql = $this->db->query('SELECT shipping_status_id FROM shipping_status WHERE language_id=' . $language_id . ' && shipping_status_name="' . $name . '"');
                     if (count($sql) > 0) {
                         return $sql[0]['shipping_status_id'];
                     } else {
@@ -542,7 +655,7 @@ class Product extends BaseMapper
         $id = $data->getId()->getEndpoint();
 
         if (!empty($id)) {
-            $img = $this->db->query('SELECT products_image FROM products WHERE products_id ='.$id);
+            $img = $this->db->query('SELECT products_image FROM products WHERE products_id =' . $id);
             $img = $img[0]['products_image'];
 
             if (isset($img)) {
@@ -571,7 +684,16 @@ class Product extends BaseMapper
 
     protected function unitId($data)
     {
-        return $this->replaceZero($data['products_vpe']);
+        return !is_null($data['unit_name']) ? $data['unit_name'] : '';
+    }
+
+    protected function measurementUnitId($data)
+    {
+        if (!is_null($data['unit_name']) && MeasurementUnitHelper::isUnitByName($data['unit_name'])) {
+            return $data['unit_name'];
+        }
+
+        return '';
     }
 
     protected function considerStock($data)
@@ -581,7 +703,7 @@ class Product extends BaseMapper
 
     protected function considerVariationStock($data)
     {
-        $check = $this->db->query('SELECT products_id FROM products_attributes WHERE products_id='.$data['products_id']);
+        $check = $this->db->query('SELECT products_id FROM products_attributes WHERE products_id=' . $data['products_id']);
 
         return count($check) > 0 ? true : false;
     }
@@ -593,10 +715,10 @@ class Product extends BaseMapper
 
     protected function vat($data)
     {
-        $sql = $this->db->query('SELECT r.tax_rate FROM zones_to_geo_zones z LEFT JOIN tax_rates r ON z.geo_zone_id=r.tax_zone_id WHERE z.zone_country_id = '.$this->shopConfig['settings']['STORE_COUNTRY'].' && r.tax_class_id='.$data['products_tax_class_id']);
+        $sql = $this->db->query('SELECT r.tax_rate FROM zones_to_geo_zones z LEFT JOIN tax_rates r ON z.geo_zone_id=r.tax_zone_id WHERE z.zone_country_id = ' . $this->shopConfig['settings']['STORE_COUNTRY'] . ' && r.tax_class_id=' . $data['products_tax_class_id']);
 
         if (empty($sql)) {
-            $sql = $this->db->query('SELECT tax_rate FROM tax_rates WHERE tax_rates_id='.$this->connectorConfig->tax_rate);
+            $sql = $this->db->query('SELECT tax_rate FROM tax_rates WHERE tax_rates_id=' . $this->connectorConfig->tax_rate);
         }
 
         return floatval($sql[0]['tax_rate']);
@@ -604,10 +726,10 @@ class Product extends BaseMapper
 
     protected function products_tax_class_id($data)
     {
-        $sql = $this->db->query('SELECT r.tax_class_id FROM zones_to_geo_zones z LEFT JOIN tax_rates r ON z.geo_zone_id=r.tax_zone_id WHERE z.zone_country_id = '.$this->shopConfig['settings']['STORE_COUNTRY'].' && r.tax_rate='.$data->getVat());
+        $sql = $this->db->query('SELECT r.tax_class_id FROM zones_to_geo_zones z LEFT JOIN tax_rates r ON z.geo_zone_id=r.tax_zone_id WHERE z.zone_country_id = ' . $this->shopConfig['settings']['STORE_COUNTRY'] . ' && r.tax_rate=' . $data->getVat());
 
         if (empty($sql)) {
-            $sql = $this->db->query('SELECT tax_class_id FROM tax_rates WHERE tax_rates_id='.$this->connectorConfig->tax_rate);
+            $sql = $this->db->query('SELECT tax_class_id FROM tax_rates WHERE tax_rates_id=' . $this->connectorConfig->tax_rate);
         }
 
         return $sql[0]['tax_class_id'];

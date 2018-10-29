@@ -108,7 +108,7 @@ class Installer
 
     private function readConfigFile()
     {
-        require_once realpath(CONNECTOR_DIR.'/../').'/includes/configure.php';
+        require_once realpath(CONNECTOR_DIR . '/../') . '/includes/configure.php';
 
         return array(
             'shop' => array(
