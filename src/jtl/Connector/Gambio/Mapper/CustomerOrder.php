@@ -288,9 +288,11 @@ class CustomerOrder extends BaseMapper
             if ($total['class'] == 'ot_total') {
                 $model->setTotalSumGross(floatval($total['value']));
             }
+
             if ($total['class'] == 'ot_total_netto' || $total['class'] == 'ot_subtotal_no_tax') {
                 $model->setTotalSum(floatval($total['value']));
             }
+
             if ($total['class'] == 'ot_shipping') {
                 $vat = 0;
                 $price = floatval($total['value']);
@@ -322,7 +324,8 @@ class CustomerOrder extends BaseMapper
 
                 $model->setShippingMethodName($total['title']);
             }
-            
+
+
             $item = new CustomerOrderItem();
             switch ($total['class']) {
                 case 'ot_cod_fee':
