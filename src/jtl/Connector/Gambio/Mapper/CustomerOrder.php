@@ -357,7 +357,7 @@ class CustomerOrder extends BaseMapper
                 $item->setQuantity(1);
                 $item->setVat(($vatExcl ? 0. : floatval($taxRate[0]['tax_rate'])));
                 //$item->setPrice(floatval($total['value']) - (floatval($total['value'])*($taxRate[0]['tax_rate'] / 100)));
-                $item->setPriceGross(floatval($total['value']));
+                $item->setPriceGross($total['class'] == 'ot_gv' ? floatval($total['value']) * -1 : floatval($total['value']));
     
                 $model->addItem($item);
         }
