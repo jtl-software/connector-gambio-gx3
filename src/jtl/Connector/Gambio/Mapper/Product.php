@@ -603,9 +603,12 @@ class Product extends BaseMapper
 
     protected function products_vpe_value($data)
     {
+        /** @var ProductModel $data */
         $value = $data->getMeasurementQuantity();
-        if($data->getConsiderBasePrice() && $data->getBasePriceQuantity() > 0) {
-            $value /= $data->getBasePriceQuantity();
+        if($data->getConsiderBasePrice() && $data->getBasePriceQuantity() > 0 && MeasurementUnitHelper::isUnit($data->getMeasurementUnitCode())) {
+            //$value /= $data->getBasePriceQuantity();
+            $value = ($data->getMeasurementQuantity() * MeasurementUnitHelper::getUnitFactor($data->getMeasurementUnitCode()))/($data->getBasePriceQuantity() * MeasurementUnitHelper::getUnitFactor($data->getBasePriceUnitCode()));
+
         }
         return $value;
     }
