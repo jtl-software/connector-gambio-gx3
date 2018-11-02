@@ -325,32 +325,43 @@ class CustomerOrder extends BaseMapper
                 $model->setShippingMethodName($total['title']);
             }
 
+            $specialItems = [
+                'ot_cod_fee',
+                'ot_payment',
+                'ot_coupon',
+                'ot_gv',
+                'ot_discount'
+            ];
+            
+            if (!array_search($total['class'], $specialItems)){
+                continue;
+            }
 
             $item = new CustomerOrderItem();
-            switch ($total['class']) {
-                case 'ot_cod_fee':
-                    $item->setType(CustomerOrderItem::TYPE_SHIPPING);
-                    break;
-                
+                switch ($total['class']) {
+                    case 'ot_cod_fee':
+                        $item->setType(CustomerOrderItem::TYPE_SHIPPING);
+                        break;
+        
                     case 'ot_payment':
-                    $item->setType(CustomerOrderItem::TYPE_PRODUCT);
-                    break;
-                
-                case 'ot_coupon':
-                case 'ot_gv':
-                case 'ot_discount':
-                    $item->setType(CustomerOrderItem::TYPE_COUPON);
-                    break;
-            }
-            $item->setName($total['title']);
-            $item->setCustomerOrderId($this->identity($data['orders_id']));
-            $item->setId($this->identity($total['orders_total_id']));
-            $item->setQuantity(1);
-            $item->setVat(($vatExcl ? 0. : floatval($taxRate[0]['tax_rate'])));
-            //$item->setPrice(floatval($total['value']) - (floatval($total['value'])*($taxRate[0]['tax_rate'] / 100)));
-            $item->setPriceGross(floatval($total['value']));
+                        $item->setType(CustomerOrderItem::TYPE_PRODUCT);
+                        break;
+        
+                    case 'ot_coupon':
+                    case 'ot_gv':
+                    case 'ot_discount':
+                        $item->setType(CustomerOrderItem::TYPE_COUPON);
+                        break;
+                }
+                $item->setName($total['title']);
+                $item->setCustomerOrderId($this->identity($data['orders_id']));
+                $item->setId($this->identity($total['orders_total_id']));
+                $item->setQuantity(1);
+                $item->setVat(($vatExcl ? 0. : floatval($taxRate[0]['tax_rate'])));
+                //$item->setPrice(floatval($total['value']) - (floatval($total['value'])*($taxRate[0]['tax_rate'] / 100)));
+                $item->setPriceGross($total['class'] == 'ot_gv' ? floatval($total['value']) * -1 : floatval($total['value']));
     
-            $model->addItem($item);
+                $model->addItem($item);
         }
 
         $model->addItem($shipping);
