@@ -1,3 +1,27 @@
+2.9.5
+-----
+- CO-287 Permit negative stock will be considered for VarKombi children during product pull
+- CO-282 ProductSpecialPrice handling fixed in ProductSpecialPrice push
+- CO-309 WAWIs "Adresszusatz" in Customer and Order Address will be mapped to Gambios "*_additional_info" instead of "*_suburb"
+- CO-321 coupons and discounts will be imported with the correct type during CustomerOrder pull
+- (Measurement-)Unit handling of products completely revised
+- Handling of product variation prices revised in product push
+
+2.9.4
+-----
+- CO-264 Images will be still linked to the related product variations after product push
+- CO-259 endpoint_id column in jtl_connector_link_product table extended to 255
+- Product attributes will be imported multilingual in Wawi during product pull
+- Manufacturer push refactored
+
+2.9.3
+-----
+- Product variation attributes will be ignored during product push
+
+2.9.2
+-----
+- Special attributes will not created as additional field during product push
+
 2.9.1
 ------
  - CO-244 Consider allow_tax flag on order_items when pulling a CustomerOrder

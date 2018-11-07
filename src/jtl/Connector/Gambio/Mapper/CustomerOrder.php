@@ -266,7 +266,7 @@ class CustomerOrder extends BaseMapper
 
     public function addData($model, $data)
     {
-        $shipping = new \jtl\Connector\Model\CustomerOrderItem();
+        $shipping = new CustomerOrderItem();
         $shipping->setType('shipping');
         $shipping->setCustomerOrderId($this->identity($data['orders_id']));
         $shipping->setId($this->identity($data['shipping_class']));
@@ -353,6 +353,7 @@ class CustomerOrder extends BaseMapper
                         $item->setType(CustomerOrderItem::TYPE_COUPON);
                         break;
                 }
+
                 $item->setName($total['title']);
                 $item->setCustomerOrderId($this->identity($data['orders_id']));
                 $item->setId($this->identity($total['orders_total_id']));
