@@ -48,8 +48,6 @@ class ProductPriceItem extends BaseMapper
 
                 if (is_null($data->getCustomerGroupId()->getEndpoint()) || $data->getCustomerGroupId()->getEndpoint() == '') {
                     $obj->combi_price = $price->getNetPrice() - static::$parentPrice;
-                    $obj->combi_price_type = 'fix';
-
                     $this->db->updateRow($obj, 'products_properties_combis', 'products_properties_combis_id', $ids[1]);
                 }
             }
