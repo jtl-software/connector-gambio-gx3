@@ -211,12 +211,14 @@ class ProductVariation extends Product
                                 }
                             }
 
+                            $sql = 'SELECT v.properties_values_id ' . "\n" .
+                                   'FROM properties_values_description d ' . "\n" .
+                                   'LEFT JOIN properties_values v ON v.properties_values_id=d.properties_values_id ' . "\n" .
+                                   'LEFT JOIN properties p ON p.properties_id=v.properties_id ' . "\n" .
+                                   'WHERE p.properties_id=' . $variationId . ' && d.language_id=' . $langId . ' && d.values_name="' . $valueName . '"';
+
                             // try to find existing value id
-                            $valueIdQuery = $this->db->query('SELECT v.properties_values_id
-                                FROM properties_values_description d
-                                LEFT JOIN properties_values v ON v.properties_values_id=d.properties_values_id
-                                LEFT JOIN properties p ON p.properties_id=v.properties_id
-                                WHERE p.properties_id=' . $variationId . ' && d.language_id=' . $langId . ' && d.values_name="' . $valueName . '"');
+                            $valueIdQuery = $this->db->query($sql);
 
                             // use existing id or generate next available one
                             if (count($valueIdQuery) > 0) {
@@ -276,19 +278,16 @@ class ProductVariation extends Product
                 $combi->products_vpe_id = $this->products_vpe($parent);
                 foreach ($parent->getPrices() as $price) {
                     if (is_null($price->getCustomerGroupId()->getEndpoint()) || $price->getCustomerGroupId()->getEndpoint() == '') {
-                        $combiPrice = $price->getItems()[0]->getNetPrice();
 
+                        $childPrice = $price->getItems()[0]->getNetPrice();
                         if (is_null(static::$parentPrices[$parent->getMasterProductId()->getHost()])) {
                             $parentObj = $this->db->query('SELECT products_price FROM products WHERE products_id="' . $combi->products_id . '"');
-                            static::$parentPrices[$parent->getMasterProductId()->getHost()] = $parentObj[0]['products_price'];
+                            static::$parentPrices[$parent->getMasterProductId()->getHost()] = (float)$parentObj[0]['products_price'];
                         }
 
                         $parentPrice = static::$parentPrices[$parent->getMasterProductId()->getHost()];
-                        if($combiPrice > $parentPrice) {
-                            $combi->combi_price = ($combiPrice - static::$parentPrices[$parent->getMasterProductId()->getHost()]);
-                        } elseif ($combiPrice < $parentPrice) {
-                            $combi->combi_price_type = 'fix';
-                            $combi->combi_price = $combiPrice;
+                        if($childPrice !== $parentPrice) {
+                            $combi->combi_price = ($childPrice - $parentPrice);
                         }
 
                         break;
