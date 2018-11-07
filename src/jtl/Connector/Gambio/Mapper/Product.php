@@ -566,6 +566,10 @@ class Product extends BaseMapper
     {
         /** @var ProductModel $data */
         $name = $data->getBasePriceUnitName();
+        if(MeasurementUnitHelper::isUnit($data->getBasePriceUnitName())) {
+            $name = MeasurementUnitHelper::getUnitName($data->getBasePriceUnitName());
+        }
+
         if($data->getConsiderBasePrice() && !is_null($data->getBasePriceQuantity()) && $data->getBasePriceQuantity() > 1.) {
             $name = $data->getBasePriceQuantity() . $data->getBasePriceUnitName();
         }
