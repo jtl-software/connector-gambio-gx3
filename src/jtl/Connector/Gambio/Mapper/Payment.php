@@ -68,6 +68,15 @@ class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
         'WirecardWiretransferHub'   => PaymentTypes::TYPE_WIRECARD,
     ];
     
+    public function __construct()
+    {
+        parent::__construct();
+        
+        if (!empty($this->connectorConfig->from_date)) {
+            $this->mapperConfig['query'] .= ' && creationDate >= "' . $this->connectorConfig->from_date . '"';
+        }
+    }
+    
     public function pull($parent = null, $limit = null)
     {
         $additional = [];
