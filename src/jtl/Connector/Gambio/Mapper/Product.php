@@ -365,7 +365,12 @@ class Product extends BaseMapper
             }
 
             //$this->db->query('DELETE FROM specials WHERE products_id='.$id);
-            $this->db->query('DELETE FROM products_attributes WHERE products_id="' . $id . '"');
+            $this->db->query(sprintf('
+                        DELETE FROM products_attributes
+                        WHERE products_id="%s" AND products_attributes_id NOT IN (
+                            SELECT products_attributes_id FROM products_attributes_download
+                        )'
+                , $id));
         }
 
         return parent::push($data, $dbObj);
