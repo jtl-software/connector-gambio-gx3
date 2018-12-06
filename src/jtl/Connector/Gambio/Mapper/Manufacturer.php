@@ -77,18 +77,8 @@ class Manufacturer extends BaseMapper
                 $manufacturersInfoObj->manufacturers_meta_keywords = $i18n->getMetaKeywords();
                 $manufacturersInfoObj->manufacturers_meta_description = $i18n->getMetaDescription();
             }
-
-            $empty = true;
-            foreach($props as $prop) {
-                if(isset($manufacturersInfoObj->{$prop}) && !empty($manufacturersInfoObj->{$prop})) {
-                    $empty = false;
-                    break;
-                }
-            }
-
-            if(!$empty) {
-                $this->db->insertRow($manufacturersInfoObj, 'manufacturers_info');
-            }
+            
+            $this->db->insertRow($manufacturersInfoObj, 'manufacturers_info');
         }
 
         return $return;
