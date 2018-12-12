@@ -65,7 +65,7 @@ class Customer extends BaseMapper
         $currentDate = date('Y');
         
         if ($currentDate - $date >= 150) {
-            return 0;
+            return null;
         } else {
             return $data["customers_dob"];
         }
