@@ -23,7 +23,7 @@ class Customer extends BaseMapper
             "customerGroupId" => "customers_status",
             "customerNumber" => "customers_cid",
             "salutation" => null,
-            "birthday" => "customers_dob",
+            "birthday" => null,
             "firstName" => "customers_firstname",
             "lastName" => "customers_lastname",
             "company" => "entry_company",
@@ -58,6 +58,18 @@ class Customer extends BaseMapper
             "customers_password" => null
         )
     );
+    
+    protected function birthday($data)
+    {
+        $date = date('Y', strtotime($data["customers_dob"]));
+        $currentDate = date('Y');
+        
+        if ($currentDate - $date >= 150) {
+            return 0;
+        } else {
+            return $data["customers_dob"];
+        }
+    }
     
     protected function salutation($data)
     {
@@ -182,15 +194,15 @@ class Customer extends BaseMapper
     public function statistic()
     {
         $count = 0;
-
+    
         $result = $this->db->query('SELECT COUNT(*) AS count FROM customers c
             LEFT JOIN jtl_connector_link_customer l ON c.customers_id = l.endpoint_id
             WHERE l.host_id IS NULL && c.customers_status != 0');
-
-        if($result && count($result) > 0) {
-            $count = (int) $result[0]['count'];
+    
+        if ($result && count($result) > 0) {
+            $count = (int)$result[0]['count'];
         }
-
+    
         return $count;
     }
 }
