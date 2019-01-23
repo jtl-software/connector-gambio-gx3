@@ -13,4 +13,4 @@ $db->query('CREATE TABLE IF NOT EXISTS jtl_connector_link_specific_value (
   INDEX (host_id)  
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci');
 
-file_put_contents(CONNECTOR_DIR.'/db/version', $updateFile->getBasename('.php'));
+file_put_contents(CONNECTOR_DIR.'/db/version', $version);

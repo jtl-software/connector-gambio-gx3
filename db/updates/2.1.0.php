@@ -1,16 +1,17 @@
 <?php
+use jtl\Connector\Linker\IdentityLinker;
 
 $types = array(
-    1 => 'category',
-    2 => 'customer',
-    4 => 'customer_order',
-    8 => 'delivery_note',
-    16 => 'image',
-    32 => 'manufacturer',
-    64 => 'product',
-    512 => 'payment',
-    1024 => 'crossselling',
-    2048 => 'crossselling_group'
+    IdentityLinker::TYPE_CATEGORY => 'category',
+    IdentityLinker::TYPE_CUSTOMER => 'customer',
+    IdentityLinker::TYPE_CUSTOMER_ORDER => 'customer_order',
+    IdentityLinker::TYPE_DELIVERY_NOTE => 'delivery_note',
+    IdentityLinker::TYPE_IMAGE => 'image',
+    IdentityLinker::TYPE_MANUFACTURER => 'manufacturer',
+    IdentityLinker::TYPE_PRODUCT => 'product',
+    IdentityLinker::TYPE_PAYMENT => 'payment',
+    IdentityLinker::TYPE_CROSSSELLING => 'crossselling',
+    IdentityLinker::TYPE_CROSSSELLING_GROUP => 'crossselling_group'
 );
 
 $queryInt = 'CREATE TABLE IF NOT EXISTS %s (
@@ -27,11 +28,11 @@ $queryChar = 'CREATE TABLE IF NOT EXISTS %s (
   INDEX (host_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci';
 
-foreach($types as $id => $name) {
-    if ($id == 16 || $id == 64) {
-        $db->query(sprintf($queryChar, 'jtl_connector_link_'.$name));
+foreach ($types as $id => $name) {
+    if (in_array($id, [IdentityLinker::TYPE_IMAGE, IdentityLinker::TYPE_PRODUCT])) {
+        $db->query(sprintf($queryChar, 'jtl_connector_link_' . $name));
     } else {
-        $db->query(sprintf($queryInt, 'jtl_connector_link_'.$name));
+        $db->query(sprintf($queryInt, 'jtl_connector_link_' . $name));
     }
 }
 
@@ -54,4 +55,4 @@ if (count($check) == 1) {
     $db->query("ALTER TABLE jtl_connector_product_checksum MODIFY endpoint_id VARCHAR(10)");
 }
 
-file_put_contents(CONNECTOR_DIR.'/db/version', $updateFile->getBasename('.php'));
+file_put_contents(CONNECTOR_DIR . '/db/version', $version);

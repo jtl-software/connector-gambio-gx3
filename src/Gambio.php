@@ -104,11 +104,18 @@ class Gambio extends BaseConnector
     private function update($db)
     {
         if(version_compare(file_get_contents(CONNECTOR_DIR.'/db/version'), CONNECTOR_VERSION) == -1) {
-            foreach (new \DirectoryIterator(CONNECTOR_DIR.'/db/updates') as $updateFile) {
-                if($updateFile->isDot()) continue;
+            $versions = [];
+            foreach (new \DirectoryIterator(CONNECTOR_DIR.'/db/updates') as $item) {
+                if($item->isFile()) {
+                    $versions[] = $item->getBasename('.php');
+                }
+            }
 
-                if(version_compare(file_get_contents(CONNECTOR_DIR.'/db/version'), $updateFile->getBasename('.php')) == -1) {
-                    include(CONNECTOR_DIR.'/db/updates/'.$updateFile);
+            sort($versions);
+
+            foreach ($versions as $version) {
+                if(version_compare(file_get_contents(CONNECTOR_DIR.'/db/version'), $version) == -1) {
+                    include(CONNECTOR_DIR.'/db/updates/' . $version . '.php');
                 }
             }
         }

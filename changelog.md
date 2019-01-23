@@ -1,3 +1,10 @@
+2.9.6
+-----
+- CO-393 Manufacturer push logic revised
+- CO-405 Do not try to map unsupported types
+- Autoloading changed to psr-4
+- Update logic revised
+
 2.9.5-RC
 -----
 - CO-287 Permit negative stock will be considered for VarKombi children during product pull
