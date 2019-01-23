@@ -6,7 +6,7 @@
 - Autoloading changed to psr-4
 - Update logic revised
 
-2.9.5-RC
+2.9.5
 -----
 - CO-287 Permit negative stock will be considered for VarKombi children during product pull
 - CO-282 ProductSpecialPrice handling fixed in ProductSpecialPrice push
