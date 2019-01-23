@@ -58,6 +58,11 @@ class CategoryI18n extends \jtl\Connector\Gambio\Mapper\BaseMapper
                 }
 
                 $dbObj = new \stdClass();
+                $dbObj->categories_description = '';
+                $dbObj->categories_description_bottom = '';
+                $dbObj->categories_meta_title = '';
+                $dbObj->categories_meta_description = '';
+                $dbObj->categories_meta_keywords = '';
 
                 foreach ($this->mapperConfig['mapPush'] as $endpoint => $host) {
                     if (is_null($host) && method_exists(get_class($this), $endpoint)) {
@@ -95,7 +100,7 @@ class CategoryI18n extends \jtl\Connector\Gambio\Mapper\BaseMapper
                 $existsKey = array_search($newObj->language_id, $current);
 
                 if ($existsKey === false) {
-                    $this->db->deleteInsertRow($newObj, $this->mapperConfig['table'], array('categories_id', 'language_id'), array($newObj->categories_id, $newObj->language_id));
+                    $res = $this->db->deleteInsertRow($newObj, $this->mapperConfig['table'], array('categories_id', 'language_id'), array($newObj->categories_id, $newObj->language_id));
                 } else {
                     $this->db->updateRow($newObj, $this->mapperConfig['table'], array('categories_id', 'language_id'), array($newObj->categories_id, $newObj->language_id));
                 }
@@ -131,7 +136,7 @@ class CategoryI18n extends \jtl\Connector\Gambio\Mapper\BaseMapper
                 if ($i18n->getName() == "Überschrift") {
                     if ($i18n->getLanguageISO() == $data->getLanguageISO()) {
                         return $i18n->getValue();
-                    }                               
+                    }
                 }
             }
         }

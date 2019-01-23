@@ -2,6 +2,7 @@
 -----
 - CO-393 Manufacturer push logic revised
 - CO-405 Do not try to map unsupported types
+- Set default values for categories_description columns
 - Autoloading changed to psr-4
 - Update logic revised
 
