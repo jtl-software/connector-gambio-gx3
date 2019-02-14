@@ -59,11 +59,13 @@ class CategoryI18n extends \jtl\Connector\Gambio\Mapper\BaseMapper
 
                 $dbObj = new \stdClass();
                 $dbObj->categories_description = '';
-                $dbObj->categories_description_bottom = '';
                 $dbObj->categories_meta_title = '';
                 $dbObj->categories_meta_description = '';
                 $dbObj->categories_meta_keywords = '';
-
+                if (version_compare($this->shopConfig['shop']['version'], '3.11', '>=')) {
+                    $dbObj->categories_description_bottom = '';
+                }
+                
                 foreach ($this->mapperConfig['mapPush'] as $endpoint => $host) {
                     if (is_null($host) && method_exists(get_class($this), $endpoint)) {
                         $dbObj->$endpoint = $this->$endpoint($obj, null, $parent);
