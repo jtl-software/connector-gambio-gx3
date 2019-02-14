@@ -61,14 +61,17 @@ class Gambio extends BaseConnector
 
     private function readConfigFile()
     {
+        $gx_version = "";
         require_once(CONNECTOR_DIR.'/../includes/configure.php');
-
+        require_once(CONNECTOR_DIR.'/../release_info.php');
+        
         return array(
             'shop' => array(
                 'url' => HTTP_SERVER,
                 'folder' => DIR_WS_CATALOG,
                 'path' => DIR_FS_DOCUMENT_ROOT,
-                'fullUrl' => HTTP_SERVER.DIR_WS_CATALOG
+                'fullUrl' => HTTP_SERVER.DIR_WS_CATALOG,
+                'version' => substr($gx_version, 1)
             ),
             'db' => array(
                 'host' => DB_SERVER,
