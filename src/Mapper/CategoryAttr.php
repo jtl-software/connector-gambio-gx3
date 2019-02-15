@@ -19,7 +19,7 @@ class CategoryAttr extends BaseMapper
     );
     
     private $relatedColumns = [
-        'categories_heading_title' => 'Untere Kategoriebeschreibung',
+        'categories_heading_title' => 'Überschrift',
         'gm_alt_text' => 'Alternativer Text',
     ];
 
