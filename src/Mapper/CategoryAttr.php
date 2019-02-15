@@ -25,8 +25,38 @@ class CategoryAttr extends BaseMapper
         foreach ($this->additions as $field => $name) {
             $attrs[] = $this->createAttr($field, $name, $data[$field], $data);
         }
-
-        $hlQuery = $this->db->query('SELECT c.categories_heading_title,c.gm_alt_text,l.code 
+        
+        if (version_compare($this->shopConfig['shop']['version'], '3.11', '>=')) {
+            $cbQuery = $this->db->query('SELECT c.categories_description_bottom,l.code
+                FROM categories_description c
+                LEFT JOIN languages l ON l.languages_id=c.language_id
+                WHERE c.categories_id='.$data['categories_id']);
+            
+            if (count($cbQuery > 0)) {
+                $cbAttr = new CategoryAttrModel();
+                $cbAttr->setId($this->identity('categories_description_bottom'));
+                $cbAttr->setCategoryId($this->identity($data['categories_id']));
+                $cbAttr->setIsTranslated(true);
+    
+                $cbAttrI18ns = array();
+                
+                foreach ($cbQuery as $bottom) {
+                    $cbAttrI18n = new CategoryAttrI18nModel();
+                    $cbAttrI18n->setCategoryAttrId($cbAttr->getId());
+                    $cbAttrI18n->setLanguageISO($this->fullLocale($bottom['code']));
+                    $cbAttrI18n->setName('Untere Kategoriebeschreibung');
+                    $cbAttrI18n->setValue($bottom['categories_description_bottom']);
+        
+                    $cbAttrI18ns[] = $cbAttrI18n;
+                }
+    
+                $cbAttr->setI18ns($cbAttrI18ns);
+    
+                $attrs[] = $cbAttr;
+            }
+        }
+    
+        $hlQuery = $this->db->query('SELECT c.categories_heading_title,c.gm_alt_text,l.code
             FROM categories_description c
             LEFT JOIN languages l ON l.languages_id=c.language_id
             WHERE c.categories_id='.$data['categories_id']);
