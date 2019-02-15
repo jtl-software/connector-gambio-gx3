@@ -71,7 +71,7 @@ class Gambio extends BaseConnector
                 'folder' => DIR_WS_CATALOG,
                 'path' => DIR_FS_DOCUMENT_ROOT,
                 'fullUrl' => HTTP_SERVER.DIR_WS_CATALOG,
-                'version' => substr($gx_version, 1)
+                'version' => ltrim($gx_version,'v')
             ),
             'db' => array(
                 'host' => DB_SERVER,
