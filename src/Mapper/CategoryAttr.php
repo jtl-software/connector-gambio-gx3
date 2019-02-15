@@ -2,7 +2,6 @@
 
 namespace jtl\Connector\Gambio\Mapper;
 
-use jtl\Connector\Gambio\Mapper\BaseMapper;
 use jtl\Connector\Model\CategoryAttr as CategoryAttrModel;
 use jtl\Connector\Model\CategoryAttrI18n as CategoryAttrI18nModel;
 
@@ -18,6 +17,11 @@ class CategoryAttr extends BaseMapper
         'show_sub_categories_images' => 'Kategoriebild anzeigen',
         'show_sub_categories_names' => 'Kategorie Ueberschrift anzeigen'
     );
+    
+    private $relatedColumns = [
+        'categories_heading_title' => 'Untere Kategoriebeschreibung',
+        'gm_alt_text' => 'Alternativer Text',
+    ];
 
     public function pull($data = null, $limit = null) {
         $attrs = array();
@@ -25,100 +29,36 @@ class CategoryAttr extends BaseMapper
         foreach ($this->additions as $field => $name) {
             $attrs[] = $this->createAttr($field, $name, $data[$field], $data);
         }
-
-        $columns = [
-            'c.categories_heading_title' => 'Untere Kategoriebeschreibung',
-            'c.gm_alt_text' => 'Alternativer Text',
-            'l.code' => '',
-        ];
-
+        
         if (version_compare($this->shopConfig['shop']['version'], '3.11', '>=')) {
-            $columns[] = 'c.categories_description_bottom';
+            $this->relatedColumns['categories_description_bottom'] = 'categories_description_bottom';
         }
 
-        $sql = sprintf('SELECT %s 
+        $sql = sprintf('SELECT l.code,c.%s
                 FROM categories_description c
                 LEFT JOIN languages l ON l.languages_id=c.language_id
-                WHERE c.categories_id= %d', implode(',', $columns), $data['categories_id']);
+                WHERE c.categories_id= %d', implode(',c.', array_keys($this->relatedColumns)), $data['categories_id']);
 
         $result = $this->db->query($sql);
-
-        $attributesData = [];
-        foreach($result as $row) {
-
-        }
         
-        if (version_compare($this->shopConfig['shop']['version'], '3.11', '>=')) {
-            $cbQuery = $this->db->query('SELECT c.categories_description_bottom,l.code
-                FROM categories_description c
-                LEFT JOIN languages l ON l.languages_id=c.language_id
-                WHERE c.categories_id='.$data['categories_id']);
+        foreach ($this->relatedColumns as $column => $name) {
+            $attr = new CategoryAttrModel();
+            $attr->setId($this->identity($column));
+            $attr->setCategoryId($this->identity($data['categories_id']));
+            $attr->setIsTranslated(true);
+    
+            $attrI18ns = [];
+            foreach ($result as $row) {
+                $attrI18n = new CategoryAttrI18nModel();
+                $attrI18n->setCategoryAttrId($attr->getId());
+                $attrI18n->setLanguageISO($this->fullLocale($row['code']));
+                $attrI18n->setName($name);
+                $attrI18n->setValue($row[$column]);
+    
+                $attrI18ns[] = $attrI18n;
+            }
             
-            if (count($cbQuery > 0)) {
-                $cbAttr = new CategoryAttrModel();
-                $cbAttr->setId($this->identity('categories_description_bottom'));
-                $cbAttr->setCategoryId($this->identity($data['categories_id']));
-                $cbAttr->setIsTranslated(true);
-    
-                $cbAttrI18ns = array();
-                
-                foreach ($cbQuery as $bottom) {
-                    $cbAttrI18n = new CategoryAttrI18nModel();
-                    $cbAttrI18n->setCategoryAttrId($cbAttr->getId());
-                    $cbAttrI18n->setLanguageISO($this->fullLocale($bottom['code']));
-                    $cbAttrI18n->setName('Untere Kategoriebeschreibung');
-                    $cbAttrI18n->setValue($bottom['categories_description_bottom']);
-        
-                    $cbAttrI18ns[] = $cbAttrI18n;
-                }
-    
-                $cbAttr->setI18ns($cbAttrI18ns);
-    
-                $attrs[] = $cbAttr;
-            }
-        }
-    
-        $hlQuery = $this->db->query('SELECT c.categories_heading_title,c.gm_alt_text,l.code
-            FROM categories_description c
-            LEFT JOIN languages l ON l.languages_id=c.language_id
-            WHERE c.categories_id='.$data['categories_id']);
-
-        if (count($hlQuery) >  0) {
-            $hlAttr = new CategoryAttrModel();
-            $hlAttr->setId($this->identity('heading_title'));
-            $hlAttr->setCategoryId($this->identity($data['categories_id']));
-            $hlAttr->setIsTranslated(true);
-
-            $altAttr = new CategoryAttrModel();
-            $altAttr->setId($this->identity('alt_text'));
-            $altAttr->setCategoryId($this->identity($data['categories_id']));
-            $altAttr->setIsTranslated(true);
-
-            $hlAttrI18ns = array();
-            $altAttrI18ns = array();
-
-            foreach ($hlQuery as $headline) {
-                $hlAttrI18n = new CategoryAttrI18nModel();
-                $hlAttrI18n->setCategoryAttrId($hlAttr->getId());
-                $hlAttrI18n->setLanguageISO($this->fullLocale($headline['code']));
-                $hlAttrI18n->setName('Überschrift');
-                $hlAttrI18n->setValue($headline['categories_heading_title']);
-
-                $altAttrI18n = new CategoryAttrI18nModel();
-                $altAttrI18n->setCategoryAttrId($altAttr->getId());
-                $altAttrI18n->setLanguageISO($this->fullLocale($headline['code']));
-                $altAttrI18n->setName('Alternativer Text');
-                $altAttrI18n->setValue($headline['gm_alt_text']);
-
-                $hlAttrI18ns[] = $hlAttrI18n;
-                $altAttrI18ns[] = $altAttrI18n;
-            }
-
-            $hlAttr->setI18ns($hlAttrI18ns);
-            $altAttr->setI18ns($altAttrI18ns);
-
-            $attrs[] = $hlAttr;
-            $attrs[] = $altAttr;
+            $attrs[] = $attr->setI18ns($attrI18ns);
         }
 
         return $attrs;
