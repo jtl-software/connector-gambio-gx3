@@ -34,6 +34,10 @@ class CategoryI18n extends \jtl\Connector\Gambio\Mapper\BaseMapper
             "gm_alt_text" => null
         )
     );
+    
+    protected $relatedAttributes = [
+        'categories_description_bottom'
+    ];
 
     public function push($parent, $dbObj = null)
     {
@@ -50,7 +54,16 @@ class CategoryI18n extends \jtl\Connector\Gambio\Mapper\BaseMapper
                 $current[] = $cLang['language_id'];
             }
 
-            $new = array();
+            $new = [];
+            
+            $attributes = [];
+            foreach($parent->getAttributes() as $attribute) {
+                foreach($attribute->getI18ns() as $i18n) {
+                    if(in_array($i18n->getName(), $this->relatedAttributes)) {
+                        $attributes[$i18n->getLanguageISO()][$i18n->getName()] = $i18n;
+                    }
+                }
+            }
 
             foreach ($data as $obj) {
                 if (!$this->type) {
@@ -64,6 +77,13 @@ class CategoryI18n extends \jtl\Connector\Gambio\Mapper\BaseMapper
                 $dbObj->categories_meta_keywords = '';
                 if (version_compare($this->shopConfig['shop']['version'], '3.11', '>=')) {
                     $dbObj->categories_description_bottom = '';
+                }
+                
+                
+                foreach($attributes[$obj->getLanguageISO()] as $key => $attribute) {
+                    if(property_exists($dbObj, $key)) {
+                        $dbObj->$key = $attribute->getValue();
+                    }
                 }
                 
                 foreach ($this->mapperConfig['mapPush'] as $endpoint => $host) {
