@@ -25,6 +25,28 @@ class CategoryAttr extends BaseMapper
         foreach ($this->additions as $field => $name) {
             $attrs[] = $this->createAttr($field, $name, $data[$field], $data);
         }
+
+        $columns = [
+            'c.categories_heading_title' => 'Untere Kategoriebeschreibung',
+            'c.gm_alt_text' => 'Alternativer Text',
+            'l.code' => '',
+        ];
+
+        if (version_compare($this->shopConfig['shop']['version'], '3.11', '>=')) {
+            $columns[] = 'c.categories_description_bottom';
+        }
+
+        $sql = sprintf('SELECT %s 
+                FROM categories_description c
+                LEFT JOIN languages l ON l.languages_id=c.language_id
+                WHERE c.categories_id= %d', implode(',', $columns), $data['categories_id']);
+
+        $result = $this->db->query($sql);
+
+        $attributesData = [];
+        foreach($result as $row) {
+
+        }
         
         if (version_compare($this->shopConfig['shop']['version'], '3.11', '>=')) {
             $cbQuery = $this->db->query('SELECT c.categories_description_bottom,l.code
