@@ -79,10 +79,11 @@ class CategoryI18n extends \jtl\Connector\Gambio\Mapper\BaseMapper
                     $dbObj->categories_description_bottom = '';
                 }
                 
-                
-                foreach($attributes[$obj->getLanguageISO()] as $key => $attribute) {
-                    if(property_exists($dbObj, $key)) {
-                        $dbObj->$key = $attribute->getValue();
+                if (isset($attributes[$obj->getLanguageISO()])) {
+                    foreach($attributes[$obj->getLanguageISO()] as $key => $attribute) {
+                        if(property_exists($dbObj, $key)) {
+                            $dbObj->$key = $attribute->getValue();
+                        }
                     }
                 }
                 
@@ -122,7 +123,7 @@ class CategoryI18n extends \jtl\Connector\Gambio\Mapper\BaseMapper
                 $existsKey = array_search($newObj->language_id, $current);
 
                 if ($existsKey === false) {
-                    $res = $this->db->deleteInsertRow($newObj, $this->mapperConfig['table'], array('categories_id', 'language_id'), array($newObj->categories_id, $newObj->language_id));
+                    $this->db->deleteInsertRow($newObj, $this->mapperConfig['table'], array('categories_id', 'language_id'), array($newObj->categories_id, $newObj->language_id));
                 } else {
                     $this->db->updateRow($newObj, $this->mapperConfig['table'], array('categories_id', 'language_id'), array($newObj->categories_id, $newObj->language_id));
                 }
