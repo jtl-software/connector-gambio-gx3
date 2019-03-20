@@ -14,7 +14,7 @@ class CustomerOrderShippingAddress extends BaseMapper
             "firstName" => "delivery_firstname",
             "lastName" => "delivery_lastname",
             "company" => "delivery_company",
-            "street" => "delivery_street_address",
+            "street" => null,
             "extraAddressLine" => "delivery_additional_info",
             "zipCode" => "delivery_postcode",
             "city" => "delivery_city",
@@ -37,7 +37,15 @@ class CustomerOrderShippingAddress extends BaseMapper
             "delivery_country_iso_code_2" => "countryIso"
         )
     );
-
+    
+    protected function street($data){
+        if (!empty($data["delivery_house_number"])){
+            return sprintf("%s %s", $data["delivery_street_address"], $data["delivery_house_number"]);
+        } else {
+            return $data["delivery_street_address"];
+        }
+    }
+    
     protected function countryIso($data)
     {
         return Country::map(strtolower($data['delivery_country_iso_code_2']));

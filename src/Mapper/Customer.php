@@ -27,7 +27,7 @@ class Customer extends BaseMapper
             "firstName" => "customers_firstname",
             "lastName" => "customers_lastname",
             "company" => "entry_company",
-            "street" => "entry_street_address",
+            "street" => null,
             "extraAddressLine" => "entry_additional_info",
             "zipCode" => "entry_postcode",
             "city" => "entry_city",
@@ -58,6 +58,14 @@ class Customer extends BaseMapper
             "customers_password" => null
         )
     );
+    
+    protected function street($data){
+        if (!empty($data["entry_house_number"])){
+            return sprintf("%s %s", $data["entry_street_address"], $data["entry_house_number"]);
+        } else {
+            return $data["entry_street_address"];
+        }
+    }
     
     protected function birthday($data)
     {
