@@ -39,7 +39,7 @@ class CustomerOrderShippingAddress extends BaseMapper
     );
     
     protected function street($data){
-        if (!empty($data["delivery_house_number"])){
+        if ($this->shopConfig['settings']['ACCOUNT_SPLIT_STREET_INFORMATION'] === 1 && !empty($data["delivery_house_number"])){
             return sprintf("%s %s", $data["delivery_street_address"], $data["delivery_house_number"]);
         } else {
             return $data["delivery_street_address"];

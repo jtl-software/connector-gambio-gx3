@@ -50,7 +50,7 @@ class CustomerOrderBillingAddress extends BaseMapper
     );
 
     protected function street($data){
-        if (!empty($data["billing_house_number"])){
+        if ($this->shopConfig['settings']['ACCOUNT_SPLIT_STREET_INFORMATION'] === 1 && !empty($data["billing_house_number"])){
             return sprintf("%s %s", $data["billing_street_address"], $data["billing_house_number"]);
         } else {
             return $data["billing_street_address"];

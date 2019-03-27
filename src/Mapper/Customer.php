@@ -161,7 +161,7 @@ class Customer extends BaseMapper
             }
         }
         
-        $entry->entry_suburb = $data->getExtraAddressLine();
+        $entry->entry_additional_info = $data->getExtraAddressLine();
         $entry->entry_postcode = $data->getZipCode();
         $entry->entry_city = $data->getCity();
         $entry->entry_state = $data->getState();
