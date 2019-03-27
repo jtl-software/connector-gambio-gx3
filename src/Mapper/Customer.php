@@ -60,7 +60,7 @@ class Customer extends BaseMapper
     );
     
     protected function street($data){
-        if (!empty($data["entry_house_number"])){
+        if ($this->shopConfig['settings']['ACCOUNT_SPLIT_STREET_INFORMATION'] === 1 && !empty($data["entry_house_number"])){
             return sprintf("%s %s", $data["entry_street_address"], $data["entry_house_number"]);
         } else {
             return $data["entry_street_address"];
@@ -150,7 +150,17 @@ class Customer extends BaseMapper
         $entry->entry_company = $data->getCompany();
         $entry->entry_firstname = $data->getFirstName();
         $entry->entry_lastname = $data->getLastName();
-        $entry->entry_street_address = $data->getStreet();
+        
+        if($this->shopConfig['settings']['ACCOUNT_SPLIT_STREET_INFORMATION'] === 0){
+            $entry->entry_street_address = $data->getStreet();
+        } elseif($this->shopConfig['settings']['ACCOUNT_SPLIT_STREET_INFORMATION'] === 1){
+            preg_match('/([[:alnum:]]+)(\\.|\\:|\\-|\\s)*([[:digit:]]+.*)/', $data->getStreet(), $addressData);
+            if (isset($addressData[1]) && isset($addressData[3])){
+                $entry->entry_street_address = $addressData[1];
+                $entry->entry_house_number = $addressData[3];
+            }
+        }
+        
         $entry->entry_suburb = $data->getExtraAddressLine();
         $entry->entry_postcode = $data->getZipCode();
         $entry->entry_city = $data->getCity();
