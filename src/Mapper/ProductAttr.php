@@ -3,6 +3,7 @@
 namespace jtl\Connector\Gambio\Mapper;
 
 use jtl\Connector\Model\Identity;
+use jtl\Connector\Model\Product as ProductModel;
 use jtl\Connector\Model\ProductAttr as ProductAttrModel;
 use jtl\Connector\Model\ProductAttrI18n as ProductAttrI18nModel;
 
@@ -20,7 +21,7 @@ class ProductAttr extends BaseMapper
         $attrs = array();
 
         foreach (Product::getSpecialAttributes() as $field => $name) {
-            $attrs[] = $this->createAttr($field, $name, $data[$field], $data);
+            $attrs[] = $this->createAttr($name, $name, $data[$field], $data);
         }
 
         if (!empty($data['google_category'])) {
@@ -39,13 +40,18 @@ class ProductAttr extends BaseMapper
 
         return $attrs;
     }
-
-    public function push($data, $dbObj = null)
+    
+    /**
+     * @param ProductModel $product
+     * @param null $dbObj
+     * @return multitype
+     */
+    public function push($product, $dbObj = null)
     {
         $ignoreAttributes = array_merge($this->ignoreAttributes, Product::getSpecialAttributes());
-        foreach ($data->getAttributes() as $attr) {
+        foreach ($product->getAttributes() as $attr) {
             foreach ($attr->getI18ns() as $i18n) {
-                $pId = $data->getId()->getEndpoint();
+                $pId = $product->getId()->getEndpoint();
                 $ignoreAttribute = in_array($i18n->getName(), $ignoreAttributes);
                 if ($ignoreAttribute) {
                     break;
@@ -90,7 +96,7 @@ class ProductAttr extends BaseMapper
 
             $value = new \stdClass();
             $value->additional_field_id = $fieldId;
-            $value->item_id = $data->getId()->getEndpoint();
+            $value->item_id = $product->getId()->getEndpoint();
 
             $valIns = $this->db->insertRow($value, 'additional_field_values');
             $valId = $valIns->getKey();
@@ -114,7 +120,7 @@ class ProductAttr extends BaseMapper
             }
         }
 
-        return $data->getAttributes();
+        return $product->getAttributes();
     }
 
     private function createAttr($id, $name, $value, $data)
