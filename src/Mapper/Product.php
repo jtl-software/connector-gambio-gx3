@@ -44,7 +44,6 @@ class Product extends BaseMapper
             "availableFrom"          => "products_date_available",
             "productWeight"          => "products_weight",
             "manufacturerId"         => null,
-            "manufacturerNumber"     => "products_manufacturers_model",
             "unitId"                 => null,
             "basePriceDivisor"       => "products_vpe_value",
             "considerBasePrice"      => null,
@@ -407,32 +406,32 @@ class Product extends BaseMapper
         $dbObj->products_status = 1;
         foreach ($product->getAttributes() as $attr) {
             foreach ($attr->getI18ns() as $i18n) {
-                $attributeName = $i18n->getName();
+                $attributeName = trim($i18n->getName());
                 $specialAttribute = array_key_exists($attributeName, self::$specialAttributes);
                 if (!$specialAttribute) {
                     $result = array_search($attributeName, self::$specialAttributes);
                     if (!empty($result)) {
                         $specialAttribute = true;
-                        $attributeName = $result;
+                        $attributeName = trim($result);
                     }
                 }
                 
                 if ($specialAttribute) {
-                    $dbObj->$attributeName = $i18n->getValue();
+                    $dbObj->$attributeName = trim($i18n->getValue());
                     break;
                 } elseif ($attributeName === 'Google Zustand') {
-                    $codes->google_export_condition = $i18n->getValue();
+                    $codes->google_export_condition = trim($i18n->getValue());
                 } elseif ($attributeName === 'Google Verfuegbarkeit ID') {
-                    $codes->google_export_availability_id = $i18n->getValue();
+                    $codes->google_export_availability_id = trim($i18n->getValue());
                 } elseif ($attributeName === 'Wesentliche Produktmerkmale') {
-                    $language_id = $this->locale2id($i18n->getLanguageISO());
+                    $language_id = $this->locale2id(trim($i18n->getLanguageISO()));
                     $sql = 'INSERT INTO products_description (products_id,language_id,checkout_information) VALUES(' . $productsId . ',' . $language_id . ',"' . $this->db->escapeString($i18n->getValue()) . '") ' .
-                        'ON DUPLICATE KEY UPDATE checkout_information = "' . $this->db->escapeString($i18n->getValue()) . '";';
+                        'ON DUPLICATE KEY UPDATE checkout_information = "' . $this->db->escapeString(trim($i18n->getValue())) . '";';
                     $this->db->query($sql);
                 } elseif ($attributeName === 'Google Kategorie') {
                     $obj = new \stdClass();
                     $obj->products_id = $productsId;
-                    $obj->google_category = $i18n->getValue();
+                    $obj->google_category = trim($i18n->getValue());
                     $this->db->deleteInsertRow($obj, 'products_google_categories', 'products_id', $productsId);
                 }
             }
