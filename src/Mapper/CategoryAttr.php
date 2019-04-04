@@ -105,8 +105,6 @@ class CategoryAttr extends BaseMapper
                 
                 if ($field) {
                     $dbObj->$attributeName = trim($i18n->getValue());
-                } elseif ($attributeName == 'Aktiv' && trim($i18n->getValue()) == '0') {
-                    $dbObj->categories_status = 0;
                     break;
                 }
             }
