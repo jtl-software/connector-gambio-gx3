@@ -2,34 +2,45 @@
 
 namespace jtl\Connector\Gambio\Mapper;
 
+use jtl\Connector\Gambio\Mapper\BaseMapper;
+use jtl\Connector\Model\Category as CategoryModel;
 use jtl\Connector\Model\CategoryAttr as CategoryAttrModel;
 use jtl\Connector\Model\CategoryAttrI18n as CategoryAttrI18nModel;
 
 class CategoryAttr extends BaseMapper
 {
-    private $additions = array(
-        'categories_status' => 'Aktiv',
-        'gm_show_qty_info' => 'Lagerbestand anzeigen',
-        'gm_show_attributes' => 'Attribute anzeigen',
-        'gm_show_graduated_prices' => 'Staffelpreise anzeigen',
-        'show_sub_categories' => 'Unterkategorien anzeigen',
-        'show_sub_products' => 'Artikel aus Unterkategorien anzeigen',
+    private $additions = [
+        'categories_status'          => 'Aktiv',
+        'gm_show_qty_info'           => 'Lagerbestand anzeigen',
+        'gm_show_attributes'         => 'Attribute anzeigen',
+        'gm_show_graduated_prices'   => 'Staffelpreise anzeigen',
+        'show_sub_categories'        => 'Unterkategorien anzeigen',
+        'show_sub_products'          => 'Artikel aus Unterkategorien anzeigen',
         'show_sub_categories_images' => 'Kategoriebild anzeigen',
-        'show_sub_categories_names' => 'Kategorie Ueberschrift anzeigen'
-    );
-    
+        'show_sub_categories_names'  => 'Kategorie Ueberschrift anzeigen',
+        'products_sorting'           => 'Produktsortierung ',
+        'products_sorting2'          => 'Sortierrichtung',
+        'gm_show_qty'                => 'Mengeneingabefeld anzeigen',
+        'gm_priority'                => 'Priorität in Sitemap',
+        'gm_changefreqtemap'         => 'Änderungsfrequenz in Sitemap',
+        'gm_sitemap_entry'           => 'In Sitemap aufnehmen',
+        'view_mode_tiledg'           => 'Gekachelte Artikelauflistung',
+        'show_category_filter1'      => 'Kategorie-Filter anzeigen',
+    ];
+
     private $relatedColumns = [
         'categories_heading_title' => 'Überschrift',
         'gm_alt_text' => 'Alternativer Text',
     ];
-
-    public function pull($data = null, $limit = null) {
-        $attrs = array();
+    
+    public function pull($data = null, $limit = null)
+    {
+        $attrs = [];
 
         foreach ($this->additions as $field => $name) {
-            $attrs[] = $this->createAttr($field, $name, $data[$field], $data);
+            $attrs[] = $this->createAttr($field, $field, $data[$field], $data);
         }
-        
+
         if (version_compare($this->shopConfig['shop']['version'], '3.11', '>=')) {
             $this->relatedColumns['categories_description_bottom'] = 'categories_description_bottom';
         }
@@ -60,42 +71,55 @@ class CategoryAttr extends BaseMapper
             
             $attrs[] = $attr->setI18ns($attrI18ns);
         }
-
+        
         return $attrs;
     }
-
-    public function push($data, $dbObj = null) {
+    
+    /**
+     * @param CategoryModel $product
+     * @param null $dbObj
+     * @return multitype
+     */
+    public function push($product, $dbObj = null)
+    {
         $dbObj->categories_status = 1;
-
-        foreach ($data->getAttributes() as $attr) {
+        
+        foreach ($product->getAttributes() as $attr) {
             foreach ($attr->getI18ns() as $i18n) {
-                $field = array_search($i18n->getName(), $this->additions);
+                $attributeName = $i18n->getName();
+                $field = array_key_exists($attributeName, $this->additions);
+                if (!$field) {
+                    $result = array_search($attributeName, $this->additions);
+                    if (!empty($result)) {
+                        $field = true;
+                        $attributeName = $result;
+                    }
+                }
+                
                 if ($field) {
-                    $dbObj->$field = $i18n->getValue();
-                } elseif ($i18n->getName() == 'Aktiv' && $i18n->getValue() == '0') {
-                    $dbObj->categories_status = 0;
+                    $dbObj->$attributeName = trim($i18n->getValue());
                     break;
-                }                    
-            }            
+                }
+            }
         }
-
-        return $data->getAttributes();
+        
+        return $product->getAttributes();
     }
-
+    
     private function createAttr($id, $name, $value, $data)
     {
         $attr = new CategoryAttrModel();
         $attr->setId($this->identity($id));
         $attr->setCategoryId($this->identity($data['categories_id']));
-
+        
         $attrI18n = new CategoryAttrI18nModel();
         $attrI18n->setCategoryAttrId($attr->getId());
         $attrI18n->setLanguageISO('ger');
         $attrI18n->setName($name);
         $attrI18n->setValue($value);
-
+        
         $attr->setI18ns([$attrI18n]);
-
+        
         return $attr;
     }
 }
