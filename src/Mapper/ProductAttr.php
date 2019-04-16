@@ -48,11 +48,11 @@ class ProductAttr extends BaseMapper
      */
     public function push($product, $dbObj = null)
     {
-        $ignoreAttributes = array_merge($this->ignoreAttributes, Product::getSpecialAttributes());
+        $ignoreAttributes = array_merge($this->ignoreAttributes, array_values(Product::getSpecialAttributes()), array_keys(Product::getSpecialAttributes()));
         foreach ($product->getAttributes() as $attr) {
             foreach ($attr->getI18ns() as $i18n) {
                 $pId = $product->getId()->getEndpoint();
-                $ignoreAttribute = in_array($i18n->getName(), $ignoreAttributes);
+                $ignoreAttribute = in_array(trim($i18n->getName()), $ignoreAttributes);
                 if ($ignoreAttribute) {
                     break;
                 } else {
