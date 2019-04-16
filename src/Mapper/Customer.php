@@ -27,7 +27,7 @@ class Customer extends BaseMapper
             "firstName" => "customers_firstname",
             "lastName" => "customers_lastname",
             "company" => "entry_company",
-            "street" => "entry_street_address",
+            "street" => null,
             "extraAddressLine" => "entry_additional_info",
             "zipCode" => "entry_postcode",
             "city" => "entry_city",
@@ -58,6 +58,14 @@ class Customer extends BaseMapper
             "customers_password" => null
         )
     );
+    
+    protected function street($data){
+        if ($this->shopConfig['settings']['ACCOUNT_SPLIT_STREET_INFORMATION'] === 1 && !empty($data["entry_house_number"])){
+            return sprintf("%s %s", $data["entry_street_address"], $data["entry_house_number"]);
+        } else {
+            return $data["entry_street_address"];
+        }
+    }
     
     protected function birthday($data)
     {
@@ -142,8 +150,17 @@ class Customer extends BaseMapper
         $entry->entry_company = $data->getCompany();
         $entry->entry_firstname = $data->getFirstName();
         $entry->entry_lastname = $data->getLastName();
+        
         $entry->entry_street_address = $data->getStreet();
-        $entry->entry_suburb = $data->getExtraAddressLine();
+        if($this->shopConfig['settings']['ACCOUNT_SPLIT_STREET_INFORMATION'] === 1){
+            preg_match('/([[:alnum:]]+)(\\.|\\:|\\-|\\s)*([[:digit:]]+.*)/', $data->getStreet(), $addressData);
+            if (isset($addressData[1]) && isset($addressData[3])){
+                $entry->entry_street_address = $addressData[1];
+                $entry->entry_house_number = $addressData[3];
+            }
+        }
+        
+        $entry->entry_additional_info = $data->getExtraAddressLine();
         $entry->entry_postcode = $data->getZipCode();
         $entry->entry_city = $data->getCity();
         $entry->entry_state = $data->getState();

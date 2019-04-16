@@ -13,7 +13,7 @@ class CustomerOrderBillingAddress extends BaseMapper
             "firstName" => "billing_firstname",
             "lastName" => "billing_lastname",
             "company" => "billing_company",
-            "street" => "billing_street_address",
+            "street" => null,
             "extraAddressLine" => "billing_additional_info",
             "zipCode" => "billing_postcode",
             "city" => "billing_city",
@@ -49,6 +49,14 @@ class CustomerOrderBillingAddress extends BaseMapper
         )
     );
 
+    protected function street($data){
+        if ($this->shopConfig['settings']['ACCOUNT_SPLIT_STREET_INFORMATION'] === 1 && !empty($data["billing_house_number"])){
+            return sprintf("%s %s", $data["billing_street_address"], $data["billing_house_number"]);
+        } else {
+            return $data["billing_street_address"];
+        }
+    }
+    
     protected function countryIso($data)
     {
         return Country::map(strtolower($data['billing_country_iso_code_2']));
