@@ -27,7 +27,7 @@ class Category extends \jtl\Connector\Gambio\Mapper\BaseMapper
             "sort_order"                                => "sort",
             //"CategoryI18n|addI18n"                      => "i18ns",
             "CategoryInvisibility|addInvisibility|true" => "invisibilities",
-            //"CategoryAttr|addAttribute|true"            => "attributes",
+            "CategoryAttr|addAttribute|true"            => "attributes",
             "last_modified"                             => null,
         ],
     ];
@@ -96,11 +96,11 @@ class Category extends \jtl\Connector\Gambio\Mapper\BaseMapper
         }
     
         $dbObj = new \stdClass();
-        
-        (new CategoryAttr())->push($data, $dbObj);
-        $result = parent::push($data, $dbObj);
+    
+        //(new CategoryAttr())->push($data, $dbObj);
+        $result = parent::push($data, $dbObj, null, true);
+        //$result = $this->generateDbObj($data, $dbObj, null, true);
         (new CategoryI18n())->push($data, null);
-        
         return $result;
     }
     

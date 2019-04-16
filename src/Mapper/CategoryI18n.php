@@ -61,7 +61,7 @@ class CategoryI18n extends \jtl\Connector\Gambio\Mapper\BaseMapper
             $attributes = [];
             foreach($parent->getAttributes() as $attribute) {
                 foreach($attribute->getI18ns() as $i18n) {
-                    if(in_array($i18n->getName(), $this->relatedAttributes)) {
+                    if(isset($this->relatedAttributes[$i18n->getName()])) {
                         $attributes[$i18n->getLanguageISO()][$i18n->getName()] = $i18n;
                     } elseif($key = array_search($i18n->getName(), $this->relatedAttributes)) {
                         $attributes[$i18n->getLanguageISO()][$key] = $i18n;
