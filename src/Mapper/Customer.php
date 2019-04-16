@@ -151,9 +151,8 @@ class Customer extends BaseMapper
         $entry->entry_firstname = $data->getFirstName();
         $entry->entry_lastname = $data->getLastName();
         
-        if($this->shopConfig['settings']['ACCOUNT_SPLIT_STREET_INFORMATION'] === 0){
-            $entry->entry_street_address = $data->getStreet();
-        } elseif($this->shopConfig['settings']['ACCOUNT_SPLIT_STREET_INFORMATION'] === 1){
+        $entry->entry_street_address = $data->getStreet();
+        if($this->shopConfig['settings']['ACCOUNT_SPLIT_STREET_INFORMATION'] === 1){
             preg_match('/([[:alnum:]]+)(\\.|\\:|\\-|\\s)*([[:digit:]]+.*)/', $data->getStreet(), $addressData);
             if (isset($addressData[1]) && isset($addressData[3])){
                 $entry->entry_street_address = $addressData[1];
