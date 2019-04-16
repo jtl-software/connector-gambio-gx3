@@ -1,7 +1,7 @@
 {
     "name": "jtl/connector/gambio",
     "type": "APP",
-    "description": "Gambio Connector PHP 5.4 based on jtl/connector",
+    "description": "Gambio Connector based on jtl/connector",
     "keywords": ["jtl", "Connector"],
     "homepage": "http://www.jtl-software.de",
     "license": "GPL",
