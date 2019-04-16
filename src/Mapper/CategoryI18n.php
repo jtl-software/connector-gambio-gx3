@@ -30,13 +30,15 @@ class CategoryI18n extends \jtl\Connector\Gambio\Mapper\BaseMapper
             "categories_meta_keywords" => "metaKeywords",
             "categories_meta_title" => "titleTag",
             "gm_url_keywords" => null,
-            "categories_heading_title" => null,
-            "gm_alt_text" => null
+            //"categories_heading_title" => null,
+            //"gm_alt_text" => null
         )
     );
     
     protected $relatedAttributes = [
-        'categories_description_bottom'
+        'categories_description_bottom' => 'Untere Kategoriebeschreibung',
+        'categories_heading_title' => 'Überschrift',
+        'gm_alt_text' => 'Alternativer Text',
     ];
 
     public function push($parent, $dbObj = null)
@@ -61,6 +63,8 @@ class CategoryI18n extends \jtl\Connector\Gambio\Mapper\BaseMapper
                 foreach($attribute->getI18ns() as $i18n) {
                     if(in_array($i18n->getName(), $this->relatedAttributes)) {
                         $attributes[$i18n->getLanguageISO()][$i18n->getName()] = $i18n;
+                    } elseif($key = array_search($i18n->getName(), $this->relatedAttributes)) {
+                        $attributes[$i18n->getLanguageISO()][$key] = $i18n;
                     }
                 }
             }
@@ -71,6 +75,7 @@ class CategoryI18n extends \jtl\Connector\Gambio\Mapper\BaseMapper
                 }
 
                 $dbObj = new \stdClass();
+                $dbObj->categories_heading_title = '';
                 $dbObj->categories_description = '';
                 $dbObj->categories_meta_title = '';
                 $dbObj->categories_meta_description = '';
@@ -81,6 +86,7 @@ class CategoryI18n extends \jtl\Connector\Gambio\Mapper\BaseMapper
                 
                 if (isset($attributes[$obj->getLanguageISO()])) {
                     foreach($attributes[$obj->getLanguageISO()] as $key => $attribute) {
+
                         if(property_exists($dbObj, $key)) {
                             $dbObj->$key = $attribute->getValue();
                         }
@@ -150,36 +156,6 @@ class CategoryI18n extends \jtl\Connector\Gambio\Mapper\BaseMapper
     protected function categories_id($data, $return, $parent)
     {
         return $parent->getId()->getEndpoint();
-    }
-
-    protected function categories_heading_title($data, $return, $parent)
-    {
-        foreach ($parent->getAttributes() as $attr) {
-            foreach ($attr->getI18ns() as $i18n) {
-                if ($i18n->getName() == "Überschrift") {
-                    if ($i18n->getLanguageISO() == $data->getLanguageISO()) {
-                        return $i18n->getValue();
-                    }
-                }
-            }
-        }
-
-        return '';
-    }
-
-    protected function gm_alt_text($data, $return, $parent)
-    {
-        foreach ($parent->getAttributes() as $attr) {
-            foreach ($attr->getI18ns() as $i18n) {
-                if ($i18n->getName() == "Alternativer Text") {
-                    if ($i18n->getLanguageISO() == $data->getLanguageISO()) {
-                        return $i18n->getValue();
-                    }
-                }
-            }
-        }
-
-        return '';
     }
 
     protected function gm_url_keywords($data)
