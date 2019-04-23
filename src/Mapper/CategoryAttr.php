@@ -22,7 +22,7 @@ class CategoryAttr extends BaseMapper
         'products_sorting2'          => 'Sortierrichtung',
         'gm_show_qty'                => 'Mengeneingabefeld anzeigen',
         'gm_priority'                => 'Priorität in Sitemap',
-        'gm_changefreqtemap'         => 'Änderungsfrequenz in Sitemap',
+        'gm_changefreq'              => 'Änderungsfrequenz in Sitemap',
         'gm_sitemap_entry'           => 'In Sitemap aufnehmen',
         'view_mode_tiledg'           => 'Gekachelte Artikelauflistung',
         'show_category_filter1'      => 'Kategorie-Filter anzeigen',
@@ -93,7 +93,7 @@ class CategoryAttr extends BaseMapper
         
         foreach ($product->getAttributes() as $attr) {
             foreach ($attr->getI18ns() as $i18n) {
-                $attributeName = $i18n->getName();
+                $attributeName = trim($i18n->getName());
                 $field = array_key_exists($attributeName, $this->additions);
                 if (!$field) {
                     $result = array_search($attributeName, $this->additions);
