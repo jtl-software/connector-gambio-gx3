@@ -1,3 +1,12 @@
+2.9.7
+-----
+- CO-454 The customer, oder_shipping_address and order_delivery_address will now consider a separate house if activated
+- CO-464 Added new category and product attributes
+- Hotfix: The connector now won't stop if the shop url contains "install"
+- CO-438 The categories bottom description will be filled
+- CO-440 The Categories bottom description won't throw errors in older versions
+- Updated the build routine
+
 2.9.6
 -----
 - CO-393 Manufacturer push logic revised
