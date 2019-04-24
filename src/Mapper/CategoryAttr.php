@@ -24,8 +24,8 @@ class CategoryAttr extends BaseMapper
         'gm_priority'                => 'Priorität in Sitemap',
         'gm_changefreq'              => 'Änderungsfrequenz in Sitemap',
         'gm_sitemap_entry'           => 'In Sitemap aufnehmen',
-        'view_mode_tiledg'           => 'Gekachelte Artikelauflistung',
-        'show_category_filter1'      => 'Kategorie-Filter anzeigen',
+        'view_mode_tiled'           => 'Gekachelte Artikelauflistung',
+        'show_category_filter'      => 'Kategorie-Filter anzeigen',
     ];
     
     public function pull($data = null, $limit = null)
