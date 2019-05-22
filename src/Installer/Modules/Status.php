@@ -32,7 +32,8 @@ class Status extends Module
             $this->defaultLanguage = $defaultLanguage[0]['languages_id'];
         }
 
-        $this->gambioStats = $this->db->query('SELECT * FROM orders_status WHERE language_id='.$this->defaultLanguage);
+        //Filtering the order status with id 1 so that status 'open' can't be mapped twice
+        $this->gambioStats = $this->db->query('SELECT * FROM orders_status WHERE language_id='.$this->defaultLanguage . " && orders_status_id != 1");
     }
 
     public function form()
