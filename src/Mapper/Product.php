@@ -497,6 +497,8 @@ class Product extends BaseMapper
             $quantityProduct->quantity_unit_id = $id;
             
             $this->db->deleteInsertRow($quantityProduct, 'products_quantity_unit', 'products_id', $quantityProduct->products_id);
+        } else{
+            $this->db->query('DELETE FROM products_quantity_unit WHERE products_id=' . $data->getId()->getEndpoint());
         }
     }
     
