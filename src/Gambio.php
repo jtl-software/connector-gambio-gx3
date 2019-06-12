@@ -163,15 +163,16 @@ class Gambio extends BaseConnector
     
                 if ($result->getError()) {
                     $link->rollback();
+                    $message = sprintf('Type: %s %s', get_class($param), $result->getError()->getMessage());
                     if (method_exists($param, 'getId')) {
                         if ($param instanceof Product) {
-                            throw new \Exception(sprintf('Type: Product Host-Id: %s SKU: %s %s', $param->getId()->getHost(), $param->getSku(), $result->getError()->getMessage()));
+                            $message = sprintf('Type: Product Host-Id: %s SKU: %s %s', $param->getId()->getHost(), $param->getSku(), $result->getError()->getMessage());
                         } else {
-                            throw new \Exception(sprintf('Type: %s Host-Id: %s %s', get_class($param), $param->getId()->getHost(), $result->getError()->getMessage()));
+                            $message = sprintf('Type: %s Host-Id: %s %s', get_class($param), $param->getId()->getHost(), $result->getError()->getMessage());
                         }
                     }
         
-                    throw new \Exception(sprintf('Type: %s %s', get_class($param), $result->getError()->getMessage()));
+                    throw new \Exception($message);
                 }
                 
                 $results[] = $result->getResult();
