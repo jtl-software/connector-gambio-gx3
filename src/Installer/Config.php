@@ -4,14 +4,15 @@ namespace jtl\Connector\Gambio\Installer;
 class Config
 {
     private $data;
-
+    const IGNORE_CUSTOM_FIELDS = 'ignore_custom_fields';
+    
     public function __construct($file)
     {
         try{
             $this->data = \Noodlehaus\Config::load($file)->all();
         } catch (\Noodlehaus\Exception\FileNotFoundException $e) {
             $this->data = [];
-            $this->data['ignore_custom_fields_as_attributes'] = false;
+            $this->data[self::IGNORE_CUSTOM_FIELDS] = false;
         }
     }
 

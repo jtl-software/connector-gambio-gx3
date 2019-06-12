@@ -2,6 +2,7 @@
 
 namespace jtl\Connector\Gambio\Mapper;
 
+use jtl\Connector\Gambio\Installer\Config;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\ProductAttr as ProductAttrModel;
 use jtl\Connector\Model\ProductAttrI18n as ProductAttrI18nModel;
@@ -47,7 +48,7 @@ class ProductAttr extends BaseMapper
             foreach ($attr->getI18ns() as $i18n) {
                 $pId = $data->getId()->getEndpoint();
                 $ignoreAttribute = in_array($i18n->getName(), $ignoreAttributes);
-                if ($ignoreAttribute || ($attr->getIsCustomProperty() && $this->connectorConfig->ignore_custom_fields_as_attributes)) {
+                if ($ignoreAttribute || ($attr->getIsCustomProperty() && $this->connectorConfig->{Config::IGNORE_CUSTOM_FIELDS})) {
                     break;
                 } else {
                     $language_id = $this->locale2id($i18n->getLanguageISO());
