@@ -7,20 +7,22 @@ class Config
 
     public function __construct($file)
     {
-        $this->data = json_decode(@file_get_contents($file));
-        if (is_null($this->data)) {
-            $this->data = new \stdClass();
+        try{
+            $this->data = \Noodlehaus\Config::load($file)->all();
+        } catch (\Noodlehaus\Exception\FileNotFoundException $e) {
+            $this->data = [];
+            $this->data['ignore_custom_fields_as_attributes'] = false;
         }
     }
 
     public function __set($name, $value)
     {
-        $this->data->$name = $value;
+        $this->data[$name] = $value;
     }
 
     public function __get($name)
     {
-        return $this->data->$name;
+        return $this->data[$name];
     }
 
     public function save()

@@ -47,7 +47,7 @@ class ProductAttr extends BaseMapper
             foreach ($attr->getI18ns() as $i18n) {
                 $pId = $data->getId()->getEndpoint();
                 $ignoreAttribute = in_array($i18n->getName(), $ignoreAttributes);
-                if ($ignoreAttribute) {
+                if ($ignoreAttribute || ($attr->getIsCustomProperty() && $this->connectorConfig->ignore_custom_fields_as_attributes)) {
                     break;
                 } else {
                     $language_id = $this->locale2id($i18n->getLanguageISO());
