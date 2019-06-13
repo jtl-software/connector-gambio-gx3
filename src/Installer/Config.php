@@ -12,7 +12,10 @@ class Config
             $this->data = \Noodlehaus\Config::load($file)->all();
         } catch (\Noodlehaus\Exception\FileNotFoundException $e) {
             $this->data = [];
-            $this->data[self::IGNORE_CUSTOM_FIELDS] = false;
+        } finally {
+            if (!isset($this->data[self::IGNORE_CUSTOM_FIELDS])) {
+                $this->data[self::IGNORE_CUSTOM_FIELDS] = false;
+            }
         }
     }
 
