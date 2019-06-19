@@ -523,6 +523,7 @@ class Product extends BaseMapper
         } else {
             if (!empty($id) && $id != '') {
                 try {
+                    $this->db->query('DELETE FROM products_properties_admin_select WHERE products_id=' . $id);
                     $this->db->query('DELETE FROM products WHERE products_id=' . $id);
                     $this->db->query('DELETE FROM products_to_categories WHERE products_id=' . $id);
                     $this->db->query('DELETE FROM products_description WHERE products_id=' . $id);
