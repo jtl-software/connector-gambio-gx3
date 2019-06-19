@@ -311,19 +311,16 @@ class ProductVariation extends Product
                         $langId = $this->locale2id($varI18n->getLanguageISO());
                         $varI18ns[$langId] = $varI18n->getName();
                     }
-
+    
+                    $this->db->query('DELETE FROM products_properties_admin_select WHERE products_id=' . $id);
+                    
                     foreach ($variation->getValues() as $value) {
                         $property = new \stdClass();
                         $property->products_id = $combi->products_id;
                         $property->properties_id = $variation->getId()->getEndpoint();
                         $property->properties_values_id = $this->getValueId($value, $variation);
                         
-                        $this->db->deleteInsertRow($property, 'products_properties_admin_select',
-                            ['products_id', 'properties_id', 'properties_values_id'], [
-                                $property->products_id,
-                                $property->properties_id,
-                                $property->properties_values_id,
-                            ]);
+                        $this->db->insertRow($property, 'products_properties_admin_select');
                         
                         foreach ($value->getI18ns() as $i18n) {
                             $index = new \stdClass();
