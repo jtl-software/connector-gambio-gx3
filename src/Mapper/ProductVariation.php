@@ -313,6 +313,18 @@ class ProductVariation extends Product
                     }
 
                     foreach ($variation->getValues() as $value) {
+                        $property = new \stdClass();
+                        $property->products_id = $combi->products_id;
+                        $property->properties_id = $variation->getId()->getEndpoint();
+                        $property->properties_values_id = $this->getValueId($value, $variation);
+                        
+                        $this->db->deleteInsertRow($property, 'products_properties_admin_select',
+                            ['products_id', 'properties_id', 'properties_values_id'], [
+                                $property->products_id,
+                                $property->properties_id,
+                                $property->properties_values_id,
+                            ]);
+                        
                         foreach ($value->getI18ns() as $i18n) {
                             $index = new \stdClass();
                             $index->products_id = $combi->products_id;
