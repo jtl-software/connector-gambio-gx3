@@ -12,7 +12,8 @@ class ProductAttr extends BaseMapper
         'Wesentliche Produktmerkmale',
         'Google Kategorie',
         'Google Zustand',
-        'Google Verfuegbarkeit ID'
+        'Google Verfuegbarkeit ID',
+        'products_keywords',
     ];
 
     public function pull($data = null, $limit = null)
