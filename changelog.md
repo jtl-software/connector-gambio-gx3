@@ -1,3 +1,6 @@
+2.9.8
+-----
+- CO-524 products_keywords can now be set via an attribute named products_keywords
 2.9.6
 -----
 - CO-393 Manufacturer push logic revised
