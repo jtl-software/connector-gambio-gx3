@@ -69,7 +69,7 @@ class BaseController extends Controller
             $result = $mapper->push($model);
             
             if ($reflect->getShortName() == "Product"){
-                $this->resetMappingCache();
+                $this->resetViewCache();
             }
 
             $action->setResult($result);
@@ -171,7 +171,7 @@ class BaseController extends Controller
         return $returnI18n;
     }
     
-    public function resetMappingCache(){
+    public function resetViewCache(){
         $cacheDir = CONNECTOR_DIR . '/../cache/';
         $pattern = 'view_*.html*';
     
