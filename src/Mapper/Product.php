@@ -74,7 +74,7 @@ class Product extends BaseMapper
             "products_quantity"                        => null,
             "products_model"                           => "sku",
             "products_sort"                            => "sort",
-            "products_date_added"                      => "creationDate",
+            "products_date_added"                      => null,
             "products_date_available"                  => "availableFrom",
             "products_weight"                          => "productWeight",
             "manufacturers_id"                         => null,
@@ -559,6 +559,16 @@ class Product extends BaseMapper
     {
         return true;
     }
+    
+    protected function products_date_added($data)
+    {
+        if($data->getisNewProduct()) {
+            return $data->getNewReleaseDate();
+        }
+    
+        return $data->getCreationDate();
+    }
+    
     
     protected function gm_show_date_added($data)
     {

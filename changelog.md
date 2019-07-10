@@ -1,3 +1,7 @@
+2.9.8
+-----
+- CO-519 The "Neu im Sortiment" functionality, from JTL-Wawi is now supported.
+
 2.9.7
 -----
 - CO-454 The customer, oder_shipping_address and order_delivery_address will now consider a separate house if activated
