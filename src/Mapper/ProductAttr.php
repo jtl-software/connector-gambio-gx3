@@ -96,7 +96,7 @@ class ProductAttr extends BaseMapper
             $valIns = $this->db->insertRow($value, 'additional_field_values');
             $valId = $valIns->getKey();
 
-            if ($attr->getIsTranslated() === true) {
+            if ($this->locale2id($i18n->getLanguageISO())) {
                 foreach ($attr->getI18ns() as $i18n) {
                     $valDesc = new \stdClass();
                     $valDesc->additional_field_value_id = $valId;
@@ -105,13 +105,6 @@ class ProductAttr extends BaseMapper
 
                     $this->db->insertRow($valDesc, 'additional_field_value_descriptions');
                 }
-            } else {
-                $valDesc = new \stdClass();
-                $valDesc->additional_field_value_id = $valId;
-                $valDesc->language_id = 0;
-                $valDesc->value = $attr->getI18ns()[0]->getValue();
-
-                $this->db->insertRow($valDesc, 'additional_field_value_descriptions');
             }
         }
 
