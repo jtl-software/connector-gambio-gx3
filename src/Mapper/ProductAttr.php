@@ -71,7 +71,7 @@ class ProductAttr extends BaseMapper
                             $field = new \stdClass();
                             $field->field_key = 'product-' . uniqid();
                             $field->item_type = 'product';
-                            $field->multilingual = strval($attr->getIsTranslated());
+                            $field->multilingual = intval($attr->getIsTranslated());
 
                             $insResult = $this->db->insertRow($field, 'additional_fields');
                             $fieldId = $insResult->getKey();
