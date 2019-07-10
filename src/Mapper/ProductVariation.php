@@ -60,6 +60,7 @@ class ProductVariation extends Product
 
                 // clear existing product variations
                 $this->db->query('DELETE FROM products_attributes WHERE products_id=' . $parent->getId()->getEndpoint());
+                $this->db->query('DELETE FROM products_properties_admin_select WHERE products_id=' . $parent->getMasterProductId()->getEndpoint());
 
                 foreach ($parent->getVariations() as $variation) {
                     // get variation name in default language
@@ -311,8 +312,15 @@ class ProductVariation extends Product
                         $langId = $this->locale2id($varI18n->getLanguageISO());
                         $varI18ns[$langId] = $varI18n->getName();
                     }
-
+                    
                     foreach ($variation->getValues() as $value) {
+                        $property = new \stdClass();
+                        $property->products_id = $combi->products_id;
+                        $property->properties_id = $variation->getId()->getEndpoint();
+                        $property->properties_values_id = $this->getValueId($value, $variation);
+                        
+                        $this->db->insertRow($property, 'products_properties_admin_select');
+                        
                         foreach ($value->getI18ns() as $i18n) {
                             $index = new \stdClass();
                             $index->products_id = $combi->products_id;
