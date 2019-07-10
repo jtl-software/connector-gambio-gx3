@@ -409,11 +409,11 @@ class Product extends BaseMapper
                     $codes->google_export_availability_id = $i18n->getValue();
                 } elseif ($i18n->getName() === 'Wesentliche Produktmerkmale') {
                     $language_id = $this->locale2id($i18n->getLanguageISO());
-                    $sql = 'Update products_description SET checkout_information = "' . $this->db->escapeString($i18n->getValue()) . '" WHERE products_id = ' . $productsId . ' and language_id = ' . $language_id . ';';
+                    $sql = 'UPDATE products_description SET checkout_information = "' . $this->db->escapeString($i18n->getValue()) . '" WHERE products_id = ' . $productsId . ' AND language_id = ' . $language_id . ';';
                     $this->db->query($sql);
                 } elseif ($i18n->getName() === 'products_keywords') {
                     $language_id = $this->locale2id($i18n->getLanguageISO());
-                    $sql = 'Update products_description SET products_keywords = "' . $this->db->escapeString($i18n->getValue()) . '" WHERE products_id = ' . $productsId . ' and language_id = ' . $language_id . ';';
+                    $sql = 'UPDATE products_description SET products_keywords = "' . $this->db->escapeString($i18n->getValue()) . '" WHERE products_id = ' . $productsId . ' AND language_id = ' . $language_id . ';';
                     $this->db->query($sql);
                 } elseif ($i18n->getName() === 'Google Kategorie') {
                     $obj = new \stdClass();
