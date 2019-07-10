@@ -127,7 +127,12 @@ class BaseMapper
 
             foreach ($this->mapperConfig['mapPush'] as $endpoint => $host) {
                 if (is_null($host) && method_exists(get_class($this), $endpoint)) {
-                    $dbObj->$endpoint = $this->$endpoint($obj, $model, $parentObj);
+                    $value = $this->$endpoint($obj, $model, $parentObj);
+                    if($value instanceof \DateTimeInterface) {
+                        $value = $value->format("Y-m-d H:i:s");
+                    }
+                    $dbObj->$endpoint = $value;
+    
                 } elseif ($this->type->getProperty($host)->isNavigation()) {
                     list($preEndpoint, $preNavSetMethod, $preMapper) = array_pad(explode('|', $endpoint), 3, null);
 
