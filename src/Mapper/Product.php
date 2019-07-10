@@ -409,13 +409,11 @@ class Product extends BaseMapper
                     $codes->google_export_availability_id = $i18n->getValue();
                 } elseif ($i18n->getName() === 'Wesentliche Produktmerkmale') {
                     $language_id = $this->locale2id($i18n->getLanguageISO());
-                    $sql = 'INSERT INTO products_description (products_id,language_id,checkout_information) VALUES(' . $productsId . ',' . $language_id . ',"' . $this->db->escapeString($i18n->getValue()) . '") ' .
-                        'ON DUPLICATE KEY UPDATE checkout_information = "' . $this->db->escapeString($i18n->getValue()) . '";';
+                    $sql = 'Update products_description SET checkout_information = "' . $this->db->escapeString($i18n->getValue()) . '" WHERE products_id = ' . $productsId . ' and language_id = ' . $language_id . ';';
                     $this->db->query($sql);
                 } elseif ($i18n->getName() === 'products_keywords') {
                     $language_id = $this->locale2id($i18n->getLanguageISO());
-                    $sql = 'INSERT INTO products_description (products_id,language_id,products_keywords) VALUES(' . $productsId . ',' . $language_id . ',"' . $this->db->escapeString($i18n->getValue()) . '") ' .
-                        'ON DUPLICATE KEY UPDATE products_keywords = "' . $this->db->escapeString($i18n->getValue()) . '";';
+                    $sql = 'Update products_description SET products_keywords = "' . $this->db->escapeString($i18n->getValue()) . '" WHERE products_id = ' . $productsId . ' and language_id = ' . $language_id . ';';
                     $this->db->query($sql);
                 } elseif ($i18n->getName() === 'Google Kategorie') {
                     $obj = new \stdClass();
