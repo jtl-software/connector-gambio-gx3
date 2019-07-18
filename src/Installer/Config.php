@@ -16,6 +16,11 @@ class Config
             if (!isset($this->data[self::IGNORE_CUSTOM_FIELDS])) {
                 $this->data[self::IGNORE_CUSTOM_FIELDS] = false;
             }
+    
+            if (!isset($this->data['use_combined_delivery_time_on_combis'])) {
+                $this->data['use_combined_delivery_time_on_combis'] = true;
+            }
+    
         }
     }
 

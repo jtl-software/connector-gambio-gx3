@@ -96,7 +96,8 @@ class Product extends BaseMapper
             "products_shippingtime" => null,
             "gm_min_order" => null,
             "gm_graduated_qty" => null,
-            "gm_show_date_added" => null
+            "gm_show_date_added" => null,
+            "use_properties_combis_shipping_time" => null
         )
     );
 
@@ -771,7 +772,18 @@ class Product extends BaseMapper
 
         return $count;
     }
-
+    
+    public function use_properties_combis_shipping_time()
+    {
+        if (isset($this->connectorConfig->use_combined_delivery_time_on_combis)){
+            $result = $this->connectorConfig->use_combined_delivery_time_on_combis === true ? 1 : 0;
+            
+            return $result;
+        }
+        
+        return 0;
+    }
+    
     /**
      * @return string[]
      */
