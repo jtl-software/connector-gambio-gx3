@@ -5,7 +5,7 @@ class Config
 {
     private $data;
     const IGNORE_CUSTOM_FIELDS = 'ignore_custom_fields';
-    const DISPLAY_COMBI_DELIVERY_TIME = 'use_combined_delivery_time_on_combis';
+    const DISPLAY_COMBI_DELIVERY_TIME = 'use_combi_child_shipping_time';
     
     public function __construct($file)
     {
