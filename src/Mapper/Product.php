@@ -2,6 +2,7 @@
 
 namespace jtl\Connector\Gambio\Mapper;
 
+use jtl\Connector\Gambio\Installer\Config;
 use \jtl\Connector\Gambio\Mapper\BaseMapper;
 use jtl\Connector\Model\Identity;
 use \jtl\Connector\Model\ProductStockLevel;
@@ -775,8 +776,8 @@ class Product extends BaseMapper
     
     public function use_properties_combis_shipping_time()
     {
-        if (isset($this->connectorConfig->use_combined_delivery_time_on_combis)){
-            $result = $this->connectorConfig->use_combined_delivery_time_on_combis === true ? 1 : 0;
+        if (isset($this->connectorConfig->{Config::DISPLAY_COMBI_DELIVERY_TIME})){
+            $result = $this->connectorConfig->{Config::DISPLAY_COMBI_DELIVERY_TIME} === true ? 1 : 0;
             
             return $result;
         }
