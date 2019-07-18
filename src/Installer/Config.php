@@ -5,6 +5,7 @@ class Config
 {
     private $data;
     const IGNORE_CUSTOM_FIELDS = 'ignore_custom_fields';
+    const DISPLAY_COMBI_DELIVERY_TIME = 'use_combined_delivery_time_on_combis';
     
     public function __construct($file)
     {
@@ -17,8 +18,8 @@ class Config
                 $this->data[self::IGNORE_CUSTOM_FIELDS] = false;
             }
     
-            if (!isset($this->data['use_combined_delivery_time_on_combis'])) {
-                $this->data['use_combined_delivery_time_on_combis'] = true;
+            if (!isset($this->data[self::DISPLAY_COMBI_DELIVERY_TIME])) {
+                $this->data[self::DISPLAY_COMBI_DELIVERY_TIME] = true;
             }
     
         }
