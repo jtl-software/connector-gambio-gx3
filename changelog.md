@@ -1,6 +1,7 @@
 2.9.8
 -----
 - CO-519 The "Neu im Sortiment" functionality, from JTL-Wawi is now supported.
+- CO-524 products_keywords can now be set via an attribute named products_keywords
 
 2.9.7
 -----

@@ -13,21 +13,27 @@ class ProductAttr extends BaseMapper
         'Wesentliche Produktmerkmale',
         'Google Kategorie',
         'Google Zustand',
-        'Google Verfuegbarkeit ID'
+        'Google Verfuegbarkeit ID',
+        'products_keywords',
     ];
-
+    
+    protected $multiAttributes = [
+        'Wesentliche Produktmerkmale' => 'checkout_information',
+        'products_keywords'           => 'products_keywords',
+    ];
+    
     public function pull($data = null, $limit = null)
     {
-        $attrs = array();
-
+        $attrs = [];
+        
         foreach (Product::getSpecialAttributes() as $field => $name) {
             $attrs[] = $this->createAttr($name, $name, $data[$field], $data);
         }
-
+        
         if (!empty($data['google_category'])) {
             $attrs[] = $this->createAttr('google_category', 'Google Kategorie', $data['google_category'], $data);
         }
-
+        
         if (!empty($data['google_export_condition'])) {
             $attrs[] = $this->createAttr('google_export_condition', 'Google Zustand', $data['google_export_condition'], $data);
         }
@@ -86,21 +92,23 @@ class ProductAttr extends BaseMapper
                                 $fieldDesc->additional_field_id = $fieldId;
                                 $fieldDesc->language_id = $this->locale2id($i18n->getLanguageISO());
                                 $fieldDesc->name = $i18n->getName();
-
-                                $this->db->deleteInsertRow($fieldDesc, 'additional_field_descriptions', array('additional_field_id', 'language_id'), array($fieldDesc->additional_field_id, $fieldDesc->language_id));
+                                
+                                $this->db->deleteInsertRow($fieldDesc, 'additional_field_descriptions',
+                                    ['additional_field_id', 'language_id'],
+                                    [$fieldDesc->additional_field_id, $fieldDesc->language_id]);
                             }
                         }
                     }
                 }
             }
-
+            
             $value = new \stdClass();
             $value->additional_field_id = $fieldId;
             $value->item_id = $product->getId()->getEndpoint();
 
             $valIns = $this->db->insertRow($value, 'additional_field_values');
             $valId = $valIns->getKey();
-
+            
             if ($attr->getIsTranslated() === true) {
                 foreach ($attr->getI18ns() as $i18n) {
                     $valDesc = new \stdClass();
@@ -142,8 +150,8 @@ class ProductAttr extends BaseMapper
 
     private function pullCustoms($data)
     {
-        $customs = array();
-
+        $customs = [];
+        
         $fields = $this->db->query('
           SELECT f.*, v.additional_field_value_id
           FROM additional_field_values v
@@ -185,30 +193,33 @@ class ProductAttr extends BaseMapper
 
     private function pullMultiAttrs($data)
     {
-        $multiData = $this->db->query('
-          SELECT language_id, checkout_information
-          FROM products_description
-          WHERE products_id="' . $data['products_id'] . '" && checkout_information != ""');
-
-        if (count($multiData) > 0) {
-            $checkoutInfo = new ProductAttrModel();
-            $checkoutInfo->setId(new Identity('checkout_information'));
-            $checkoutInfo->setProductId(new Identity($data['products_id']));
-            $checkoutInfo->setIsTranslated(true);
-
-            foreach ($multiData as $i18nData) {
-                $i18n = new ProductAttrI18nModel();
-                $i18n->setProductAttrId($checkoutInfo->getId());
-                $i18n->setValue($i18nData['checkout_information']);
-                $i18n->setName('Wesentliche Produktmerkmale');
-                $i18n->setLanguageISO($this->id2locale($i18nData['language_id']));
-
-                $checkoutInfo->addI18n($i18n);
+        $return = [];
+        foreach ($this->multiAttributes as $name => $column) {
+            $multiData = $this->db->query(sprintf('
+              SELECT language_id, %s
+              FROM products_description
+              WHERE products_id="%s" && %s != ""', $column, $data['products_id'], $column));
+            
+            if (count($multiData) > 0) {
+                $multiAttr = new ProductAttrModel();
+                $multiAttr->setId(new Identity($column));
+                $multiAttr->setProductId(new Identity($data['products_id']));
+                $multiAttr->setIsTranslated(true);
+                
+                foreach ($multiData as $i18nData) {
+                    $i18n = new ProductAttrI18nModel();
+                    $i18n->setProductAttrId($multiAttr->getId());
+                    $i18n->setValue($i18nData[$column]);
+                    $i18n->setName($name);
+                    $i18n->setLanguageISO($this->id2locale($i18nData['language_id']));
+                    
+                    $multiAttr->addI18n($i18n);
+                }
+                
+                $return[] = $multiAttr;
             }
-
-            return array($checkoutInfo);
         }
-
-        return array();
+        
+        return $return;
     }
 }
