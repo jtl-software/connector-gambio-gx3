@@ -67,6 +67,10 @@ class BaseController extends Controller
             $mapper = new $class();
 
             $result = $mapper->push($model);
+            
+            if ($reflect->getShortName() == "Product"){
+                $this->resetCache('view_*.html*');
+            }
 
             $action->setResult($result);
         } catch (\Exception $exc) {
@@ -165,5 +169,19 @@ class BaseController extends Controller
             }
         }
         return $returnI18n;
+    }
+    
+    public static function resetCache($pattern = "*") {
+        $cacheDir = CONNECTOR_DIR . '/../cache/';
+    
+        $cacheFiles = glob($cacheDir.$pattern);
+        if(is_array($cacheFiles) === false) {
+            return true;
+        }
+    
+        foreach($cacheFiles as $cacheFile) {
+            unlink($cacheFile);
+        }
+        return true;
     }
 }

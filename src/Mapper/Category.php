@@ -2,6 +2,8 @@
 
 namespace jtl\Connector\Gambio\Mapper;
 
+use jtl\Connector\Gambio\Controller\BaseController;
+
 class Category extends \jtl\Connector\Gambio\Mapper\BaseMapper
 {
     protected $mapperConfig = [
@@ -109,7 +111,7 @@ class Category extends \jtl\Connector\Gambio\Mapper\BaseMapper
         static::$idCache[$model->getId()->getHost()] = $model->getId()->getEndpoint();
         $this->db->query('UPDATE categories SET date_added="' . date('Y-m-d H:m:i',
                 time()) . '" WHERE categories_id=' . $model->getId()->getEndpoint() . ' && date_added IS NULL');
-        array_map('unlink', glob($this->shopConfig['shop']['path'] . 'cache/*'));
+        BaseController::resetCache();
     }
     
     private function getChildren($ids = null, $level = 0, $limit)
@@ -152,7 +154,7 @@ class Category extends \jtl\Connector\Gambio\Mapper\BaseMapper
             }
         }
         
-        array_map('unlink', glob($this->shopConfig['shop']['path'] . 'cache/*'));
+        BaseController::resetCache();
         
         return $data;
     }
