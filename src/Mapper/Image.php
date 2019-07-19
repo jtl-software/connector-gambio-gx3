@@ -541,9 +541,8 @@ class Image extends BaseMapper
                 $new_y = 0;
             }
 
-            $thumb = imagecreatetruecolor($thumb_width, $thumb_height);
+            $thumb = imagecreatetruecolor($new_width, $new_height);
             imagefill($thumb, 0, 0, imagecolorallocate($thumb, 255, 255, 255));
-            
             if($imgInfo[2] == 1 || $imgInfo[2] == 3){
                 imagealphablending($thumb, false);
                 imagesavealpha($thumb, true);
@@ -554,8 +553,8 @@ class Image extends BaseMapper
             imagecopyresampled(
                 $thumb,
                 $image,
-                $new_x,
-                $new_y,
+                0,
+                0,
                 0,
                 0,
                 $new_width,
