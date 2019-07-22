@@ -2,6 +2,7 @@
 
 namespace jtl\Connector\Gambio\Mapper;
 
+use jtl\Connector\Gambio\Installer\Config;
 use \jtl\Connector\Gambio\Mapper\BaseMapper;
 use jtl\Connector\Model\Identity;
 use \jtl\Connector\Model\ProductStockLevel;
@@ -96,6 +97,7 @@ class Product extends BaseMapper
             "gm_min_order"                             => null,
             "gm_graduated_qty"                         => null,
             "gm_show_date_added"                       => null,
+            "use_properties_combis_shipping_time" => null
         ],
     ];
     
@@ -116,7 +118,7 @@ class Product extends BaseMapper
         'gm_sitemap_entry'        => 'In Sitemap aufnehmen',
         'product_type'            => 'Artikeltyp',
     ];
-    
+
     public function pull($data = null, $limit = null)
     {
         $this->mapperConfig['query'] =
@@ -807,7 +809,18 @@ class Product extends BaseMapper
 
         return $count;
     }
-
+    
+    public function use_properties_combis_shipping_time()
+    {
+        if (isset($this->connectorConfig->{Config::DISPLAY_COMBI_DELIVERY_TIME})){
+            $result = $this->connectorConfig->{Config::DISPLAY_COMBI_DELIVERY_TIME} === true ? 1 : 0;
+            
+            return $result;
+        }
+        
+        return 0;
+    }
+    
     /**
      * @return string[]
      */
