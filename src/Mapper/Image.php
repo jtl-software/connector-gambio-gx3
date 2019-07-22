@@ -94,8 +94,6 @@ class Image extends BaseMapper
         return $result;
     }
     
-    
-    
     protected function getImgFilename($data)
     {
         if (empty($data->getName())) {
@@ -105,68 +103,19 @@ class Image extends BaseMapper
         return $data->getName();
     }
     
-    protected function clearOldProductThumbnail($imgId)
-    {
-        $prevImgQuery = $this->db->query('SELECT image_name FROM products_images WHERE image_id = "' . $imgId . '"');
-        if (count($prevImgQuery) > 0 && !empty($prevImgQuery[0]['image_name'])) {
-            $prevImage = $prevImgQuery[0]['image_name'];
-            @unlink($this->shopConfig['shop']['path'] . $this->shopConfig['img']['original'] . $prevImage);
-        
-            foreach ($this->thumbConfig as $folder => $sizes) {
-                unlink($this->shopConfig['shop']['path'] . $this->shopConfig['img'][$folder] . $prevImage);
-            }
-        }
-    
-        $this->db->query('DELETE FROM products_images WHERE image_id="' . $imgId . '"');
-    }
-    protected function clearOldProductImage($imgId)
-    {
-        $prevImgQuery = $this->db->query('SELECT image_name FROM products_images WHERE image_id = "' . $imgId . '"');
-        if (count($prevImgQuery) > 0) {
-            $prevImage = $prevImgQuery[0]['image_name'];
-        }
-    
-        if (!empty($prevImage)) {
-            @unlink($this->shopConfig['shop']['path'] . $this->shopConfig['img']['original'] . $prevImage);
-            foreach ($this->thumbConfig as $folder => $sizes) {
-                unlink($this->shopConfig['shop']['path'] . $this->shopConfig['img'][$folder] . $prevImage);
-            }
-        }
-    
-        $this->db->query('DELETE FROM products_images WHERE image_id="' . $imgId . '"');
-        $this->db->query('DELETE FROM gm_prd_img_alt WHERE image_id="' . $imgId . '"');
-    }
-    
     protected function imageController($data, $type = self::THUMBNAIL)
     {
         $path = $this->shopConfig['img']['original'];
         $isVarCombi = strpos($data->getForeignKey()->getEndpoint(), '_') !== false;
-        if ($isVarCombi) {
+        
+        if (!empty($data->getId()->getEndpoint())) {
             $this->delete($data);
-            $path = 'images/product_images/properties_combis_images/';
-        } else {
-            if (!empty($data->getId()->getEndpoint())) {
-                if ($type == self::THUMBNAIL) {
-                    $this->clearOldProductThumbnail($data->getId()->getEndpoint());
-                    $oldImage = $this->db->query('SELECT products_image FROM products WHERE products_id = "' . $data->getForeignKey()->getEndpoint() . '"');
-                    $oldImage = isset($oldImage[0]['products_image']) ? $oldImage[0]['products_image'] : null;
-                } elseif ($type == ImageRelationType::TYPE_PRODUCT) {
-                    $this->clearOldProductImage($data->getId()->getEndpoint());
-                    $oldImage = $this->db->query('SELECT image_name FROM products_images WHERE products_id = "' . $data->getForeignKey()->getEndpoint() . '" && image_nr=' . ($data->getSort() - 1));
-                    $oldImage = isset($oldImage[0]['image_name']) ? $oldImage[0]['image_name'] : null;
-                } elseif ($type == ImageRelationType::TYPE_CATEGORY) {
-                    $path = 'images/categories/';
-                    $oldImage = $this->db->query('SELECT categories_image FROM categories WHERE categories_id = "' . $data->getForeignKey()->getEndpoint() . '"');
-                    $oldImage = isset($oldImage[0]['categories_image']) ? $oldImage[0]['categories_image'] : null;
-                } elseif ($type == ImageRelationType::TYPE_MANUFACTURER) {
-                    $path ='images/manufacturers/';
-                    $oldImage = $this->db->query('SELECT manufacturers_image FROM manufacturers WHERE manufacturers_id = "' . $data->getForeignKey()->getEndpoint() . '"');
-                    $oldImage = isset($oldImage[0]['manufacturers_image']) ? $oldImage[0]['manufacturers_image'] : null;
-                }
-            }
-            
-            if (!empty($oldImage)) {
-                @unlink($this->shopConfig['shop']['path'] . $path . $oldImage);
+            if ($isVarCombi) {
+                $path = 'images/product_images/properties_combis_images/';
+            } elseif ($type == ImageRelationType::TYPE_CATEGORY) {
+                $path = 'images/categories/';
+            } elseif ($type == ImageRelationType::TYPE_MANUFACTURER) {
+                $path = 'images/manufacturers/';
             }
         }
         
@@ -180,32 +129,22 @@ class Image extends BaseMapper
             return $this->handleCombiChildThumbnail($data, $imgFilename);
         }
         
-        $this->generateThumbs($imgFilename, $oldImage);
+        $this->generateThumbs($imgFilename);
         
-        /* Executes specific logic depending on the image type */
         switch ($type) {
             case self::THUMBNAIL:
+                $this->db->query('DELETE FROM products_images WHERE image_id="' . $data->getId()->getEndpoint() . '"');
                 $this->handleProductThumbnail($data, $imgFilename);
                 break;
             case ImageRelationType::TYPE_PRODUCT:
+                $this->db->query('DELETE FROM products_images WHERE image_id="' . $data->getId()->getEndpoint() . '"');
+                $this->db->query('DELETE FROM gm_prd_img_alt WHERE image_id="' . $data->getId()->getEndpoint() . '"');
                 $this->handleProductImage($data, $imgFilename);
                 break;
             case ImageRelationType::TYPE_MANUFACTURER:
-                $manufacturersObj = new \stdClass();
-                $manufacturersObj->manufacturers_image = 'manufacturers/' . $imgFilename;
-    
-                $this->db->updateRow($manufacturersObj, 'manufacturers', 'manufacturers_id',
-                    $data->getForeignKey()->getEndpoint());
-    
                 $data->getId()->setEndpoint('mID_' . $data->getForeignKey()->getEndpoint());
                 break;
             case ImageRelationType::TYPE_CATEGORY:
-                $categoryObj = new \stdClass();
-                $categoryObj->categories_image = $imgFilename;
-    
-                $this->db->updateRow($categoryObj, 'categories', 'categories_id',
-                    $data->getForeignKey()->getEndpoint());
-    
                 $data->getId()->setEndpoint('cID_' . $data->getForeignKey()->getEndpoint());
                 break;
         }
@@ -276,14 +215,13 @@ class Image extends BaseMapper
     public function delete($data)
     {
         if (get_class($data) === 'jtl\Connector\Model\Image') {
+            $path = $this->shopConfig['img']['original'];
+            
             switch ($data->getRelationType()) {
                 case ImageRelationType::TYPE_CATEGORY:
+                    $path = 'images/categories/';
                     $oldImage = $this->db->query('SELECT categories_image FROM categories WHERE categories_id = "' . $data->getForeignKey()->getEndpoint() . '"');
                     $oldImage = $oldImage[0]['categories_image'];
-                    
-                    if (isset($oldImage)) {
-                        @unlink($this->shopConfig['shop']['path'] . 'images/categories/' . $oldImage);
-                    }
                     
                     $categoryObj = new \stdClass();
                     $categoryObj->categories_image = null;
@@ -294,12 +232,9 @@ class Image extends BaseMapper
                     break;
                 
                 case ImageRelationType::TYPE_MANUFACTURER:
+                    $path = 'images/manufacturers/';
                     $oldImage = $this->db->query('SELECT manufacturers_image FROM manufacturers WHERE manufacturers_id = "' . $data->getForeignKey()->getEndpoint() . '"');
                     $oldImage = $oldImage[0]['manufacturers_image'];
-                    
-                    if (isset($oldImage)) {
-                        @unlink($this->shopConfig['shop']['path'] . 'images/' . $oldImage);
-                    }
                     
                     $manufacturersObj = new \stdClass();
                     $manufacturersObj->categories_image = null;
@@ -312,10 +247,9 @@ class Image extends BaseMapper
                 case ImageRelationType::TYPE_PRODUCT:
                     if ($data->getSort() == 0) {
                         $oldImage = $this->db->query('SELECT products_image FROM products WHERE products_id = "' . $data->getForeignKey()->getEndpoint() . '"');
-                        $oldImage = $oldImage[0]['products_image'];
+                        $oldImage = !empty($oldImage[0]['products_image']) ? $oldImage[0]['products_image'] : null;
                         
                         if (isset($oldImage)) {
-                            @unlink($this->shopConfig['shop']['path'] . $this->shopConfig['img']['original'] . $oldImage);
                             $this->db->query('UPDATE products SET products_image="" WHERE products_id="' . $data->getForeignKey()->getEndpoint() . '"');
                         }
                         
@@ -334,30 +268,22 @@ class Image extends BaseMapper
                         $this->db->query('DELETE FROM products_images WHERE products_id="' . $data->getForeignKey()->getEndpoint() . '"');
                     } elseif ($data->getSort() == 1) {
                         if (strpos($data->getForeignKey()->getEndpoint(), '_') !== false) {
+                            $path = 'images/product_images/properties_combis_images/';
                             $combisId = explode('_', $data->getForeignKey()->getEndpoint());
                             $combisId = $combisId[1];
                             
                             if (!empty($combisId)) {
-                                $oldCImage = $this->db->query('SELECT combi_image FROM products_properties_combis WHERE products_properties_combis_id = "' . $combisId . '"');
-                                $oldCImage = $oldCImage[0]['combi_image'];
-                                
-                                if (isset($oldCImage)) {
-                                    @unlink($this->shopConfig['shop']['path'] . 'images/product_images/properties_combis_images/' . $oldCImage);
-                                }
+                                $oldImage = $this->db->query('SELECT combi_image FROM products_properties_combis WHERE products_properties_combis_id = "' . $combisId . '"');
+                                $oldImage = !empty($oldImage[0]['combi_image']) ? $oldImage[0]['combi_image'] : null;
                                 
                                 $combisObj = new \stdClass();
                                 $combisObj->combi_image = null;
                                 
-                                $this->db->updateRow($combisObj, 'products_properties_combis',
-                                    'products_properties_combis_id', $combisId);
+                                $this->db->updateRow($combisObj, 'products_properties_combis', 'products_properties_combis_id', $combisId);
                             }
                         } else {
                             $oldImage = $this->db->query('SELECT products_image FROM products WHERE products_id = "' . $data->getForeignKey()->getEndpoint() . '"');
-                            $oldImage = $oldImage[0]['products_image'];
-                            
-                            if (isset($oldImage)) {
-                                @unlink($this->shopConfig['shop']['path'] . $this->shopConfig['img']['original'] . $oldImage);
-                            }
+                            $oldImage = !empty($oldImage[0]['products_image']) ? $oldImage[0]['products_image'] : null;
                             
                             $productsObj = new \stdClass();
                             $productsObj->products_image = null;
@@ -367,18 +293,18 @@ class Image extends BaseMapper
                         }
                     } else {
                         if ($data->getId()->getEndpoint() != '') {
-                            $oldImageQuery = $this->db->query('SELECT image_name FROM products_images WHERE image_id = "' . $data->getId()->getEndpoint() . '"');
-                            
-                            if (count($oldImageQuery) > 0) {
-                                $oldImage = $oldImageQuery[0]['image_name'];
-                                @unlink($this->shopConfig['shop']['path'] . $this->shopConfig['img']['original'] . $oldImage);
-                            }
+                            $oldImage = $this->db->query('SELECT image_name FROM products_images WHERE image_id = "' . $data->getId()->getEndpoint() . '"');
+                            $oldImage = !empty($oldImage[0]['image_name']) ? $oldImage[0]['image_name'] : null;
                             
                             $this->db->query('DELETE FROM products_images WHERE image_id="' . $data->getId()->getEndpoint() . '"');
                         }
                     }
                     
                     break;
+            }
+            
+            if (isset($oldImage)) {
+                @unlink($this->shopConfig['shop']['path'] . $path . $oldImage);
             }
             
             foreach ($this->thumbConfig as $folder => $sizes) {
@@ -473,31 +399,27 @@ class Image extends BaseMapper
         }
     }
     
-    private function generateThumbs($fileName, $oldImage = null)
+    private function generateThumbs($fileName)
     {
-        $imgInfo = getimagesize($this->shopConfig['shop']['path'] . $this->shopConfig['img']['original'] . $fileName);
+        $imgPath = $this->shopConfig['shop']['path'] . $this->shopConfig['img']['original'] . $fileName;
+        $imgInfo = getimagesize($imgPath);
         
         switch ($imgInfo[2]) {
             case 1:
-                $image = imagecreatefromgif($this->shopConfig['shop']['path'] . $this->shopConfig['img']['original'] . $fileName);
+                $image = imagecreatefromgif($imgPath);
                 break;
             case 2:
-                $image = imagecreatefromjpeg($this->shopConfig['shop']['path'] . $this->shopConfig['img']['original'] . $fileName);
+                $image = imagecreatefromjpeg($imgPath);
                 break;
             case 3:
-                $image = imagecreatefrompng($this->shopConfig['shop']['path'] . $this->shopConfig['img']['original'] . $fileName);
+                $image = imagecreatefrompng($imgPath);
                 break;
         }
         
         $width = imagesx($image);
         $height = imagesy($image);
-        $original_aspect = $width / $height;
         
         foreach ($this->thumbConfig as $folder => $sizes) {
-            if (!empty($oldImage)) {
-                unlink($this->shopConfig['shop']['path'] . $this->shopConfig['img'][$folder] . $oldImage);
-            }
-            
             $thumb_width = $sizes[0];
             $thumb_height = $sizes[1];
             
@@ -542,16 +464,17 @@ class Image extends BaseMapper
                 $height
             );
             
+            $imgPath = $this->shopConfig['shop']['path'] . $this->shopConfig['img'][$folder] . $fileName;
+            
             switch ($imgInfo[2]) {
                 case 1:
-                    imagegif($thumb, $this->shopConfig['shop']['path'] . $this->shopConfig['img'][$folder] . $fileName);
+                    imagegif($thumb, $imgPath);
                     break;
                 case 2:
-                    imagejpeg($thumb,
-                        $this->shopConfig['shop']['path'] . $this->shopConfig['img'][$folder] . $fileName);
+                    imagejpeg($thumb, $imgPath);
                     break;
                 case 3:
-                    imagepng($thumb, $this->shopConfig['shop']['path'] . $this->shopConfig['img'][$folder] . $fileName);
+                    imagepng($thumb, $imgPath);
                     break;
             }
         }
