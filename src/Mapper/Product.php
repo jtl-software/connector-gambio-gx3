@@ -425,11 +425,13 @@ class Product extends BaseMapper
                     $codes->google_export_availability_id = $i18n->getValue();
                 } elseif ($attributeName === 'Wesentliche Produktmerkmale') {
                     $language_id = $this->locale2id($i18n->getLanguageISO());
-                    $sql = 'UPDATE products_description SET checkout_information = "' . $this->db->escapeString($i18n->getValue()) . '" WHERE products_id = ' . $productsId . ' AND language_id = ' . $language_id . ';';
+                    $sql = 'INSERT INTO products_description (products_id,language_id,checkout_information,products_meta_title,products_meta_description,products_meta_keywords) VALUES(' . $productsId . ',' . $language_id . ',"' . $this->db->escapeString($i18n->getValue()) . '","","","") ' .
+                        'ON DUPLICATE KEY UPDATE checkout_information = "' . $this->db->escapeString(trim($i18n->getValue())) . '";';
                     $this->db->query($sql);
                 } elseif ($attributeName === 'products_keywords') {
                     $language_id = $this->locale2id($i18n->getLanguageISO());
-                    $sql = 'UPDATE products_description SET products_keywords = "' . $this->db->escapeString($i18n->getValue()) . '" WHERE products_id = ' . $productsId . ' AND language_id = ' . $language_id . ';';
+                    $sql = 'INSERT INTO products_description (products_id,language_id,products_keywords,products_meta_title,products_meta_description,products_meta_keywords,checkout_information) VALUES(' . $productsId . ',' . $language_id . ',"' . $this->db->escapeString($i18n->getValue()) . '","","","","") ' .
+                        'ON DUPLICATE KEY UPDATE products_keywords = "' . $this->db->escapeString(trim($i18n->getValue())) . '";';
                     $this->db->query($sql);
                 } elseif ($attributeName === 'Google Kategorie') {
                     $obj = new \stdClass();
