@@ -1,12 +1,12 @@
-2.9.8
+2.10.0
 -----
-- CO-387 Enable/Disable developer logging over install gui
+- CO-387 Enable/Disable developer logging via install gui
 - CO-414 Do not send custom fields config flag added
-- CO-503 Remove selling unit from a varcombi parent correctly
-- CO-509 Create thumbnails without white borders
-- CO-519 The "Neu im Sortiment" functionality, from JTL-Wawi is now supported
+- CO-503 Remove selling unit from a product varcombi parent correctly
+- CO-509 Create thumbnails without white borders and in the correct size
+- CO-519 "Neu im Sortiment" functionality support
 - CO-523 Create and delete products_properties_admin_select table entries properly
-- CO-524 products_keywords can now be set via an attribute named products_keywords
+- CO-524 Set product keywords via products_keywords attribute
 - CO-525 Clear product and category cache properly
 
 2.9.7
