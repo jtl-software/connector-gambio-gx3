@@ -8,6 +8,7 @@
 - CO-523 Create and delete products_properties_admin_select table entries properly
 - CO-524 Set product keywords via products_keywords attribute
 - CO-525 Clear product and category cache properly
+- CO-529 Configuration flag "use_combi_child_shipping_time" added
 
 2.9.7
 -----
