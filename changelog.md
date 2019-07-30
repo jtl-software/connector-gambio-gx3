@@ -1,3 +1,7 @@
+2.10.1
+-----
+- Deleting of products_properties_admin_select entries moved to the right place
+
 2.10.0
 -----
 - CO-387 Enable/Disable developer logging via install gui
