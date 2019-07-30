@@ -49,18 +49,23 @@ class ProductVariation extends Product
         return BaseMapper::pull($data, $limit);
     }
 
+    /**
+     * @param \jtl\Connector\Model\Product $parent
+     * @param object|null $dbObj
+     * @return mixed
+     */
     public function push($parent, $dbObj = null)
     {
         if (count($parent->getVariations()) > 0) {
             $masterId = $parent->getMasterProductId()->getEndpoint();
+            $productId = $parent->getId()->getEndpoint();
 
             // old variations
             if (empty($masterId) && $parent->getIsMasterProduct() === false) {
                 $totalStock = 0;
 
                 // clear existing product variations
-                $this->db->query('DELETE FROM products_attributes WHERE products_id=' . $parent->getId()->getEndpoint());
-                $this->db->query('DELETE FROM products_properties_admin_select WHERE products_id=' . $parent->getMasterProductId()->getEndpoint());
+                $this->db->query('DELETE FROM products_attributes WHERE products_id=' . $productId);
 
                 foreach ($parent->getVariations() as $variation) {
                     // get variation name in default language
@@ -157,7 +162,7 @@ class ProductVariation extends Product
                 }
 
                 if ($parent->getStockLevel()->getStockLevel() == 0) {
-                    $this->db->query('UPDATE products SET products_quantity=' . $totalStock . ' WHERE products_id=' . $parent->getId()->getEndpoint());
+                    $this->db->query('UPDATE products SET products_quantity=' . $totalStock . ' WHERE products_id=' . $productId);
                 }
 
                 $this->clearUnusedVariations();
@@ -166,7 +171,8 @@ class ProductVariation extends Product
                 $checksum = ChecksumLinker::find($parent, 1);
 
                 if ($checksum === null || $checksum->hasChanged() === true) {
-                    $this->db->query('DELETE FROM products_attributes WHERE products_id=' . $parent->getId()->getEndpoint());
+                    $this->db->query('DELETE FROM products_attributes WHERE products_id=' . $productId);
+                    $this->db->query('DELETE FROM products_properties_admin_select WHERE products_id=' . $productId);
 
                     foreach ($parent->getVariations() as $variation) {
                         // get variation name in default language
