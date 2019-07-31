@@ -110,7 +110,7 @@ class Image extends BaseMapper
         
         if (!empty($data->getId()->getEndpoint())) {
             $this->delete($data);
-            if ($isVarCombi) {
+            if ($isVarCombi && $data->getSort() == 1) {
                 $path = 'images/product_images/properties_combis_images/';
             } elseif ($type == ImageRelationType::TYPE_CATEGORY) {
                 $path = 'images/categories/';
@@ -137,6 +137,7 @@ class Image extends BaseMapper
                 $this->handleProductThumbnail($data, $imgFilename);
                 break;
             case ImageRelationType::TYPE_PRODUCT:
+                
                 $this->db->query('DELETE FROM products_images WHERE image_id="' . $data->getId()->getEndpoint() . '"');
                 $this->db->query('DELETE FROM gm_prd_img_alt WHERE image_id="' . $data->getId()->getEndpoint() . '"');
                 $this->handleProductImage($data, $imgFilename);
@@ -245,6 +246,7 @@ class Image extends BaseMapper
                     break;
                 
                 case ImageRelationType::TYPE_PRODUCT:
+                    /* If is Thumbnail */
                     if ($data->getSort() == 0) {
                         $oldImage = $this->db->query('SELECT products_image FROM products WHERE products_id = "' . $data->getForeignKey()->getEndpoint() . '"');
                         $oldImage = !empty($oldImage[0]['products_image']) ? $oldImage[0]['products_image'] : null;
