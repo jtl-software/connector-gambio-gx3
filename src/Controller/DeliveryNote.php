@@ -38,7 +38,8 @@ class DeliveryNote extends Controller
                           order_id="'.$orderId.'",
                           tracking_code="'.implode(', ', $list->getCodes()).'",
                           parcel_service_id='.$carrier['parcel_service_id'].',
-                          parcel_service_name="'.$carrier['name'].'"
+                          parcel_service_name="'.$carrier['name'].'",
+                          comment=""
                         ');
 
                         break;
