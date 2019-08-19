@@ -128,8 +128,6 @@ class Image extends BaseMapper
         }
         
         if ($isVarCombi) {
-            $this->generateThumbs($imgFilename);
-            
             return $this->handleCombiChildThumbnail($data, $imgFilename);
         }
         
@@ -137,12 +135,14 @@ class Image extends BaseMapper
             case self::THUMBNAIL:
                 $this->db->query('DELETE FROM products_images WHERE image_id="' . $data->getId()->getEndpoint() . '"');
                 $this->handleProductThumbnail($data, $imgFilename);
+                
                 break;
             case ImageRelationType::TYPE_PRODUCT:
                 $this->generateThumbs($imgFilename);
                 $this->db->query('DELETE FROM products_images WHERE image_id="' . $data->getId()->getEndpoint() . '"');
                 $this->db->query('DELETE FROM gm_prd_img_alt WHERE image_id="' . $data->getId()->getEndpoint() . '"');
                 $this->handleProductImage($data, $imgFilename);
+                
                 break;
             case ImageRelationType::TYPE_MANUFACTURER:
                 $manufacturersObj = new \stdClass();
@@ -150,6 +150,7 @@ class Image extends BaseMapper
                 $this->db->updateRow($manufacturersObj, 'manufacturers', 'manufacturers_id',
                     $data->getForeignKey()->getEndpoint());
                 $data->getId()->setEndpoint('mID_' . $data->getForeignKey()->getEndpoint());
+                
                 break;
             case ImageRelationType::TYPE_CATEGORY:
                 $categoryObj = new \stdClass();
@@ -157,6 +158,7 @@ class Image extends BaseMapper
                 $this->db->updateRow($categoryObj, 'categories', 'categories_id',
                     $data->getForeignKey()->getEndpoint());
                 $data->getId()->setEndpoint('cID_' . $data->getForeignKey()->getEndpoint());
+                
                 break;
         }
         
