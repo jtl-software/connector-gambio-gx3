@@ -2,7 +2,6 @@
 
 namespace jtl\Connector\Gambio\Mapper;
 
-use jtl\Connector\Gambio\Mapper\BaseMapper;
 use jtl\Connector\Drawing\ImageRelationType;
 
 class Image extends BaseMapper
@@ -110,13 +109,16 @@ class Image extends BaseMapper
         
         if (!empty($data->getId()->getEndpoint())) {
             $this->delete($data);
-            if ($isVarCombi && $data->getSort() == 1) {
-                $path = 'images/product_images/properties_combis_images/';
-            } elseif ($type == ImageRelationType::TYPE_CATEGORY) {
-                $path = 'images/categories/';
-            } elseif ($type == ImageRelationType::TYPE_MANUFACTURER) {
-                $path = 'images/manufacturers/';
-            }
+        }
+        
+        if ($isVarCombi && $data->getSort() == 1) {
+            $path = 'images/product_images/properties_combis_images/';
+        } elseif ($type == ImageRelationType::TYPE_CATEGORY) {
+            $path = 'images/categories/';
+        } elseif ($type == ImageRelationType::TYPE_MANUFACTURER) {
+            $path = 'images/manufacturers/';
+        } elseif (!$isVarCombi && $data->getSort() == 1) {
+            $type = self::THUMBNAIL;
         }
         
         $imgFilename = $this->getImgFilename($data);
@@ -126,10 +128,10 @@ class Image extends BaseMapper
         }
         
         if ($isVarCombi) {
+            $this->generateThumbs($imgFilename);
+            
             return $this->handleCombiChildThumbnail($data, $imgFilename);
         }
-        
-        $this->generateThumbs($imgFilename);
         
         switch ($type) {
             case self::THUMBNAIL:
@@ -137,18 +139,28 @@ class Image extends BaseMapper
                 $this->handleProductThumbnail($data, $imgFilename);
                 break;
             case ImageRelationType::TYPE_PRODUCT:
-                
+                $this->generateThumbs($imgFilename);
                 $this->db->query('DELETE FROM products_images WHERE image_id="' . $data->getId()->getEndpoint() . '"');
                 $this->db->query('DELETE FROM gm_prd_img_alt WHERE image_id="' . $data->getId()->getEndpoint() . '"');
                 $this->handleProductImage($data, $imgFilename);
                 break;
             case ImageRelationType::TYPE_MANUFACTURER:
+                $manufacturersObj = new \stdClass();
+                $manufacturersObj->manufacturers_image = 'manufacturers/' . $imgFilename;
+                $this->db->updateRow($manufacturersObj, 'manufacturers', 'manufacturers_id',
+                    $data->getForeignKey()->getEndpoint());
                 $data->getId()->setEndpoint('mID_' . $data->getForeignKey()->getEndpoint());
                 break;
             case ImageRelationType::TYPE_CATEGORY:
+                $categoryObj = new \stdClass();
+                $categoryObj->categories_image = $imgFilename;
+                $this->db->updateRow($categoryObj, 'categories', 'categories_id',
+                    $data->getForeignKey()->getEndpoint());
                 $data->getId()->setEndpoint('cID_' . $data->getForeignKey()->getEndpoint());
                 break;
         }
+        
+        return $data;
     }
     
     protected function handleProductImage($data, $imgFilename)
@@ -281,7 +293,8 @@ class Image extends BaseMapper
                                 $combisObj = new \stdClass();
                                 $combisObj->combi_image = null;
                                 
-                                $this->db->updateRow($combisObj, 'products_properties_combis', 'products_properties_combis_id', $combisId);
+                                $this->db->updateRow($combisObj, 'products_properties_combis',
+                                    'products_properties_combis_id', $combisId);
                             }
                         } else {
                             $oldImage = $this->db->query('SELECT products_image FROM products WHERE products_id = "' . $data->getForeignKey()->getEndpoint() . '"');
