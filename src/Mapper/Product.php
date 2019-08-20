@@ -607,9 +607,14 @@ class Product extends BaseMapper
     protected function products_vpe($data)
     {
         /** @var ProductModel $data */
-        $name = $data->getBasePriceUnitName();
-        if(MeasurementUnitHelper::isUnit($data->getBasePriceUnitName())) {
-            $name = MeasurementUnitHelper::getUnitName($data->getBasePriceUnitName());
+        if ($data->getConsiderBasePrice()){
+            $name = $data->getBasePriceUnitCode();
+        } else {
+            $name = $data->getMeasurementUnitCode();
+        }
+        
+        if(MeasurementUnitHelper::isUnit($name)) {
+            $name = MeasurementUnitHelper::getUnitName($name);
         }
 
         if($data->getConsiderBasePrice() && !is_null($data->getBasePriceQuantity()) && $data->getBasePriceQuantity() > 1.) {
@@ -654,7 +659,6 @@ class Product extends BaseMapper
         if ($data->getConsiderBasePrice() && $data->getBasePriceQuantity() > 0 && MeasurementUnitHelper::isUnit($data->getMeasurementUnitCode())) {
             //$value /= $data->getBasePriceQuantity();
             $value = ($data->getMeasurementQuantity() * MeasurementUnitHelper::getUnitFactor($data->getMeasurementUnitCode())) / ($data->getBasePriceQuantity() * MeasurementUnitHelper::getUnitFactor($data->getBasePriceUnitCode()));
-            
         }
         
         return $value;
