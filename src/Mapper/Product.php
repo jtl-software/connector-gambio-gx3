@@ -607,10 +607,10 @@ class Product extends BaseMapper
     protected function products_vpe($data)
     {
         /** @var ProductModel $data */
+        $name = $data->getMeasurementUnitCode();
+        
         if ($data->getConsiderBasePrice()){
             $name = $data->getBasePriceUnitCode();
-        } else {
-            $name = $data->getMeasurementUnitCode();
         }
         
         if(MeasurementUnitHelper::isUnit($name)) {
