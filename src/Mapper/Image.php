@@ -93,13 +93,13 @@ class Image extends BaseMapper
         return $result;
     }
     
-    protected function getImgFilename($data)
+    public function push($data, $dbObj = null)
     {
-        if (empty($data->getName())) {
-            return substr($data->getFilename(), strrpos($data->getFilename(), '/') + 1);
+        if (get_class($data) === 'jtl\Connector\Model\Image') {
+            $this->imageController($data, $data->getRelationType());
+        } else {
+            throw new \Exception('Pushed data is not an image object');
         }
-        
-        return $data->getName();
     }
     
     protected function imageController($data, $type = self::THUMBNAIL)
@@ -165,6 +165,15 @@ class Image extends BaseMapper
         return $data;
     }
     
+    protected function getImgFilename($data)
+    {
+        if (empty($data->getName())) {
+            return substr($data->getFilename(), strrpos($data->getFilename(), '/') + 1);
+        }
+        
+        return $data->getName();
+    }
+    
     protected function handleProductImage($data, $imgFilename)
     {
         $imgObj = new \stdClass();
@@ -216,15 +225,6 @@ class Image extends BaseMapper
         $this->db->query('DELETE FROM jtl_connector_link_image WHERE endpoint_id="' . $data->getId()->getEndpoint() . '"');
         $this->db->query('DELETE FROM jtl_connector_link_image WHERE host_id=' . $data->getId()->getHost());
         $this->db->query('INSERT INTO jtl_connector_link_image SET host_id="' . $data->getId()->getHost() . '", endpoint_id="' . $data->getId()->getEndpoint() . '"');
-    }
-    
-    public function push($data, $dbObj = null)
-    {
-        if (get_class($data) === 'jtl\Connector\Model\Image') {
-            $this->imageController($data, $data->getRelationType());
-        } else {
-            throw new \Exception('Pushed data is not an image object');
-        }
     }
     
     public function delete($data)
