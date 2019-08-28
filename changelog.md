@@ -1,3 +1,7 @@
+2.10.2
+-----
+- Fixed tax rates for CustomerOrderItem's (Now ignoring allow_tax)
+
 2.10.1
 -----
 - Deleting of products_properties_admin_select entries moved to the right place
