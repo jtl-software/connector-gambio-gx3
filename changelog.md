@@ -1,6 +1,7 @@
 Unreleased
 -----
 - Initializing comment by inserting the tracking code into the database during delivery note push
+- Transations in handle method added
 
 2.10.1
 -----
