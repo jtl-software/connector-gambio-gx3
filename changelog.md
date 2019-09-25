@@ -1,3 +1,7 @@
+2.10.2
+-----
+- Now ignoring entries in orders_total with class ot_subtotal_no_tax for tax calculation
+
 2.10.1
 -----
 - Deleting of products_properties_admin_select entries moved to the right place
