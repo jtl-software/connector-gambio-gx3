@@ -127,21 +127,17 @@ class CustomerOrderItem extends BaseMapper
 
     protected function price($data)
     {
-        if ($data['allow_tax'] == "0") {
-            return $data['products_price'];
-        }
+        return $data['products_price'] / (100 + $data['products_tax']) * 100;
     }
 
     protected function priceGross($data)
     {
-        if ($data['allow_tax'] == "1") {
-            return $data['products_price'];
-        }
+        return $data['products_price'];
     }
 
     protected function vat($data)
     {
-        return ($data['allow_tax'] == "1" ? $data['products_tax'] : 0);
+        return $data['products_tax'];
     }
 
     protected function products_price($data)

@@ -2,6 +2,7 @@ Unreleased
 -----
 - Initializing comment by inserting the tracking code into the database during delivery note push
 - Transations in handle method added
+- CO-244/CO-508 Fixed tax rates for CustomerOrderItem's (Now ignoring allow_tax)
 
 2.10.1
 -----

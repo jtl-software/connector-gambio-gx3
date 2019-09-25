@@ -276,7 +276,7 @@ class CustomerOrder extends BaseMapper
         $totalData = $this->db->query('SELECT class,value,title FROM orders_total WHERE orders_id=' . $data['orders_id']);
         $taxRate = $this->db->query('SELECT tax_rate FROM orders_tax_sum_items WHERE order_id=' . $data['orders_id']);
 
-        $vatExcl = isset($taxRate[0]['tax_rate']) && (float)$taxRate[0]['tax_rate'] === 0.;
+        $vatExcl = !isset($taxRate[0]['tax_rate']) || (float)$taxRate[0]['tax_rate'] === 0.;
         foreach ($totalData as $total) {
             if ($total['class'] == 'ot_subtotal_no_tax') {
                 $vatExcl = true;
@@ -313,9 +313,8 @@ class CustomerOrder extends BaseMapper
                     }
                 }
 
-                if (!$vatExcl) {
-                    $shipping->setPriceGross($price);
-                } else {
+                $shipping->setPriceGross($price);
+                if ($vatExcl) {
                     $shipping->setPrice($price);
                 }
 
