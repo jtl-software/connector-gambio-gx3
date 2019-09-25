@@ -5,6 +5,7 @@ use \jtl\Connector\Core\Rpc\RequestPacket;
 use \jtl\Connector\Core\Utilities\RpcMethod;
 use \jtl\Connector\Core\Database\Mysql;
 use \jtl\Connector\Core\Rpc\ResponsePacket;
+use jtl\Connector\Model\Product;
 use \jtl\Connector\Session\SessionHelper;
 use \jtl\Connector\Base\Connector as BaseConnector;
 use \jtl\Connector\Core\Rpc\Error as Error;
@@ -153,12 +154,32 @@ class Gambio extends BaseConnector
             $action = new Action();
             $results = array();
             $errors = array();
-
+    
+            $link = Mysql::getInstance();
+            $link->DB()->begin_transaction();
+            
             foreach ($requestpacket->getParams() as $param) {
                 $result = $this->controller->{$this->action}($param);
+    
+                if ($result->getError()) {
+                    $link->rollback();
+                    $message = sprintf('Type: %s %s', get_class($param), $result->getError()->getMessage());
+                    if (method_exists($param, 'getId')) {
+                        if ($param instanceof Product) {
+                            $message = sprintf('Type: Product Host-Id: %s SKU: %s %s', $param->getId()->getHost(), $param->getSku(), $result->getError()->getMessage());
+                        } else {
+                            $message = sprintf('Type: %s Host-Id: %s %s', get_class($param), $param->getId()->getHost(), $result->getError()->getMessage());
+                        }
+                    }
+        
+                    throw new \Exception($message);
+                }
+                
                 $results[] = $result->getResult();
             }
 
+            $link->commit();
+            
             $action->setHandled(true)
                 ->setResult($results)
                 ->setError($result->getError());
