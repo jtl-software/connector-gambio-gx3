@@ -277,12 +277,6 @@ class CustomerOrder extends BaseMapper
         $taxRate = $this->db->query('SELECT tax_rate FROM orders_tax_sum_items WHERE order_id=' . $data['orders_id']);
 
         $vatExcl = isset($taxRate[0]['tax_rate']) && (float)$taxRate[0]['tax_rate'] === 0.;
-        foreach ($totalData as $total) {
-            if ($total['class'] == 'ot_subtotal_no_tax') {
-                $vatExcl = true;
-                break;
-            }
-        }
 
         foreach ($totalData as $total) {
             if ($total['class'] == 'ot_total') {
