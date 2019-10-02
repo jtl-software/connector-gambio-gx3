@@ -1,3 +1,7 @@
+UNRELEASED
+-----
+- CO-601 Existing Additional_Fields are no updated to multilingual=1
+
 2.10.1
 -----
 - Deleting of products_properties_admin_select entries moved to the right place
