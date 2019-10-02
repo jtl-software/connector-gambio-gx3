@@ -1,10 +1,10 @@
-Unreleased
+2.10.2
 -----
-- Comment initialised by inserting tracking code into shop database during delivery note push
-- Added transactions in handle method 
+- CO-498 Added transactions in handle method 
 - CO-244/CO-508 Fixed tax rates for CustomerOrderItem's (Now ignoring allow_tax)
 - CO-590 Entries in table orders_total with class ot_subtotal_no_tax will be ignored for tax calculation
-- CO-601 Existing Additional_Fields are no updated to multilingual=1
+- CO-601 Existing additional fields will be marked as multilingual during product push
+- Comment will be initialised when inserting tracking code into shop database during delivery note push
 
 2.10.1
 -----
