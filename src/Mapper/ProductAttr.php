@@ -78,6 +78,9 @@ class ProductAttr extends BaseMapper
                                       LEFT JOIN additional_field_value_descriptions d ON d.additional_field_value_id = v.additional_field_value_id
                                       WHERE v.additional_field_id = ' . $fieldId . ' AND item_id=' . $pId
                                 );
+				$this->db->query('
+                                      UPDATE additional_fields SET multilingual=1 WHERE additional_field_id=' . $fieldId
+                                );
                             }
                         } else {
                             $field = new \stdClass();

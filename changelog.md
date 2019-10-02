@@ -1,8 +1,9 @@
 Unreleased
 -----
-- Initializing comment by inserting the tracking code into the database during delivery note push
-- Transations in handle method added
+- Comment initialised by inserting tracking code into shop database during delivery note push
+- Added transactions in handle method 
 - CO-244/CO-508 Fixed tax rates for CustomerOrderItem's (Now ignoring allow_tax)
+- CO-601 Existing Additional_Fields are no updated to multilingual=1
 
 2.10.1
 -----
