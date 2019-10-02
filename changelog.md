@@ -3,6 +3,7 @@ Unreleased
 - Comment initialised by inserting tracking code into shop database during delivery note push
 - Added transactions in handle method 
 - CO-244/CO-508 Fixed tax rates for CustomerOrderItem's (Now ignoring allow_tax)
+- CO-590 Entries in table orders_total with class ot_subtotal_no_tax will be ignored for tax calculation
 - CO-601 Existing Additional_Fields are no updated to multilingual=1
 
 2.10.1
