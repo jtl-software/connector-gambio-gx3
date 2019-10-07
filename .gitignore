@@ -1,3 +1,4 @@
+tests/test-config.json
 vendor/**
 composer.lock
 config/config.json
