@@ -73,7 +73,6 @@ class DevLogging extends Module
                     }).done(() => {
                         window.location.href = "'. substr($this->shopConfig["shop"]["folder"],0, -1) .'/jtlconnector/install/logs.zip";
                     });
-                    
                 }
                 
                 function clearLogs() {
@@ -84,8 +83,6 @@ class DevLogging extends Module
                     }).done(() => {
                         location.reload();
                     });
-                    
-                    
                 }
             </script>
         </div>';
