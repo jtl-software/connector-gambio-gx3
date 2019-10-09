@@ -29,17 +29,12 @@ class DevLogging extends Module
             <label for="clear" class="col-xs-2 control-label">Logs löschen</label>
             <div class="col-xs-6">
             ';
-        
-        if (count(scandir($this->config->platform_root . '/jtlconnector/logs')) > 3){
-            $html .= '<div id="clearLogsButton" class="btn btn-default btn-sm btn-block">Clear</div>';
-        }else{
-            $html .= '
-            <div data-toggle="tooltip" data-placement="top" title="Es wurden keine Logs gefunden!">
-                <button disabled class="btn btn-default btn-sm btn-block">Clear</button>
-            </div>
-            
-            ';
+    
+        $disabledButtons = "";
+        if (count(scandir($this->config->platform_root . '/jtlconnector/logs')) < 3) {
+            $disabledButtons = "disabled";
         }
+        $html .= '<div id="clearLogsButton" '. $disabledButtons .' class="btn btn-default btn-sm btn-block">Clear</div>';
         
         $html .='
             </div>
@@ -48,16 +43,7 @@ class DevLogging extends Module
             <label for="download" class="col-xs-2 control-label">Logs herunterladen</label>
             <div class="col-xs-6">';
         
-        if (count(scandir($this->config->platform_root . '/jtlconnector/logs')) > 3){
-            $html .= '<div id="downloadLogsButton" class="btn btn-default btn-sm btn-block">Download</div>';
-        }else{
-            $html .= '
-            <div data-toggle="tooltip" data-placement="top" title="Es wurden keine Logs gefunden!">
-                <button disabled class="btn btn-default btn-sm btn-block">Download</button>
-            </div>
-            
-            ';
-        }
+        $html .= '<div id="downloadLogsButton" '. $disabledButtons .' class="btn btn-default btn-sm btn-block">Download</div>';
         
         $html .= '</div>
         </div>
