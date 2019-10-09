@@ -70,9 +70,10 @@ class DevLogging extends Module
                       type: "POST",
                       url: " '. substr($this->shopConfig["shop"]["folder"],0, -1) .'/jtlconnector/install/loggingConfig.php",
                       data: {download: ""},
+                    }).done(() => {
+                        window.location.href = "'. substr($this->shopConfig["shop"]["folder"],0, -1) .'/jtlconnector/install/logs.zip";
                     });
                     
-                    window.location.href = "'. substr($this->shopConfig["shop"]["folder"],0, -1) .'/jtlconnector/install/logs.zip";
                 }
                 
                 function clearLogs() {
@@ -80,9 +81,11 @@ class DevLogging extends Module
                       type: "POST",
                       url: " '. substr($this->shopConfig["shop"]["folder"],0, -1) .'/jtlconnector/install/loggingConfig.php",
                       data: {clear: ""},
+                    }).done(() => {
+                        location.reload();
                     });
                     
-                    location.reload();
+                    
                 }
             </script>
         </div>';

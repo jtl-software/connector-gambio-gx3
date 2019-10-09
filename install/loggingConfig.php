@@ -20,10 +20,6 @@ if (isset($_REQUEST['download'])) {
     }
     $zip->close();
     
-    header('Content-type: application/zip');
-    header('Content-Disposition: attachment; filename="logs.zip"');
-    readfile($downloadFolder . 'logs.zip');
-    
 } elseif (isset($_REQUEST['clear'])) {
     foreach (scandir($logFolder) as $file) {
         if ($file !== '.' && $file !== '..' && $file !== '.htaccess') {
