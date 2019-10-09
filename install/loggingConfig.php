@@ -1,6 +1,7 @@
 <?php
 
-$projectdir = $_SERVER['DOCUMENT_ROOT'];
+$urlFolders = str_replace("/jtlconnector/install/loggingConfig.php", "", $_SERVER['REQUEST_URI']);
+$projectdir = $_SERVER['DOCUMENT_ROOT'] . $urlFolders;
 $logFolder = $projectdir . '/jtlconnector/logs/';
 $downloadFolder = $projectdir . '/jtlconnector/install/';
 
@@ -29,6 +30,4 @@ if (isset($_REQUEST['download'])) {
             unlink($logFolder . $file);
         }
     }
-    
-    header('Location: /jtlconnector/install/#dev_logging');
 }

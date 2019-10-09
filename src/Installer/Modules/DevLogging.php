@@ -31,7 +31,7 @@ class DevLogging extends Module
             ';
         
         if (count(scandir($this->config->platform_root . '/jtlconnector/logs')) > 3){
-            $html .=' <button formmethod="post" formaction="/jtlconnector/install/loggingConfig.php" name="clear" class="btn btn-default btn-sm btn-block">Clear</button>';
+            $html .= '<div id="clearLogsButton" class="btn btn-default btn-sm btn-block">Clear</div>';
         }else{
             $html .= '
             <div data-toggle="tooltip" data-placement="top" title="Es wurden keine Logs gefunden!">
@@ -49,7 +49,7 @@ class DevLogging extends Module
             <div class="col-xs-6">';
         
         if (count(scandir($this->config->platform_root . '/jtlconnector/logs')) > 3){
-            $html .='<button formmethod="post" formaction="/jtlconnector/install/loggingConfig.php" name="download" class="btn btn-default btn-sm btn-block">Download</button>';
+            $html .= '<div id="downloadLogsButton" class="btn btn-default btn-sm btn-block">Download</div>';
         }else{
             $html .= '
             <div data-toggle="tooltip" data-placement="top" title="Es wurden keine Logs gefunden!">
@@ -61,6 +61,30 @@ class DevLogging extends Module
         
         $html .= '</div>
         </div>
+            <script>
+                document.getElementById("downloadLogsButton").addEventListener("click", downloadLogs)
+                document.getElementById("clearLogsButton").addEventListener("click", clearLogs)
+                
+                function downloadLogs() {
+                    $.ajax({
+                      type: "POST",
+                      url: " '. substr($this->shopConfig["shop"]["folder"],0, -1) .'/jtlconnector/install/loggingConfig.php",
+                      data: {download: ""},
+                    });
+                    
+                    window.location.href = "'. substr($this->shopConfig["shop"]["folder"],0, -1) .'/jtlconnector/install/logs.zip";
+                }
+                
+                function clearLogs() {
+                    $.ajax({
+                      type: "POST",
+                      url: " '. substr($this->shopConfig["shop"]["folder"],0, -1) .'/jtlconnector/install/loggingConfig.php",
+                      data: {clear: ""},
+                    });
+                    
+                    location.reload();
+                }
+            </script>
         </div>';
         
         return $html;
