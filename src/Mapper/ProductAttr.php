@@ -73,7 +73,7 @@ class ProductAttr extends BaseMapper
 
                             if (!empty($pId)) {
                                 $this->db->query('
-                                      DELETE v, dtests
+                                      DELETE v, d
                                       FROM additional_field_values v
                                       LEFT JOIN additional_field_value_descriptions d ON d.additional_field_value_id = v.additional_field_value_id
                                       WHERE v.additional_field_id = ' . $fieldId . ' AND item_id=' . $pId
