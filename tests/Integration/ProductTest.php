@@ -37,7 +37,7 @@ class ProductTest extends \Jtl\Connector\IntegrationTests\Integration\ProductTes
             'basePriceQuantity',
             'basePriceUnitCode',
             'keywords', //Endpoint test /is handled via attribute to include multilingual values
-            'length', //Needs Fixing
+            'length',
             'measurementUnitCode',
             'measurementQuantity',
             'supplierDeliveryTime',
