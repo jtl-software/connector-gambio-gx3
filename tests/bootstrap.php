@@ -19,53 +19,16 @@ function getPrimaryKeyMapper()
 
 function initDB()
 {
-    $session = new SessionHelper("gambio");
-    
-    if (!isset($session->shopConfig)) {
-        $session->shopConfig = readConfigFile();
-    }
-    if (!isset($session->connectorConfig)) {
-        $session->connectorConfig = json_decode(@file_get_contents(TEST_DIR.'/config/config.json'));
-    }
-    
+    require_once(CONNECTOR_DIR.'/../../includes/configure.php');
+
     $db = Mysql::getInstance();
     
     if (!$db->isConnected()) {
         $db->connect(array(
-            "host" => $session->shopConfig['db']["host"],
-            "user" => $session->shopConfig['db']["user"],
-            "password" => $session->shopConfig['db']["pass"],
-            "name" => $session->shopConfig['db']["name"]
+            "host" => DB_SERVER,
+            "user" => DB_SERVER_USERNAME,
+            "password" => DB_SERVER_PASSWORD,
+            "name" => DB_DATABASE
         ));
     }
-}
-
-function readConfigFile()
-{
-    $gx_version = "";
-    require_once(CONNECTOR_DIR.'/../../includes/configure.php');
-    require_once(CONNECTOR_DIR.'/../../release_info.php');
-    
-    return array(
-        'shop' => array(
-            'url' => HTTP_SERVER,
-            'folder' => DIR_WS_CATALOG,
-            'path' => DIR_FS_DOCUMENT_ROOT,
-            'fullUrl' => HTTP_SERVER.DIR_WS_CATALOG,
-            'version' => ltrim($gx_version,'v')
-        ),
-        'db' => array(
-            'host' => DB_SERVER,
-            'name' => DB_DATABASE,
-            'user' => DB_SERVER_USERNAME,
-            'pass' => DB_SERVER_PASSWORD
-        ),
-        'img' => array(
-            'original' => DIR_WS_ORIGINAL_IMAGES,
-            'thumbnails' => DIR_WS_THUMBNAIL_IMAGES,
-            'info' => DIR_WS_INFO_IMAGES,
-            'popup' => DIR_WS_POPUP_IMAGES,
-            'gallery' => 'images/product_images/gallery_images/'
-        )
-    );
 }

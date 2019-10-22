@@ -4,6 +4,13 @@
 namespace Tests;
 
 
+use DateTime;
+use jtl\Connector\Model\Identity;
+use jtl\Connector\Model\Product;
+use jtl\Connector\Model\ProductI18n;
+use jtl\Connector\Model\ProductPrice;
+use jtl\Connector\Model\ProductPriceItem;
+use jtl\Connector\Model\ProductStockLevel;
 use function foo\func;
 
 class ProductTest extends \Jtl\Connector\IntegrationTests\Integration\ProductTest
@@ -52,7 +59,6 @@ class ProductTest extends \Jtl\Connector\IntegrationTests\Integration\ProductTes
             'permitNegativeStock', //Endpoint test
             'vat', //Endpoint test
             'basePriceUnitName', //Endpoint test
-            'specialPrices.0.activeFromDate', //Needs Fixing
             'specialPrices.0.stockLimit',
         ];
     }
@@ -108,5 +114,36 @@ class ProductTest extends \Jtl\Connector\IntegrationTests\Integration\ProductTes
         $this->markTestIncomplete(
             'This test needs Fixing. Sending childs before parents'
         );
+    }
+    
+    public function testProductCreationDate()
+    {
+        $product = (new Product())
+            ->setCreationDate(new DateTime('2019-08-21T00:00:00+0200'))
+            ->setisNewProduct(false)
+            ->setStockLevel(new ProductStockLevel())
+            ->setId(new Identity('', $this->hostId));
+    
+        if ($product->getMinimumOrderQuantity() == 0) {
+            $product->setMinimumOrderQuantity(1);
+        }
+        
+        $endpointId = $this->pushCoreModels([$product], true)[0]->getId()->getEndpoint();
+        $this->assertNotEmpty($endpointId);
+        $result = $this->pullCoreModels('Product', 1, $endpointId);
+    
+        $this->assertEquals($product->getCreationDate(), $result->getCreationDate());
+        $this->deleteModel('Product', $endpointId, $this->hostId);
+        
+        $product->setisNewProduct(true)
+            ->setNewReleaseDate(new DateTime('2019-08-26T00:00:00+0200'));
+    
+        $endpointId = $this->pushCoreModels([$product], true)[0]->getId()->getEndpoint();
+        $this->assertNotEmpty($endpointId);
+        $result = $this->pullCoreModels('Product', 1, $endpointId);
+    
+        $this->assertNotEquals($product->getCreationDate(), $result->getCreationDate());
+        $this->assertEquals($product->getNewReleaseDate(), $result->getCreationDate());
+        $this->deleteModel('Product', $endpointId, $this->hostId);
     }
 }
