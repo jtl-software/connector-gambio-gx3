@@ -9,11 +9,7 @@ use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\Product;
 use jtl\Connector\Model\ProductAttr;
 use jtl\Connector\Model\ProductAttrI18n;
-use jtl\Connector\Model\ProductI18n;
-use jtl\Connector\Model\ProductPrice;
-use jtl\Connector\Model\ProductPriceItem;
 use jtl\Connector\Model\ProductStockLevel;
-use function foo\func;
 
 class ProductTest extends \Jtl\Connector\IntegrationTests\Integration\ProductTest
 {
@@ -186,4 +182,38 @@ class ProductTest extends \Jtl\Connector\IntegrationTests\Integration\ProductTes
         $this->assertEquals($product->getAttributes()[0]->getI18ns()[0]->getValue(), $result->getKeywords());
         $this->deleteModel('Product', $endpointId, $this->hostId);
     }
+    
+    public function testProductPackagingQuantityPush()
+    {
+        $product = (new Product())
+            ->setStockLevel(new ProductStockLevel())
+            ->setCreationDate(new DateTime('2019-08-21T00:00:00+0200'))
+            ->setId(new Identity('', $this->hostId))
+            ->setMinimumOrderQuantity(1)
+            ->setPackagingQuantity(1.55);
+    
+        $endpointId = $this->pushCoreModels([$product], true)[0]->getId()->getEndpoint();
+        $this->assertNotEmpty($endpointId);
+        $result = $this->pullCoreModels('Product', 1, $endpointId);
+    
+        $this->assertEquals($product->getPackagingQuantity(), $result->getPackagingQuantity());
+        $this->deleteModel('Product', $endpointId, $this->hostId);
+        
+        $product = (new Product())
+            ->setStockLevel(new ProductStockLevel())
+            ->setCreationDate(new DateTime('2019-08-21T00:00:00+0200'))
+            ->setId(new Identity('', $this->hostId))
+            ->setMinimumOrderQuantity(1)
+            ->setPackagingQuantity(0);
+    
+        $endpointId = $this->pushCoreModels([$product], true)[0]->getId()->getEndpoint();
+        $this->assertNotEmpty($endpointId);
+        $result = $this->pullCoreModels('Product', 1, $endpointId);
+    
+        $this->assertNotEquals($product->getPackagingQuantity(), $result->getPackagingQuantity());
+        $this->assertEquals(1, $result->getPackagingQuantity());
+        $this->deleteModel('Product', $endpointId, $this->hostId);
+    }
+    
+    
 }
