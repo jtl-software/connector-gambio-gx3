@@ -55,7 +55,7 @@ class CategoryTest extends \Jtl\Connector\IntegrationTests\Integration\CategoryT
             ->setCategoryAttrId(new Identity('', $this->hostId))
             ->setLanguageISO('ger')
             ->setName('categories_status')
-            ->setValue('1');
+            ->setValue('0');
         $attribute->addI18n($i18n);
         $category->addAttribute($attribute);
     

@@ -54,9 +54,9 @@ class ProductTest extends \Jtl\Connector\IntegrationTests\Integration\ProductTes
             'attributes', //Endpoint test
             'isActive', //Endpoint test /is handled via attribute
             'packagingQuantity', //Endpoint test
-            'permitNegativeStock', //Endpoint test
-            'vat', //Endpoint test
-            'basePriceUnitName', //Endpoint test
+            'permitNegativeStock', //Endpoint test? /is set in relation to the shop config
+            'vat', //Endpoint test? /is set in relation to the shop config
+            'basePriceUnitName',
             'specialPrices.0.stockLimit',
         ];
     }
@@ -215,5 +215,39 @@ class ProductTest extends \Jtl\Connector\IntegrationTests\Integration\ProductTes
         $this->deleteModel('Product', $endpointId, $this->hostId);
     }
     
+    public function testProductIsActivePush()
+    {
+        $product = (new Product())
+            ->setStockLevel(new ProductStockLevel())
+            ->setCreationDate(new DateTime('2019-08-21T00:00:00+0200'))
+            ->setId(new Identity('', $this->hostId))
+            ->setMinimumOrderQuantity(1)
+            ->setIsActive(false);
     
+        $endpointId = $this->pushCoreModels([$product], true)[0]->getId()->getEndpoint();
+        $this->assertNotEmpty($endpointId);
+        $result = $this->pullCoreModels('Product', 1, $endpointId);
+    
+        $this->assertNotEquals($product->getIsActive(), $result->getIsActive());
+        $this->deleteModel('Product', $endpointId, $this->hostId);
+    
+        $attribute = (new ProductAttr())
+            ->setProductId(new Identity('', 1))
+            ->setId(new Identity('', 1));
+    
+        $i18n = (new ProductAttrI18n())
+            ->setProductAttrId(new Identity('', $this->hostId))
+            ->setLanguageISO('ger')
+            ->setName('products_status')
+            ->setValue('0');
+        $attribute->addI18n($i18n);
+        $product->addAttribute($attribute);
+    
+        $endpointId = $this->pushCoreModels([$product], true)[0]->getId()->getEndpoint();
+        $this->assertNotEmpty($endpointId);
+        $result = $this->pullCoreModels('Product', 1, $endpointId);
+    
+        $this->assertEquals((bool) $product->getAttributes()[0]->getI18ns()[0]->getValue(), $result->getIsActive());
+        $this->deleteModel('Product', $endpointId, $this->hostId);
+    }
 }
