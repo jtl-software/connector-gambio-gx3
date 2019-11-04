@@ -250,4 +250,39 @@ class ProductTest extends \Jtl\Connector\IntegrationTests\Integration\ProductTes
         $this->assertEquals((bool) $product->getAttributes()[0]->getI18ns()[0]->getValue(), $result->getIsActive());
         $this->deleteModel('Product', $endpointId, $this->hostId);
     }
+    
+    public function testProductAttributePush()
+    {
+        $product = (new Product())
+            ->setStockLevel(new ProductStockLevel())
+            ->setCreationDate(new DateTime('2019-08-21T00:00:00+0200'))
+            ->setId(new Identity('', $this->hostId))
+            ->setMinimumOrderQuantity(1);
+        
+        $attribute = (new ProductAttr())
+            ->setId(new Identity('', 1))
+            ->setProductId(new Identity('', $this->hostId))
+            ->setIsCustomProperty(true)
+            ->setIsTranslated(true);
+    
+        $attributeI18n = (new ProductAttrI18n())
+            ->setProductAttrId(new Identity('', 1))
+            ->setLanguageISO('ger')
+            ->setName('Test')
+            ->setValue('Test');
+    
+        $attribute->setI18ns([$attributeI18n]);
+        $product->setAttributes([$attribute]);
+    
+        $endpointId = $this->pushCoreModels([$product], true)[0]->getId()->getEndpoint();
+        $this->assertNotEmpty($endpointId);
+        $result = $this->pullCoreModels('Product', 1, $endpointId);
+    
+        $product = json_decode($product->getAttributes()[0]->toJson(), true);
+        $result = json_decode($result->getAttributes()[16]->toJson(), true);
+        $this->recursive_unset($product, 'id');
+        $this->recursive_unset($result, 'id');
+        $this->assertEquals($product, $result);
+        $this->deleteModel('Product', $endpointId, $this->hostId);
+    }
 }
