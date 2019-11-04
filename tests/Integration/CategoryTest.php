@@ -72,7 +72,7 @@ class CategoryTest extends \Jtl\Connector\IntegrationTests\Integration\CategoryT
         
         $category = (new Category())
             ->setId(new Identity('', $this->hostId))
-        ->setIsActive(true);
+            ->setIsActive(true);
         
         $attribute = (new CategoryAttr())
             ->setCategoryId(new Identity('', 1))
