@@ -1,4 +1,4 @@
-UNRELEASED
+2.10.3
 -----
 - CO-698 Fixed Category push for 3.11.1
 
