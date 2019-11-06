@@ -1,3 +1,7 @@
+2.10.3
+-----
+- CO-698 Fixed Category push for 3.11.1
+
 2.10.2
 -----
 - CO-498 Added transactions in handle method 
