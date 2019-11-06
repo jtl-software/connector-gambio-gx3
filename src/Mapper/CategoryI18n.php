@@ -80,7 +80,7 @@ class CategoryI18n extends \jtl\Connector\Gambio\Mapper\BaseMapper
                 $dbObj->categories_meta_title = '';
                 $dbObj->categories_meta_description = '';
                 $dbObj->categories_meta_keywords = '';
-                if (version_compare($this->shopConfig['shop']['version'], '3.11', '>=')) {
+                if (version_compare($this->shopConfig['shop']['version'], '3.11.2', '>=')) {
                     $dbObj->categories_description_bottom = '';
                 }
                 
