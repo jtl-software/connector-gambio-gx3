@@ -9,6 +9,8 @@ use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\Product;
 use jtl\Connector\Model\ProductAttr;
 use jtl\Connector\Model\ProductAttrI18n;
+use jtl\Connector\Model\ProductSpecialPrice;
+use jtl\Connector\Model\ProductSpecialPriceItem;
 use jtl\Connector\Model\ProductStockLevel;
 
 class ProductTest extends \Jtl\Connector\IntegrationTests\Integration\ProductTest
@@ -58,6 +60,8 @@ class ProductTest extends \Jtl\Connector\IntegrationTests\Integration\ProductTes
             'vat', //Endpoint test? /is set in relation to the shop config
             'basePriceUnitName',
             'specialPrices.0.stockLimit',
+            'specialPrices.0.activeFromDate', //Endpoint test
+            'specialPrices.0.activeUntilDate' //Endpoint test
         ];
     }
     
@@ -283,6 +287,48 @@ class ProductTest extends \Jtl\Connector\IntegrationTests\Integration\ProductTes
         $this->recursive_unset($product, 'id');
         $this->recursive_unset($result, 'id');
         $this->assertEquals($product, $result);
+        $this->deleteModel('Product', $endpointId, $this->hostId);
+    }
+    
+    public function testProductSpecialPriceDatesPush()
+    {
+        $specialPrice = (new ProductSpecialPrice())
+            ->setId(new Identity('', 1))
+            ->setProductId(new Identity('', $this->hostId))
+            ->setActiveFromDate(new DateTime('now'))
+            ->setActiveUntilDate(new DateTime('now'))
+            ->setConsiderDateLimit(true)
+            ->setConsiderStockLimit(true)
+            ->setIsActive(true)
+            ->setStockLimit(64);
+    
+        $specialPriceItem = (new ProductSpecialPriceItem())
+            ->setCustomerGroupId(new Identity('', 1))
+            ->setProductSpecialPriceId(new Identity('', 1))
+            ->setPriceNet(33.56);
+        $specialPrice->setItems([$specialPriceItem]);
+        
+        $product = (new Product())
+            ->setStockLevel(new ProductStockLevel())
+            ->setCreationDate(new DateTime('now'))
+            ->setId(new Identity('', $this->hostId))
+            ->setMinimumOrderQuantity(1)
+            ->setSpecialPrices([$specialPrice]);
+    
+        $endpointId = $this->pushCoreModels([$product], true)[0]->getId()->getEndpoint();
+        $this->assertNotEmpty($endpointId);
+        $result = $this->pullCoreModels('Product', 1, $endpointId);
+        
+        $this->assertEquals(
+            $product->getSpecialPrices()[0]->getActiveUntilDate()->format('Y-m-d H:i:s'),
+            $result->getSpecialPrices()[0]->getActiveUntilDate()->format('Y-m-d H:i:s')
+        );
+        
+        $this->assertEquals(
+            $product->getSpecialPrices()[0]->getActiveFromDate()->format('Y-m-d H:i:s'),
+            $result->getSpecialPrices()[0]->getActiveFromDate()->format('Y-m-d H:i:s')
+        );
+        
         $this->deleteModel('Product', $endpointId, $this->hostId);
     }
 }
