@@ -22,7 +22,7 @@
         "php": ">=5.6.4",
         "jtl/connector": "^2.4",
         "phing/phing": "^2.16",
-        "jtl/connector-integration-tests": "^0.1",
+        "jtl/connector-integration-tests": "dev-develop",
       "ext-json": "*"
     },
     "autoload": {
