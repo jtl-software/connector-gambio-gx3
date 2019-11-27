@@ -45,29 +45,33 @@
                 <include name=".htaccess" />
             </fileset>
         </copy>
+        <copy todir="./dist">
+            <fileset dir="./">
+                <include name="index.php" />
+                <include name="version" />
+            </fileset>
+        </copy>
 
         <chmod file="./dist/config" mode="0777" />
         <chmod file="./dist/db" mode="0777" />
         <chmod file="./dist/db/connector.s3db" mode="0777" />
         <chmod file="./dist/logs" mode="0777" />
         <chmod file="./dist/tmp" mode="0777" />
+        <chmod file="./dist" mode="0777" />
 
         <delete dir="./build" />
         <mkdir dir="./build" />
 
         <copy todir="./build">
             <fileset dir=".">
-                <include name="install/" />
                 <include name="src/" />
                 <include name="vendor/" />
-                <include name="index.php" />
-                <include name="version" />
             </fileset>
         </copy>
     </target>
 
     <target name="package" depends="build">
-        <delete file="./dist/index.php" />
+        <delete file="./dist/connector.phar" />
         <pharpackage
             destfile="./dist/index.phar"
             basedir="./build"
@@ -77,16 +81,8 @@
             <fileset dir="./build">
                 <include name="**/**" />
             </fileset>
-            <metadata>
-                <element name="version" value="0.0.1" />
-                <element name="authors">
-                    <element name="Jan Weskamp">
-                        <element name="email" value="jan.weskamp@jtl-software.com" />
-                    </element>
-                </element>
-            </metadata>
         </pharpackage>
-        <move file="./dist/index.phar" tofile="./dist/index.php" />
+        <move file="./dist/index.phar" tofile="./dist/connector.phar" />
         <delete dir="./build" />
         <loadfile property="version" file="version"/>
         <phingcall target="zip">
