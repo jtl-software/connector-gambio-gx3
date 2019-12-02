@@ -54,7 +54,18 @@ class Category extends \jtl\Connector\Gambio\Mapper\BaseMapper
     
     protected function isActive($data)
     {
-        return true;
+        $results = $this->db->query(sprintf('
+              SELECT categories_status
+              FROM categories
+              WHERE categories_id="%s"',
+            $data['categories_id']
+        ));
+    
+        if (!empty($results)){
+            return $results[0]["categories_status"];
+        }
+    
+        return '';
     }
     
     public function pull($parent = null, $limit = null)

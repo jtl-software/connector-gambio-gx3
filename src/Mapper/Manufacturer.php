@@ -51,7 +51,7 @@ class Manufacturer extends BaseMapper
 
         return $data;
     }
-
+    
     public function push($data, $dbObj = null)
     {
         /** @var \jtl\Connector\Model\Manufacturer $data */

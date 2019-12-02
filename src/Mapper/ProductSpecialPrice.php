@@ -15,6 +15,7 @@ class ProductSpecialPrice extends BaseMapper
             "productId" => "products_id",
             "isActive" => "status",
             "activeUntilDate" => null,
+            "activeFromDate" => null,
             //"stockLimit" => "specials_quantity",
             //"considerStockLimit" => null,
             "considerDateLimit" => null,
@@ -25,6 +26,7 @@ class ProductSpecialPrice extends BaseMapper
             "products_id" => "productId",
             "status" => "isActive",
             "expires_date" => "activeUntilDate",
+            "begins_date" => "activeFromDate",
             //"specials_quantity" => "stockLimit",
             "ProductSpecialPriceItem|addItem|true" => "items"
         )
@@ -38,6 +40,11 @@ class ProductSpecialPrice extends BaseMapper
     protected function activeUntilDate($data)
     {
         return $data['expires_date'] == '0000-00-00 00:00:00' ? null : $data['expires_date'];
+    }
+    
+    protected function activeFromDate($data)
+    {
+        return $data['begins_date'] == '0000-00-00 00:00:00' ? null : $data['begins_date'];
     }
 
     public function push($parent, $dbObj = null)
