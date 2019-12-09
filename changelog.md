@@ -1,3 +1,10 @@
+unreleased
+-----
+- CO-615 The Integration tests are fully implemented an the following bugs were resolved
+- The pulled category and product status will no be set in relation to the shop settings
+- The product keywords will now be correctly pulled
+- The special prices active_from_date will now be handled
+
 2.10.3
 -----
 - CO-698 Fixed Category push for 3.11.1
