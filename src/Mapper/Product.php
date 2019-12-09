@@ -5,6 +5,8 @@ namespace jtl\Connector\Gambio\Mapper;
 use jtl\Connector\Gambio\Installer\Config;
 use \jtl\Connector\Gambio\Mapper\BaseMapper;
 use jtl\Connector\Model\Identity;
+use jtl\Connector\Model\ProductAttr as ProductAttrModel;
+use jtl\Connector\Model\ProductAttrI18n as ProductAttrI18nModel;
 use \jtl\Connector\Model\ProductStockLevel;
 use \jtl\Connector\Model\Product as ProductModel;
 use \jtl\Connector\Model\ProductStockLevel as ProductStockLevelModel;
@@ -68,6 +70,7 @@ class Product extends BaseMapper
             "upc"                    => "code_upc",
             "minimumOrderQuantity"   => "gm_min_order",
             "packagingQuantity"      => "gm_graduated_qty",
+            "keywords"               => null,
         ],
         "mapPush"  => [
             "products_id"                              => "id",
@@ -82,7 +85,7 @@ class Product extends BaseMapper
             "products_vpe"                             => null,
             "products_vpe_value"                       => null,
             "products_vpe_status"                      => null,
-            "products_status"                          => "isActive",
+            //"products_status"                          => "isActive",
             "products_startpage"                       => "isTopProduct",
             "products_tax_class_id"                    => null,
             "Product2Category|addCategory"             => "categories",
@@ -564,7 +567,18 @@ class Product extends BaseMapper
     
     protected function isActive($data)
     {
-        return true;
+        $results = $this->db->query(sprintf('
+              SELECT products_status
+              FROM products
+              WHERE products_id="%s"',
+            $data['products_id']
+        ));
+        
+        if (!empty($results)){
+            return $results[0]["products_status"];
+        }
+        
+        return '';
     }
     
     protected function products_date_added($data)
@@ -831,5 +845,22 @@ class Product extends BaseMapper
     public static function getSpecialAttributes()
     {
         return self::$specialAttributes;
+    }
+    
+    public function keywords($data)
+    {
+            $results = $this->db->query(sprintf('
+              SELECT products_keywords
+              FROM products_description
+              WHERE products_id="%s" && language_id = %s',
+                $data['products_id'],
+                $this->locale2id($this->fullLocale($this->shopConfig['settings']['DEFAULT_LANGUAGE']))
+            ));
+            
+            if (!empty($results)){
+                return $results[0]["products_keywords"];
+            }
+            
+            return '';
     }
 }
