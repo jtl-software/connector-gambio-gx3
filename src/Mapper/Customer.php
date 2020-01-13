@@ -2,6 +2,7 @@
 
 namespace jtl\Connector\Gambio\Mapper;
 
+use jtl\Connector\Core\Logger\Logger;
 use jtl\Connector\Gambio\Mapper\BaseMapper;
 use jtl\Connector\Core\Utilities\Language;
 use jtl\Connector\Core\Utilities\Country;
@@ -67,7 +68,7 @@ class Customer extends BaseMapper
      */
     protected function hasCustomerAccount($data)
     {
-        return (bool) !$data["account_type"];
+        return !$data["account_type"];
     }
     
     protected function street($data)
@@ -214,6 +215,7 @@ class Customer extends BaseMapper
             
             //$this->db->query('DELETE FROM jtl_connector_link WHERE type=2 && endpointId='.$data->getId()->getEndpoint());
         } catch (\Exception $e) {
+            Logger::write(sprintf('Failed deleting customer with endpoint_id (%s)', $data->getId()->getEndpoint()), Logger::ERROR, 'global');
         }
         
         return $data;
