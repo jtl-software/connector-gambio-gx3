@@ -99,12 +99,13 @@ class Manufacturer extends BaseMapper
                 $manufacturer->getId()->getEndpoint()));
             
             foreach ($dbObjects as $dbObject) {
-                $i18n = new ManufacturerI18n();
-                $i18n->setIdentity($manufacturer->getId());
-                $i18n->setMetaDescription($dbObjects[0]['manufacturers_meta_description']);
-                $i18n->setMetaKeywords($dbObjects[0]['manufacturers_meta_description']);
-                $i18n->setTitleTag($dbObjects[0]['manufacturers_meta_description']);
-                $i18n->setLanguageISO($this->id2locale($dbObject['languages_id']));
+                /** @var ManufacturerI18n $i18n */
+                $i18n = (new ManufacturerI18n())
+                ->setMetaDescription($dbObject['manufacturers_meta_description'])
+                ->setMetaKeywords($dbObject['manufacturers_meta_description'])
+                ->setTitleTag($dbObject['manufacturers_meta_description'])
+                ->setLanguageISO($this->id2locale($dbObject['languages_id']))
+                ->setManufacturerId($manufacturer->getId());
                 
                 $manufacturer->addI18n($i18n);
             }
