@@ -85,7 +85,7 @@ class Product extends BaseMapper
             "products_vpe"                             => null,
             "products_vpe_value"                       => null,
             "products_vpe_status"                      => null,
-            //"products_status"                          => "isActive",
+            "products_status"                          => "isActive",
             "products_startpage"                       => "isTopProduct",
             "products_tax_class_id"                    => null,
             "Product2Category|addCategory"             => "categories",
@@ -567,18 +567,7 @@ class Product extends BaseMapper
     
     protected function isActive($data)
     {
-        $results = $this->db->query(sprintf('
-              SELECT products_status
-              FROM products
-              WHERE products_id="%s"',
-            $data['products_id']
-        ));
-        
-        if (!empty($results)){
-            return $results[0]["products_status"];
-        }
-        
-        return '';
+        return true;
     }
     
     protected function products_date_added($data)
