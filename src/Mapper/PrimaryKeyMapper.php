@@ -71,17 +71,17 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
         if (isset(static::$types[$type])) {
             Logger::write(sprintf('Delete link with endpoint_id (%s), host_id (%s) and type (%s)', $endpointId, $hostId, $type), Logger::DEBUG, 'linker');
 
-            $where = '';
+            $where = [];
 
             if ($endpointId && $endpointId != '') {
-                $where = 'endpoint_id = "' . $endpointId . '"';
+                $where[] = 'endpoint_id = "' . $endpointId . '"';
             }
 
             if ($hostId) {
-                $where = 'host_id = ' . $hostId;
+                $where[] = 'host_id = ' . $hostId;
             }
 
-            $this->db->query('DELETE FROM jtl_connector_link_' . static::$types[$type] . ' WHERE ' . $where);
+            $this->db->query('DELETE FROM jtl_connector_link_' . static::$types[$type] . ' WHERE ' . join(" AND ",$where));
         }
     }
 
