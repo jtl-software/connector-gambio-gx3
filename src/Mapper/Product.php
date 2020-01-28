@@ -5,6 +5,8 @@ namespace jtl\Connector\Gambio\Mapper;
 use jtl\Connector\Gambio\Installer\Config;
 use \jtl\Connector\Gambio\Mapper\BaseMapper;
 use jtl\Connector\Model\Identity;
+use jtl\Connector\Model\ProductAttr as ProductAttrModel;
+use jtl\Connector\Model\ProductAttrI18n as ProductAttrI18nModel;
 use \jtl\Connector\Model\ProductStockLevel;
 use \jtl\Connector\Model\Product as ProductModel;
 use \jtl\Connector\Model\ProductStockLevel as ProductStockLevelModel;
@@ -68,6 +70,7 @@ class Product extends BaseMapper
             "upc"                    => "code_upc",
             "minimumOrderQuantity"   => "gm_min_order",
             "packagingQuantity"      => "gm_graduated_qty",
+            "keywords"               => null,
         ],
         "mapPush"  => [
             "products_id"                              => "id",
@@ -831,5 +834,22 @@ class Product extends BaseMapper
     public static function getSpecialAttributes()
     {
         return self::$specialAttributes;
+    }
+    
+    public function keywords($data)
+    {
+            $results = $this->db->query(sprintf('
+              SELECT products_keywords
+              FROM products_description
+              WHERE products_id="%s" && language_id = %s',
+                $data['products_id'],
+                $this->locale2id($this->fullLocale($this->shopConfig['settings']['DEFAULT_LANGUAGE']))
+            ));
+            
+            if (!empty($results)){
+                return $results[0]["products_keywords"];
+            }
+            
+            return '';
     }
 }

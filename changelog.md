@@ -1,3 +1,17 @@
+unreleased
+-----
+
+2.10.5
+-----
+- CO-775 The connector can now differ between guests and registered customers
+- CO-626 The manufacturer meta-data will now be correctly pulled
+- CO-814 The connector will now correctly pull EANs form simple variations
+- CO-759 Deactivated products won't have the isActive flag set to false
+- CO-615 The integration tests are fully implemented an the following bugs were resolved
+- The pulled category and product status will no be set in relation to the shop settings
+- The product keywords will now be correctly pulled
+- The special prices active_from_date will now be handled
+
 2.10.3
 -----
 - CO-698 Fixed Category push for 3.11.1

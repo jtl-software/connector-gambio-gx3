@@ -1,6 +1,7 @@
 <?php
 
-$projectdir = $_SERVER['DOCUMENT_ROOT'];
+$urlFolders = str_replace("/jtlconnector/install/loggingConfig.php", "", $_SERVER['REQUEST_URI']);
+$projectdir = $_SERVER['DOCUMENT_ROOT'] . $urlFolders;
 $logFolder = $projectdir . '/jtlconnector/logs/';
 $downloadFolder = $projectdir . '/jtlconnector/install/';
 
@@ -19,16 +20,10 @@ if (isset($_REQUEST['download'])) {
     }
     $zip->close();
     
-    header('Content-type: application/zip');
-    header('Content-Disposition: attachment; filename="logs.zip"');
-    readfile($downloadFolder . 'logs.zip');
-    
 } elseif (isset($_REQUEST['clear'])) {
     foreach (scandir($logFolder) as $file) {
         if ($file !== '.' && $file !== '..' && $file !== '.htaccess') {
             unlink($logFolder . $file);
         }
     }
-    
-    header('Location: /jtlconnector/install/#dev_logging');
 }
