@@ -34,7 +34,8 @@ class ProductVariationValue extends BaseMapper
                     "sort" => "sortorder",
                     "stockLevel" => "attributes_stock",
                     "i18ns" => "ProductVariationValueI18n|addI18n",
-                    "extraCharges" => "ProductVariationValueExtraCharge|addExtraCharge"
+                    "extraCharges" => "ProductVariationValueExtraCharge|addExtraCharge",
+                    "ean" => "gm_ean"
                 )
             );
         }

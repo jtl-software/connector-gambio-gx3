@@ -3,10 +3,8 @@ if (file_exists(__DIR__.'/include.php')) {
 	include(__DIR__.'/include.php');
 }
 
-Phar::mapPhar('index.php');
+Phar::mapPhar('connector.phar');
 
-defined('CONNECTOR_DIR') || define('CONNECTOR_DIR', __DIR__);
-
-include_once 'phar://index.php/index.php';
+include_once 'phar://connector.phar/index.php';
 
 __HALT_COMPILER();
