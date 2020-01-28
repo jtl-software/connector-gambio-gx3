@@ -102,8 +102,8 @@ class Manufacturer extends BaseMapper
                 /** @var ManufacturerI18n $i18n */
                 $i18n = (new ManufacturerI18n())
                 ->setMetaDescription($dbObject['manufacturers_meta_description'])
-                ->setMetaKeywords($dbObject['manufacturers_meta_description'])
-                ->setTitleTag($dbObject['manufacturers_meta_description'])
+                ->setMetaKeywords($dbObject['manufacturers_meta_keywords'])
+                ->setTitleTag($dbObject['manufacturers_meta_title'])
                 ->setLanguageISO($this->id2locale($dbObject['languages_id']))
                 ->setManufacturerId($manufacturer->getId());
                 
