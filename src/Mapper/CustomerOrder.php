@@ -273,19 +273,15 @@ class CustomerOrder extends BaseMapper
         $totalData = $this->db->query('SELECT class,value,title FROM orders_total WHERE orders_id=' . $data['orders_id']);
         $taxRate = $this->db->query('SELECT tax_rate FROM orders_tax_sum_items WHERE order_id=' . $data['orders_id']);
 
-        //is only true when record exists and has tax rate 0
-        $vatExcl = isset($taxRate[0]['tax_rate']) && (float)$taxRate[0]['tax_rate'] === 0.;
-        $vat = isset($taxRate[0]['tax_rate']) ? (float)$taxRate[0]['tax_rate'] : false;
+        $vat = isset($taxRate[0]['tax_rate']) ? (float)$taxRate[0]['tax_rate'] : 0.;
 
-        if ($vat === false) {
+        if ($vat === 0.) {
             $productQuery =
                 sprintf("SELECT products_tax FROM orders_products WHERE orders_id = %s", $data['orders_id']);
 
             $orderProducts = $this->db->query($productQuery);
             if (is_array($orderProducts) && isset($orderProducts[0]['products_tax'])) {
                 $vat = (float)max(array_column($orderProducts, 'products_tax'));
-            } else {
-                $vat = 0;
             }
         }
 
@@ -299,7 +295,7 @@ class CustomerOrder extends BaseMapper
                     $model->setTotalSum((float)($total['value']));
                     break;
                 case 'ot_shipping':
-                    $this->addShipping($total, $data, $vatExcl, $model);
+                    $this->addShipping($total, $data, $vat, $model);
                     break;
                 case 'ot_cod_fee':
                     $this->addSpecialItem(CustomerOrderItem::TYPE_SHIPPING, $model, $total, $data, $vat);
@@ -323,16 +319,16 @@ class CustomerOrder extends BaseMapper
      * @param $data
      * @param $vat
      */
-    protected function addSpecialItem($type, $model, $total,$data,$vat)
+    protected function addSpecialItem($type, $model, $total, $data, $vat)
     {
-        $item = new CustomerOrderItem();
-        $item->setType($type);
-        $item->setName($total['title']);
-        $item->setCustomerOrderId($this->identity($data['orders_id']));
-        $item->setId($this->identity($total['orders_total_id']));
-        $item->setQuantity(1);
-        $item->setVat((float) $vat);
-        $item->setPriceGross($total['class'] == 'ot_gv' ? floatval($total['value']) * -1 : floatval($total['value']));
+        $item = (new CustomerOrderItem())
+            ->setType($type)
+            ->setName($total['title'])
+            ->setCustomerOrderId($this->identity($data['orders_id']))
+            ->setId($this->identity($total['orders_total_id']))
+            ->setQuantity(1)
+            ->setVat((float)$vat)
+            ->setPriceGross($total['class'] == 'ot_gv' ? floatval($total['value']) * -1 : floatval($total['value']));
 
         $model->addItem($item);
     }
@@ -340,25 +336,24 @@ class CustomerOrder extends BaseMapper
     /**
      * @param $total
      * @param $data
-     * @param $vatExcl
+     * @param $vat
      * @param $model
      */
-    protected function addShipping($total, $data, $vatExcl,$model)
+    protected function addShipping($total, $data, $vat, $model)
     {
-        $shipping = new CustomerOrderItem();
-        $shipping->setType('shipping');
-        $shipping->setCustomerOrderId($this->identity($data['orders_id']));
-        $shipping->setId($this->identity($data['shipping_class']));
-        $shipping->setQuantity(1);
-        $shipping->setVat(0);
+        $shipping = (new CustomerOrderItem())
+            ->setType(CustomerOrderItem::TYPE_SHIPPING)
+            ->setCustomerOrderId($this->identity($data['orders_id']))
+            ->setId($this->identity($data['shipping_class']))
+            ->setQuantity(1)
+            ->setVat(0);
 
-        $vat = 0;
         $price = (float)$total['value'];
 
         list($shippingModule, $shippingName) = explode('_', $data['shipping_class']);
 
         $moduleTaxClass = $this->db->query('SELECT configuration_value FROM configuration WHERE configuration_key ="MODULE_SHIPPING_' . strtoupper($shippingModule) . '_TAX_CLASS"');
-        if (!$vatExcl && count($moduleTaxClass) > 0) {
+        if ($vat !== 0. && count($moduleTaxClass) > 0) {
             if (!empty($moduleTaxClass[0]['configuration_value']) && !empty($data['delivery_country_iso_code_2'])) {
                 $rateResult = $this->db->query('SELECT r.tax_rate FROM countries c
                           LEFT JOIN zones_to_geo_zones z ON z.zone_country_id = c.countries_id
@@ -372,7 +367,7 @@ class CustomerOrder extends BaseMapper
         }
 
         $shipping->setPriceGross($price);
-        if ($vatExcl) {
+        if ($vat === 0.) {
             $shipping->setPrice($price);
         }
 
