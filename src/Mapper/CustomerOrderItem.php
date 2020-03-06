@@ -137,6 +137,9 @@ class CustomerOrderItem extends BaseMapper
 
     protected function vat($data)
     {
+        if(CustomerOrder::determineDefaultTaxRate($this->db, $data['orders_id']) === 0.) {
+            return 0.;
+        }
         return $data['products_tax'];
     }
 

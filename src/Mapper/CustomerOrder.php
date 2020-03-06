@@ -265,26 +265,22 @@ class CustomerOrder extends BaseMapper
     }
 
     /**
-     * @param \jtl\Connector\Model\CustomerOrder $model
+     * @param CustomerOrderModel $model
      * @param $data
      */
     public function addData($model, $data)
     {
-        $totalData = $this->db->query('SELECT class,value,title FROM orders_total WHERE orders_id=' . $data['orders_id']);
-        $taxRate = $this->db->query('SELECT tax_rate FROM orders_tax_sum_items WHERE order_id=' . $data['orders_id']);
-
-        $vat = isset($taxRate[0]['tax_rate']) ? (float)$taxRate[0]['tax_rate'] : 0.;
-
-        if ($vat === 0.) {
-            $productQuery =
-                sprintf("SELECT products_tax FROM orders_products WHERE orders_id = %s", $data['orders_id']);
-
+        $vat = static::determineDefaultTaxRate($this->db, $data['orders_id']);
+        if ($vat === false) {
+            $vat = 0.;
+            $productQuery = sprintf('SELECT MAX(`products_tax`) `products_tax` FROM `orders_products` WHERE `orders_id` = %d', $data['orders_id']);
             $orderProducts = $this->db->query($productQuery);
             if (is_array($orderProducts) && isset($orderProducts[0]['products_tax'])) {
-                $vat = (float)max(array_column($orderProducts, 'products_tax'));
+                $vat = (float)$orderProducts[0]['products_tax'];
             }
         }
 
+        $totalData = $this->db->query(sprintf('SELECT `class`, `value`, `title` FROM `orders_total` WHERE `orders_id` = %d', $data['orders_id']));
         foreach ($totalData as $total) {
             switch ($total['class']) {
                 case 'ot_total':
@@ -313,6 +309,18 @@ class CustomerOrder extends BaseMapper
     }
 
     /**
+     * @param $db
+     * @param int $ordersId
+     * @return float
+     */
+    public static function determineDefaultTaxRate($db, $ordersId)
+    {
+        $sql = sprintf('SELECT MAX(`tax_rate`) `tax_rate` FROM `orders_tax_sum_items` WHERE `order_id` = %d', $ordersId);
+        $taxRate = $db->query($sql);
+        return isset($taxRate[0]['tax_rate']) ? (float)$taxRate[0]['tax_rate'] : false;
+    }
+
+    /**
      * @param $type
      * @param $model
      * @param $total
@@ -327,8 +335,12 @@ class CustomerOrder extends BaseMapper
             ->setCustomerOrderId($this->identity($data['orders_id']))
             ->setId($this->identity($total['orders_total_id']))
             ->setQuantity(1)
-            ->setVat((float)$vat)
+            ->setVat($vat)
             ->setPriceGross($total['class'] == 'ot_gv' ? floatval($total['value']) * -1 : floatval($total['value']));
+
+        if($vat === 0.) {
+            $item->setPrice($item->getPriceGross());
+        }
 
         $model->addItem($item);
     }
