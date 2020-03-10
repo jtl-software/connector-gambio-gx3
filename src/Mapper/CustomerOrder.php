@@ -264,100 +264,129 @@ class CustomerOrder extends BaseMapper
         }
     }
 
+    /**
+     * @param CustomerOrderModel $model
+     * @param $data
+     */
     public function addData($model, $data)
     {
-        $shipping = new CustomerOrderItem();
-        $shipping->setType('shipping');
-        $shipping->setCustomerOrderId($this->identity($data['orders_id']));
-        $shipping->setId($this->identity($data['shipping_class']));
-        $shipping->setQuantity(1);
-        $shipping->setVat(0);
+        $vat = static::determineDefaultTaxRate($this->db, $data['orders_id']);
+        if ($vat === false) {
+            $vat = 0.;
+            $productQuery = sprintf('SELECT MAX(`products_tax`) `products_tax` FROM `orders_products` WHERE `orders_id` = %d', $data['orders_id']);
+            $orderProducts = $this->db->query($productQuery);
+            if (is_array($orderProducts) && isset($orderProducts[0]['products_tax'])) {
+                $vat = (float)$orderProducts[0]['products_tax'];
+            }
+        }
 
-        $totalData = $this->db->query('SELECT class,value,title FROM orders_total WHERE orders_id=' . $data['orders_id']);
-        $taxRate = $this->db->query('SELECT tax_rate FROM orders_tax_sum_items WHERE order_id=' . $data['orders_id']);
-
-        $vatExcl = isset($taxRate[0]['tax_rate']) && (float)$taxRate[0]['tax_rate'] === 0.;
-
+        $totalData = $this->db->query(sprintf('SELECT `class`, `value`, `title` FROM `orders_total` WHERE `orders_id` = %d', $data['orders_id']));
         foreach ($totalData as $total) {
-            if ($total['class'] == 'ot_total') {
-                $model->setTotalSumGross(floatval($total['value']));
+            switch ($total['class']) {
+                case 'ot_total':
+                    $model->setTotalSumGross((float)($total['value']));
+                    break;
+                case 'ot_total_netto':
+                case 'ot_subtotal_no_tax':
+                    $model->setTotalSum((float)($total['value']));
+                    break;
+                case 'ot_shipping':
+                    $this->addShipping($total, $data, $vat, $model);
+                    break;
+                case 'ot_cod_fee':
+                    $this->addSpecialItem(CustomerOrderItem::TYPE_SHIPPING, $model, $total, $data, $vat);
+                    break;
+                case 'ot_payment':
+                    $this->addSpecialItem(CustomerOrderItem::TYPE_PRODUCT, $model, $total, $data, $vat);
+                    break;
+                case 'ot_coupon':
+                case 'ot_gv':
+                case 'ot_discount':
+                    $this->addSpecialItem(CustomerOrderItem::TYPE_COUPON, $model, $total, $data, $vat);
+                    break;
             }
+        }
+    }
 
-            if ($total['class'] == 'ot_total_netto' || $total['class'] == 'ot_subtotal_no_tax') {
-                $model->setTotalSum(floatval($total['value']));
-            }
+    /**
+     * @param $db
+     * @param int $ordersId
+     * @return float
+     */
+    public static function determineDefaultTaxRate($db, $ordersId)
+    {
+        $sql = sprintf('SELECT MAX(`tax_rate`) `tax_rate` FROM `orders_tax_sum_items` WHERE `order_id` = %d', $ordersId);
+        $taxRate = $db->query($sql);
+        return isset($taxRate[0]['tax_rate']) ? (float)$taxRate[0]['tax_rate'] : false;
+    }
 
-            if ($total['class'] == 'ot_shipping') {
-                $vat = 0;
-                $price = floatval($total['value']);
+    /**
+     * @param $type
+     * @param $model
+     * @param $total
+     * @param $data
+     * @param $vat
+     */
+    protected function addSpecialItem($type, $model, $total, $data, $vat)
+    {
+        $item = (new CustomerOrderItem())
+            ->setType($type)
+            ->setName($total['title'])
+            ->setCustomerOrderId($this->identity($data['orders_id']))
+            ->setId($this->identity($total['orders_total_id']))
+            ->setQuantity(1)
+            ->setVat($vat)
+            ->setPriceGross($total['class'] == 'ot_gv' ? floatval($total['value']) * -1 : floatval($total['value']));
 
-                list($shippingModule, $shippingName) = explode('_', $data['shipping_class']);
+        if($vat === 0.) {
+            $item->setPrice($item->getPriceGross());
+        }
 
-                $moduleTaxClass = $this->db->query('SELECT configuration_value FROM configuration WHERE configuration_key ="MODULE_SHIPPING_' . strtoupper($shippingModule) . '_TAX_CLASS"');
-                if (!$vatExcl && count($moduleTaxClass) > 0) {
-                    if (!empty($moduleTaxClass[0]['configuration_value']) && !empty($data['delivery_country_iso_code_2'])) {
-                        $rateResult = $this->db->query('SELECT r.tax_rate FROM countries c
+        $model->addItem($item);
+    }
+
+    /**
+     * @param $total
+     * @param $data
+     * @param $vat
+     * @param $model
+     */
+    protected function addShipping($total, $data, $vat, $model)
+    {
+        $shipping = (new CustomerOrderItem())
+            ->setType(CustomerOrderItem::TYPE_SHIPPING)
+            ->setCustomerOrderId($this->identity($data['orders_id']))
+            ->setId($this->identity($data['shipping_class']))
+            ->setQuantity(1)
+            ->setVat(0);
+
+        $price = (float)$total['value'];
+
+        list($shippingModule, $shippingName) = explode('_', $data['shipping_class']);
+
+        $moduleTaxClass = $this->db->query('SELECT configuration_value FROM configuration WHERE configuration_key ="MODULE_SHIPPING_' . strtoupper($shippingModule) . '_TAX_CLASS"');
+        if ($vat !== 0. && count($moduleTaxClass) > 0) {
+            if (!empty($moduleTaxClass[0]['configuration_value']) && !empty($data['delivery_country_iso_code_2'])) {
+                $rateResult = $this->db->query('SELECT r.tax_rate FROM countries c
                           LEFT JOIN zones_to_geo_zones z ON z.zone_country_id = c.countries_id
                           LEFT JOIN tax_rates r ON r.tax_zone_id = z.geo_zone_id
                           WHERE c.countries_iso_code_2 = "' . $data['delivery_country_iso_code_2'] . '" && r.tax_class_id=' . $moduleTaxClass[0]['configuration_value']);
 
-                        if (count($rateResult) > 0 && isset($rateResult[0]['tax_rate'])) {
-                            $vat = floatval($rateResult[0]['tax_rate']);
-                        }
-                    }
+                if (count($rateResult) > 0 && isset($rateResult[0]['tax_rate'])) {
+                    $vat = floatval($rateResult[0]['tax_rate']);
                 }
-
-                $shipping->setPriceGross($price);
-                if ($vatExcl) {
-                    $shipping->setPrice($price);
-                }
-
-                $shipping->setVat($vat);
-                $shipping->setName($total['title']);
-
-                $model->setShippingMethodName($total['title']);
             }
-
-            $specialItems = [
-                'ot_cod_fee',
-                'ot_payment',
-                'ot_coupon',
-                'ot_gv',
-                'ot_discount'
-            ];
-            
-            if (!array_search($total['class'], $specialItems)){
-                continue;
-            }
-
-            $item = new CustomerOrderItem();
-                switch ($total['class']) {
-                    case 'ot_cod_fee':
-                        $item->setType(CustomerOrderItem::TYPE_SHIPPING);
-                        break;
-        
-                    case 'ot_payment':
-                        $item->setType(CustomerOrderItem::TYPE_PRODUCT);
-                        break;
-        
-                    case 'ot_coupon':
-                    case 'ot_gv':
-                    case 'ot_discount':
-                        $item->setType(CustomerOrderItem::TYPE_COUPON);
-                        break;
-                }
-
-                $item->setName($total['title']);
-                $item->setCustomerOrderId($this->identity($data['orders_id']));
-                $item->setId($this->identity($total['orders_total_id']));
-                $item->setQuantity(1);
-                $item->setVat(($vatExcl ? 0. : floatval($taxRate[0]['tax_rate'])));
-                //$item->setPrice(floatval($total['value']) - (floatval($total['value'])*($taxRate[0]['tax_rate'] / 100)));
-                $item->setPriceGross($total['class'] == 'ot_gv' ? floatval($total['value']) * -1 : floatval($total['value']));
-    
-                $model->addItem($item);
         }
 
+        $shipping->setPriceGross($price);
+        if ($vat === 0.) {
+            $shipping->setPrice($price);
+        }
+
+        $shipping->setVat($vat);
+        $shipping->setName($total['title']);
+
+        $model->setShippingMethodName($total['title']);
         $model->addItem($shipping);
     }
 }

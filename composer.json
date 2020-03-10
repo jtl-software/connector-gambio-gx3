@@ -1,6 +1,6 @@
 {
-    "name": "jtl/connector/gambio",
-    "type": "APP",
+    "name": "jtl/connector-gambio",
+    "type": "app",
     "description": "Gambio Connector based on jtl/connector",
     "keywords": ["jtl", "Connector"],
     "homepage": "http://www.jtl-software.de",
@@ -22,8 +22,10 @@
         "php": ">=5.6.4",
         "jtl/connector": "^2.4",
         "phing/phing": "^2.16",
-        "jtl/connector-integration-tests": "dev-develop",
-      "ext-json": "*"
+        "ext-json": "*"
+    },
+    "require-dev": {
+        "jtl/connector-integration-tests": "dev-develop"
     },
     "autoload": {
         "psr-4": {
