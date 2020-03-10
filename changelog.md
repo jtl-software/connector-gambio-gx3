@@ -1,6 +1,10 @@
 unreleased
 -----
 
+2.10.6
+-----
+- CO-894 Coupon order position imported with wrong vat from time to time
+
 2.10.5
 -----
 - CO-775 The connector can now differ between guests and registered customers
