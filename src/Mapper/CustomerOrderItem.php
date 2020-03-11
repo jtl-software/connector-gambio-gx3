@@ -127,16 +127,19 @@ class CustomerOrderItem extends BaseMapper
 
     protected function price($data)
     {
-        return $data['products_price'] / (100 + $data['products_tax']) * 100;
+        return $data['allow_tax'] === '1' ? $data['products_price'] / (100 + $data['products_tax']) * 100 : $data['products_price'];
     }
 
     protected function priceGross($data)
     {
-        return $data['products_price'];
+        return $data['allow_tax'] === '1' ? $data['products_price'] : $data['products_price'] * ( $data['products_tax'] / 100 + 1);
     }
 
     protected function vat($data)
     {
+        if(CustomerOrder::determineDefaultTaxRate($this->db, $data['orders_id']) === 0.) {
+            return 0.;
+        }
         return $data['products_tax'];
     }
 
