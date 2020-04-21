@@ -3,6 +3,7 @@ unreleased
 
 2.10.6
 -----
+- CO-963 Measurement unit id bug on global data push
 - CO-894 Coupon order position imported with wrong vat from time to time
 - CO-869 Price calculation in order item is wrong when product is vat exempt
 

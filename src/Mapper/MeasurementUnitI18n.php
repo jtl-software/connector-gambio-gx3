@@ -42,8 +42,7 @@ class MeasurementUnitI18n extends BaseMapper
 
         if ($skip === false) {
             if (is_null($id)) {
-                $newUnit = new \stdClass();
-                $id = $this->db->insertRow($newUnit, 'quantity_unit');
+                $id = $this->db->query("INSERT INTO quantity_unit (quantity_unit_id) VALUES (NULL)");
             } else {
                 $this->db->query('DELETE FROM quantity_unit_description WHERE quantity_unit_id=' . $id);
             }
