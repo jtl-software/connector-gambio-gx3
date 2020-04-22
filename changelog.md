@@ -1,5 +1,6 @@
-unreleased
+2.10.7
 -----
+- CO-963 Fixed bug when adding new measurement units
 
 2.10.6
 -----
