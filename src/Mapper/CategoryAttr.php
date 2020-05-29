@@ -16,16 +16,16 @@ class CategoryAttr extends BaseMapper
         'gm_show_graduated_prices'   => 'Staffelpreise anzeigen',
         'show_sub_categories'        => 'Unterkategorien anzeigen',
         'show_sub_products'          => 'Artikel aus Unterkategorien anzeigen',
-        'show_sub_categories_images' => 'Kategoriebild anzeigen',
-        'show_sub_categories_names'  => 'Kategorie Ueberschrift anzeigen',
+        'show_sub_categories_images' => 'Bilder der Unterkategorien anzeigen',
+        'show_sub_categories_names'  => 'Ueberschrift der Unterkategorien anzeigen',
         'products_sorting'           => 'Produktsortierung ',
         'products_sorting2'          => 'Sortierrichtung',
         'gm_show_qty'                => 'Mengeneingabefeld anzeigen',
         'gm_priority'                => 'Priorität in Sitemap',
         'gm_changefreq'              => 'Änderungsfrequenz in Sitemap',
         'gm_sitemap_entry'           => 'In Sitemap aufnehmen',
-        'view_mode_tiled'           => 'Gekachelte Artikelauflistung',
-        'show_category_filter'      => 'Kategorie-Filter anzeigen',
+        'view_mode_tiled'            => 'Gekachelte Artikelauflistung',
+        'show_category_filter'       => 'Kategorie-Filter anzeigen',
     ];
 
     private $relatedColumns = [
