@@ -1,7 +1,9 @@
 <?php
+
 namespace jtl\Connector\Gambio\Installer\Modules;
 
 use jtl\Connector\Gambio\Installer\Module;
+use jtl\Connector\Gambio\Util\ShopVersion;
 
 class Status extends Module
 {
@@ -23,51 +25,45 @@ class Status extends Module
 
         $customerOrderModel = new \ReflectionClass('\jtl\Connector\Model\CustomerOrder');
 
-        $defaultLanguage = $this->db->query('SELECT l.languages_id
-            FROM languages l
-            LEFT JOIN configuration c ON c.configuration_value = l.code
-            WHERE c.configuration_key =  "DEFAULT_LANGUAGE"');
-        
+        $defaultLanguage = $this->getDefaultShopLanguage();
+
         if (count($defaultLanguage) > 0) {
             $this->defaultLanguage = $defaultLanguage[0]['languages_id'];
         }
 
         //Filtering the order status with id 1 so that status 'open' can't be mapped twice
-        $this->gambioStats = $this->db->query('SELECT * FROM orders_status WHERE language_id='.$this->defaultLanguage . " && orders_status_id != 1");
+        $this->gambioStats = $this->db->query('SELECT * FROM orders_status WHERE language_id=' . $this->defaultLanguage . " && orders_status_id != 1");
     }
 
     public function form()
     {
-        $default = $this->db->query('SELECT o.orders_status_name
-            FROM configuration c
-            LEFT JOIN orders_status o ON c.configuration_value = o.orders_status_id
-            WHERE c.configuration_key =  "DEFAULT_ORDERS_STATUS_ID" && o.language_id ='.$this->defaultLanguage);
-        
+        $default = $this->getDefaultOrderStatusName();
+
         $default = count($default) > 0 ? $default[0]['orders_status_name'] : '';
 
         $html = '<div class="alert alert-info">Für jeden Auftrags-Zustand aus der Wawi muss hier der zugehörige Shop-Zustand konfiguriert werden. <b>Bitte beachten Sie dass jeder Zustand eindeutig sein muss.</b></div>';
-        $html .= '<a class="btn btn-default btn-sm btn-block" href="'.$this->shopConfig['shop']['fullUrl'].'admin/orders_status.php">Shop-Status anlegen und verwalten</a>';
+        $html .= '<a class="btn btn-default btn-sm btn-block" href="' . $this->shopConfig['shop']['fullUrl'] . 'admin/orders_status.php">Shop-Status anlegen und verwalten</a>';
         $html .= '<div class="form-group">
                     <label class="col-sm-2 control-label">Neu</label>
                         <div class="col-sm-3">
-                            <p class="form-control-static">'.$default.' (Standard-Status Ihres Shops)</p>
+                            <p class="form-control-static">' . $default . ' (Standard-Status Ihres Shops)</p>
                         </div>
                 </div>';
 
         foreach ($this->jtlStats as $key => $value) {
-            $mapping = (array) $this->config->mapping;
+            $mapping = (array)$this->config->mapping;
 
             $stats = '';
-            
+
             foreach ($this->gambioStats as $gambio) {
                 $selected = ($mapping[$key] == $gambio['orders_status_id']) ? ' selected="selected"' : '';
-                $stats .= '<option value="'.$gambio['orders_status_id'].'"'.$selected.'>'.$gambio['orders_status_name'].'</option>';
+                $stats .= '<option value="' . $gambio['orders_status_id'] . '"' . $selected . '>' . $gambio['orders_status_name'] . '</option>';
             }
 
             $html .= '<div class="form-group">
-                    <label class="col-sm-2 control-label">'.$value.'</label>
+                    <label class="col-sm-2 control-label">' . $value . '</label>
                         <div class="col-sm-3">
-                            <select class="form-control" name="status['.$key.']">'.$stats.'</select>
+                            <select class="form-control" name="status[' . $key . ']">' . $stats . '</select>
                         </div>
                 </div>';
         }
@@ -82,7 +78,47 @@ class Status extends Module
         } else {
             $this->config->mapping = $_REQUEST['status'];
 
-            return true; 
+            return true;
         }
+    }
+
+    /**
+     * @return mixed
+     */
+    protected function getDefaultShopLanguage()
+    {
+        if (ShopVersion::isGreaterOrEqual('4.1')) {
+            $result = $this->db->query('SELECT l.languages_id
+                FROM languages l
+                LEFT JOIN gx_configurations c ON c.value = l.code
+                WHERE c.key =  "configuration/DEFAULT_LANGUAGE"');
+        } else {
+            $result = $this->db->query('SELECT l.languages_id
+                FROM languages l
+                LEFT JOIN configuration c ON c.configuration_value = l.code
+                WHERE c.configuration_key =  "DEFAULT_LANGUAGE"');
+        }
+
+        return $result;
+    }
+
+    /**
+     * @return mixed
+     */
+    protected function getDefaultOrderStatusName()
+    {
+        if (ShopVersion::isGreaterOrEqual('4.1')) {
+            $result = $this->db->query('SELECT o.orders_status_name
+            FROM gx_configurations c
+            LEFT JOIN orders_status o ON c.value = o.orders_status_id
+            WHERE c.key =  "configuration/DEFAULT_ORDERS_STATUS_ID" && o.language_id =' . $this->defaultLanguage);
+        } else {
+            $result = $this->db->query('SELECT o.orders_status_name
+            FROM configuration c
+            LEFT JOIN orders_status o ON c.configuration_value = o.orders_status_id
+            WHERE c.configuration_key =  "DEFAULT_ORDERS_STATUS_ID" && o.language_id =' . $this->defaultLanguage);
+        }
+
+        return $result;
     }
 }

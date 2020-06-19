@@ -1,7 +1,9 @@
 <?php
+
 namespace jtl\Connector\Gambio\Installer\Modules;
 
 use jtl\Connector\Gambio\Installer\Module;
+use jtl\Connector\Gambio\Util\ShopVersion;
 
 class Check extends Module
 {
@@ -101,8 +103,11 @@ class Check extends Module
         foreach (self::$checks as $check => $data) {
             $result = $this->checkResults[$check];
 
-            $html .= '<tr class="'.($result[0] === true ? '' : 'danger').'"><td><b>'.$data['title'].'</b><br/>'.vsprintf($data['info'], $result[1]).'</td><td><h4 class="pull-right">';
-            $html .= $result[0] ? '<span class="label label-success"><span class="glyphicon glyphicon-ok"></span> '.vsprintf($data['ok'], $result[1]).'</span>' : '<span class="label label-danger"><span class="glyphicon glyphicon-warning-sign"></span> '.vsprintf($data['fault'], $result[1]).'</span>';
+            $html .= '<tr class="' . ($result[0] === true ? '' : 'danger') . '"><td><b>' . $data['title'] . '</b><br/>' . vsprintf($data['info'],
+                    $result[1]) . '</td><td><h4 class="pull-right">';
+            $html .= $result[0] ? '<span class="label label-success"><span class="glyphicon glyphicon-ok"></span> ' . vsprintf($data['ok'],
+                    $result[1]) . '</span>' : '<span class="label label-danger"><span class="glyphicon glyphicon-warning-sign"></span> ' . vsprintf($data['fault'],
+                    $result[1]) . '</span>';
             $html .= '</h4></td></tr>';
         }
         $html .= '</tbody></table>';
@@ -112,7 +117,7 @@ class Check extends Module
 
     private function phpVersion()
     {
-        return array((version_compare(PHP_VERSION, '7.0') >= 0),array(PHP_VERSION));
+        return array((version_compare(PHP_VERSION, '7.0') >= 0), array(PHP_VERSION));
     }
 
     private function gdlib()
@@ -127,9 +132,9 @@ class Check extends Module
 
     private function configFile()
     {
-        $path = CONNECTOR_DIR.'/config';
-        if (file_exists($path.'/config.json')) {
-            $path = $path.'/config.json';
+        $path = CONNECTOR_DIR . '/config';
+        if (file_exists($path . '/config.json')) {
+            $path = $path . '/config.json';
         }
 
         return array(is_writable($path), array($path));
@@ -137,14 +142,14 @@ class Check extends Module
 
     private function dbFile()
     {
-        $path = CONNECTOR_DIR.'/db/connector.s3db';
+        $path = CONNECTOR_DIR . '/db/connector.s3db';
 
         return array(is_writable($path), array($path));
     }
 
     private function connectorLog()
     {
-        $path = CONNECTOR_DIR.'/logs';
+        $path = CONNECTOR_DIR . '/logs';
 
         return array(is_writable($path), array($path));
     }
@@ -178,11 +183,11 @@ class Check extends Module
           INDEX (host_id)          
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci';
 
-        foreach($types as $id => $name) {
+        foreach ($types as $id => $name) {
             if ($id == 16 || $id == 64) {
-                $this->db->query(sprintf($queryChar, 'jtl_connector_link_'.$name));
+                $this->db->query(sprintf($queryChar, 'jtl_connector_link_' . $name));
             } else {
-                $this->db->query(sprintf($queryInt, 'jtl_connector_link_'.$name));
+                $this->db->query(sprintf($queryInt, 'jtl_connector_link_' . $name));
             }
         }
 
@@ -243,7 +248,7 @@ class Check extends Module
 
     private function additionalImages()
     {
-        $additionalImages = $this->db->query('SELECT configuration_value FROM configuration WHERE configuration_key="MO_PICS"');
+        $additionalImages = $this->getSettingValue('MO_PICS');
 
         static::$checks['additionalImages']['info'] = sprintf(static::$checks['additionalImages']['info'], $this->shopConfig['shop']['fullUrl']);
 
@@ -252,11 +257,31 @@ class Check extends Module
 
     private function groups()
     {
-        $groups = $this->db->query('SELECT configuration_value FROM configuration WHERE configuration_key="GROUP_CHECK"');
+        $groups = $this->getSettingValue('GROUP_CHECK');
 
         static::$checks['groups']['info'] = sprintf(static::$checks['groups']['info'], $this->shopConfig['shop']['fullUrl']);
 
         return array($groups[0]['configuration_value'] == 'true');
+    }
+
+    /**
+     * @param $value
+     * @return mixed
+     */
+    protected function getSettingValue($value)
+    {
+        $column = 'configuration_value';
+        $table = 'configuration';
+        $where = 'configuration_key';
+
+        if(ShopVersion::isGreaterOrEqual('4.1')){
+            $column = 'value';
+            $table = 'gx_configurations';
+            $where = 'key';
+            $value = sprintf('configuration/%s',$value);
+        }
+
+        return $this->db->query(sprintf('SELECT `%s` as configuration_value FROM `%s` WHERE `%s`="%s"',$column,$table,$where,$value));
     }
 
     public function save()

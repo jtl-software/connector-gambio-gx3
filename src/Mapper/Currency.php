@@ -2,6 +2,7 @@
 namespace jtl\Connector\Gambio\Mapper;
 
 use jtl\Connector\Gambio\Mapper\BaseMapper;
+use jtl\Connector\Gambio\Util\ShopVersion;
 
 class Currency extends BaseMapper
 {
@@ -55,7 +56,13 @@ class Currency extends BaseMapper
     protected function code($data)
     {
         if ($data->getIsDefault() === true) {
-            $this->db->query('UPDATE configuration SET configuration_value="'.$data->getIso().'" WHERE configuration_key="DEFAULT_CURRENCY"');
+
+            if(ShopVersion::isGreaterOrEqual('4.1')){
+                $this->db->query('UPDATE gx_configurations SET `value`="'.$data->getIso().'" WHERE `key`="configuration/DEFAULT_CURRENCY"');
+            }
+            else{
+                $this->db->query('UPDATE configuration SET configuration_value="'.$data->getIso().'" WHERE configuration_key="DEFAULT_CURRENCY"');
+            }
         }
 
         return $data->getIso();

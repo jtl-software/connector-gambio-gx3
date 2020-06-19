@@ -109,7 +109,8 @@ class CustomerOrder extends BaseMapper
 
     protected function status($data)
     {
-        $defaultStatus = $this->db->query('SELECT configuration_value FROM configuration WHERE configuration_key="DEFAULT_ORDERS_STATUS_ID"');
+        $defaultStatus = $this->getSettingValue('DEFAULT_ORDERS_STATUS_ID');
+
         /*
         if (count($defaultStatus) > 0) {
             $defaultStatus = $defaultStatus[0]['configuration_value'];
@@ -364,7 +365,7 @@ class CustomerOrder extends BaseMapper
 
         list($shippingModule, $shippingName) = explode('_', $data['shipping_class']);
 
-        $moduleTaxClass = $this->db->query('SELECT configuration_value FROM configuration WHERE configuration_key ="MODULE_SHIPPING_' . strtoupper($shippingModule) . '_TAX_CLASS"');
+        $moduleTaxClass = $this->getSettingValue('MODULE_SHIPPING_' . strtoupper($shippingModule) . '_TAX_CLASS');
         if ($vat !== 0. && count($moduleTaxClass) > 0) {
             if (!empty($moduleTaxClass[0]['configuration_value']) && !empty($data['delivery_country_iso_code_2'])) {
                 $rateResult = $this->db->query('SELECT r.tax_rate FROM countries c

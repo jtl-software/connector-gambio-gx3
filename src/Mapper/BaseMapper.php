@@ -2,6 +2,7 @@
 namespace jtl\Connector\Gambio\Mapper;
 
 use jtl\Connector\Core\Database\Mysql;
+use jtl\Connector\Gambio\Util\ShopVersion;
 use jtl\Connector\Session\SessionHelper;
 use jtl\Connector\Core\Utilities\Language;
 use jtl\Connector\Model\Identity;
@@ -454,5 +455,25 @@ class BaseMapper
         $name          = preg_replace($replace_param, $p_replace, $name);
 
         return $name;
+    }
+
+    /**
+     * @param $value
+     * @return array|bool|\jtl\Connector\Core\Database\multitype|number|null
+     */
+    protected function getSettingValue($value)
+    {
+        $column = 'configuration_value';
+        $table = 'configuration';
+        $where = 'configuration_key';
+
+        if(ShopVersion::isGreaterOrEqual('4.1')){
+            $column = 'value';
+            $table = 'gx_configurations';
+            $where = 'key';
+            $value = sprintf('configuration/%s',$value);
+        }
+
+        return $this->db->query(sprintf('SELECT `%s` as configuration_value FROM `%s` WHERE `%s`="%s"',$column,$table,$where,$value));
     }
 }

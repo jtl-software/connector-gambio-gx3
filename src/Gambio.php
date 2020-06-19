@@ -5,6 +5,7 @@ use \jtl\Connector\Core\Rpc\RequestPacket;
 use \jtl\Connector\Core\Utilities\RpcMethod;
 use \jtl\Connector\Core\Database\Mysql;
 use \jtl\Connector\Core\Rpc\ResponsePacket;
+use jtl\Connector\Gambio\Util\ShopVersion;
 use jtl\Connector\Model\Product;
 use \jtl\Connector\Session\SessionHelper;
 use \jtl\Connector\Base\Connector as BaseConnector;
@@ -65,14 +66,17 @@ class Gambio extends BaseConnector
         $gx_version = "";
         require_once(CONNECTOR_DIR.'/../includes/configure.php');
         require_once(CONNECTOR_DIR.'/../release_info.php');
-        
+
+        $version = ltrim($gx_version, 'v');
+        ShopVersion::setShopVersion($version);
+
         return array(
             'shop' => array(
                 'url' => HTTP_SERVER,
                 'folder' => DIR_WS_CATALOG,
                 'path' => DIR_FS_DOCUMENT_ROOT,
                 'fullUrl' => HTTP_SERVER.DIR_WS_CATALOG,
-                'version' => ltrim($gx_version,'v')
+                'version' => $version
             ),
             'db' => array(
                 'host' => DB_SERVER,
@@ -92,12 +96,26 @@ class Gambio extends BaseConnector
 
     private function readConfigDb($db)
     {
-        $configDb = $db->query("SElECT configuration_key,configuration_value FROM configuration");
+        $key = 'configuration_key';
+        $value = 'configuration_value';
+        $table = 'configuration';
+        $where = '';
 
+        if(ShopVersion::isGreaterOrEqual('4.1')){
+            $key = 'key';
+            $value = 'value';
+            $table = 'gx_configurations';
+            $where = 'WHERE language_id IS NULL AND `key` LIKE "configuration/%"';
+        }
+
+        $configDb = $db->query(sprintf("SElECT `%s`,`%s` FROM `%s` %s", $key, $value, $table, $where));
         $return = array();
 
         foreach ($configDb as $entry) {
-            $return[$entry['configuration_key']] = $entry['configuration_value'] == 'true' ? 1 : ($entry['configuration_value'] == 'false' ? 0 : $entry['configuration_value']);
+            if(ShopVersion::isGreaterOrEqual('4.1')) {
+                $entry[$key] = str_replace('configuration/','',$entry[$key]);
+            }
+            $return[$entry[$key]] = $entry[$value] == 'true' ? 1 : ($entry[$value] == 'false' ? 0 : $entry[$value]);
         }
 
         return array(
