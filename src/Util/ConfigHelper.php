@@ -37,7 +37,7 @@ class ConfigHelper
 
         $gxVersionFile = sprintf('%s/release_info.php', dirname(CONNECTOR_DIR));
         if (!file_exists($gxVersionFile)) {
-            throw new \Exception(sprintf('Gambio version file not found in "%s"', $gxVersionFile);
+            throw new \Exception(sprintf('Gambio version file not found in "%s"', $gxVersionFile));
         }
 
         $gx_version = '';
