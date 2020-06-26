@@ -58,10 +58,12 @@ class Image extends BaseMapper
             FROM products p
             LEFT JOIN jtl_connector_link_image l ON CONCAT("pID_",p.products_id) = l.endpoint_id
             WHERE l.host_id IS NULL && p.products_image IS NOT NULL && p.products_image != ""';
-        $combisQuery = 'SELECT CONCAT("vID_",p.products_properties_combis_id) image_id, p.combi_image as image_name, CONCAT(p.products_id, "_", p.products_properties_combis_id) foreignKey, 1 image_nr, "product" type
-            FROM products_properties_combis p
-            LEFT JOIN jtl_connector_link_image l ON CONCAT("vID_",p.products_properties_combis_id) = l.endpoint_id
-            WHERE l.host_id IS NULL && p.combi_image IS NOT NULL && p.combi_image != ""';
+        $combisQuery = 'SELECT CONCAT("vID_",p.products_properties_combis_id) image_id, pli.product_image_list_image_local_path as image_name, CONCAT(p.products_id, "_", p.products_properties_combis_id) foreignKey, 1 image_nr, "product" type
+                        FROM products_properties_combis p
+                        LEFT JOIN product_image_list_combi plc ON p.products_properties_combis_id = plc.products_properties_combis_id
+                        LEFT JOIN product_image_list_image pli ON plc.product_image_list_id = pli.product_image_list_id
+                        LEFT JOIN jtl_connector_link_image l ON CONCAT("vID_",p.products_properties_combis_id) = l.endpoint_id
+                        WHERE l.host_id IS NULL AND pli.product_image_list_image_local_path IS NOT NULL';
         $categoriesQuery = 'SELECT CONCAT("cID_",p.categories_id) image_id, p.categories_image as image_name, p.categories_id foreignKey, "category" type, 1 image_nr
             FROM categories p
             LEFT JOIN jtl_connector_link_image l ON CONCAT("cID_",p.categories_id) = l.endpoint_id

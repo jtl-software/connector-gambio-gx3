@@ -10,6 +10,7 @@ use jtl\Connector\Core\Model\DataModel;
 use jtl\Connector\Core\Model\QueryFilter;
 use jtl\Connector\Core\Logger\Logger;
 use jtl\Connector\Formatter\ExceptionFormatter;
+use jtl\Connector\Session\SessionHelper;
 
 class BaseController extends Controller
 {
