@@ -3,7 +3,6 @@ namespace jtl\Connector\Gambio\Installer;
 
 use jtl\Connector\Core\Database\Mysql;
 use jtl\Connector\Gambio\Util\ConfigHelper;
-use jtl\Connector\Core\Config\Config;
 
 abstract class Module
 {

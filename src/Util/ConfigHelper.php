@@ -45,6 +45,7 @@ class ConfigHelper
         require_once($gxVersionFile);
 
         $version = ltrim($gx_version, 'v');
+        ShopVersion::setShopVersion($version);
 
         return array(
             'shop' => array(

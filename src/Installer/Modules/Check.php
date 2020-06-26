@@ -2,6 +2,8 @@
 
 namespace jtl\Connector\Gambio\Installer\Modules;
 
+use jtl\Connector\Gambio\Installer\Config;
+use jtl\Connector\Core\Database\Mysql;
 use jtl\Connector\Gambio\Installer\Module;
 use jtl\Connector\Gambio\Util\ConfigHelper;
 
@@ -144,7 +146,7 @@ class Check extends Module
     {
         $path = CONNECTOR_DIR . '/db/connector.s3db';
 
-        return array(is_writable($path), array($path));
+        return array(!file_exists($path) && is_writable(dirname($path)) || is_writable($path), array($path));
     }
 
     private function connectorLog()

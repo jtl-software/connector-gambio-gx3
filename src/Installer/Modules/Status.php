@@ -2,7 +2,7 @@
 
 namespace jtl\Connector\Gambio\Installer\Modules;
 
-use jtl\Connector\Core\Config\Config;
+use jtl\Connector\Gambio\Installer\Config;
 use jtl\Connector\Core\Database\Mysql;
 use jtl\Connector\Gambio\Installer\Module;
 use jtl\Connector\Gambio\Util\ConfigHelper;
@@ -86,7 +86,7 @@ class Status extends Module
     {
         $languagesCode = $this->configHelper->getGxDbConfigValue('DEFAULT_LANGUAGE');
         $sql = sprintf('SELECT `languages_id` FROM `languages` WHERE `code` = "%s"', $languagesCode);
-        $result =  $this->db->query($sql);
+        $result = $this->db->query($sql);
         return isset($result[0]['languages_id']) ? $result[0]['languages_id'] : null;
     }
 
