@@ -68,7 +68,9 @@ class Status extends Module
 
     public function save()
     {
-        if (count(array_unique($_REQUEST['status'])) < count($_REQUEST['status'])) {
+        $status = $_REQUEST['status'] ?? [];
+
+        if (count(array_unique($status)) < count($status)) {
             return 'Bitte legen Sie für jeden Status eine eindeutige Shop-Zuweisung fest. Wenn ihr Shop derzeit nicht über genügend Status verfügt, legen Sie bitte die notwendigen zusätzlich an.';
         } else {
             $this->config->mapping = $_REQUEST['status'];
@@ -82,7 +84,7 @@ class Status extends Module
      */
     protected function getDefaultShopLanguage()
     {
-        $languagesCode = $this->configHelper->getDbConfigValue('DEFAULT_LANGUAGE');
+        $languagesCode = $this->configHelper->getGxDbConfigValue('DEFAULT_LANGUAGE');
         $sql = sprintf('SELECT `languages_id` FROM `languages` WHERE `code` = "%s"', $languagesCode);
         $result =  $this->db->query($sql);
         return isset($result[0]['languages_id']) ? $result[0]['languages_id'] : null;
@@ -93,7 +95,7 @@ class Status extends Module
      */
     protected function getDefaultOrderStatusName()
     {
-        $ordersStatusId = $this->configHelper->getDbConfigValue('DEFAULT_ORDERS_STATUS_ID');
+        $ordersStatusId = $this->configHelper->getGxDbConfigValue('DEFAULT_ORDERS_STATUS_ID');
         $sql = sprintf('SELECT `orders_status_name` FROM `orders_status` WHERE `orders_status_id` = "%s"', $ordersStatusId);
         $result = $this->db->query($sql);
         return isset($result[0]['orders_status_name']) ? $result[0]['orders_status_name'] : '';

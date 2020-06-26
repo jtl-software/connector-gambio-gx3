@@ -248,20 +248,20 @@ class Check extends Module
 
     private function additionalImages()
     {
-        $additionalImages = $this->configHelper->getDbConfigValue('MO_PICS');
+        $moPics = $this->configHelper->getGxDbConfigValue('MO_PICS');
 
         static::$checks['additionalImages']['info'] = sprintf(static::$checks['additionalImages']['info'], $this->shopConfig['shop']['fullUrl']);
 
-        return array(intval($additionalImages[0]['configuration_value']) > 0, $additionalImages[0]['configuration_value']);
+        return array(intval($moPics) > 0, $moPics);
     }
 
     private function groups()
     {
-        $groups = $this->configHelper->getDbConfigValue('GROUP_CHECK');
+        $groupCheck = $this->configHelper->getGxDbConfigValue('GROUP_CHECK');
 
         static::$checks['groups']['info'] = sprintf(static::$checks['groups']['info'], $this->shopConfig['shop']['fullUrl']);
 
-        return array($groups[0]['configuration_value'] == 'true');
+        return array($groupCheck == 'true');
     }
 
     public function save()

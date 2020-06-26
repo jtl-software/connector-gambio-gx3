@@ -105,10 +105,11 @@ class ConfigHelper
 
     /**
      * @param string $key
-     * @return mixed
+     * @param null $default
+     * @return mixed|null
      * @throws \Exception
      */
-    public function getDbConfigValue(string $key)
+    public function getGxDbConfigValue(string $key, $default = null)
     {
         $column = 'configuration_value';
         $table = 'configuration';
@@ -121,7 +122,8 @@ class ConfigHelper
             $key = sprintf('configuration/%s', $key);
         }
 
-        return $this->db->query(sprintf('SELECT `%s` as configuration_value FROM `%s` WHERE `%s` = "%s"', $column, $table, $where, $key));
+        $result = $this->db->query(sprintf('SELECT `%s` as configuration_value FROM `%s` WHERE `%s` = "%s"', $column, $table, $where, $key));
+        return $result[0]['configuration_value'] ?? $default;
     }
 
     /**
@@ -129,7 +131,7 @@ class ConfigHelper
      * @param mixed $value
      * @throws \Exception
      */
-    public function updateDbConfigValue(string $key, $value)
+    public function updateGxDbConfigValue(string $key, $value)
     {
         $column = 'configuration_value';
         $table = 'configuration';

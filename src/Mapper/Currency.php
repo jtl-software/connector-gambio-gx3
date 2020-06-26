@@ -57,7 +57,7 @@ class Currency extends BaseMapper
     protected function code($data)
     {
         if ($data->getIsDefault() === true) {
-            $this->configHelper->updateDbConfigValue('DEFAULT_CURRENCY', $data->getIso());
+            $this->configHelper->updateGxDbConfigValue('DEFAULT_CURRENCY', $data->getIso());
         }
 
         return $data->getIso();

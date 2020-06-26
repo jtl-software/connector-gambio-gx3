@@ -109,7 +109,7 @@ class CustomerOrder extends BaseMapper
 
     protected function status($data)
     {
-        $defaultStatus = $this->configHelper->getDbConfigValue('DEFAULT_ORDERS_STATUS_ID');
+        $defaultStatus = $this->configHelper->getGxDbConfigValue('DEFAULT_ORDERS_STATUS_ID');
 
         /*
         if (count($defaultStatus) > 0) {
@@ -133,7 +133,7 @@ class CustomerOrder extends BaseMapper
             }
         }
         */
-        if ($data['orders_status'] == $defaultStatus[0]['configuration_value']) {
+        if ($data['orders_status'] === $defaultStatus) {
             return CustomerOrderModel::STATUS_NEW;
         }
 
@@ -339,7 +339,7 @@ class CustomerOrder extends BaseMapper
             ->setVat($vat)
             ->setPriceGross($total['class'] == 'ot_gv' ? floatval($total['value']) * -1 : floatval($total['value']));
 
-        if($vat === 0.) {
+        if ($vat === 0.) {
             $item->setPrice($item->getPriceGross());
         }
 
@@ -365,17 +365,15 @@ class CustomerOrder extends BaseMapper
 
         list($shippingModule, $shippingName) = explode('_', $data['shipping_class']);
 
-        $moduleTaxClass = $this->configHelper->getDbConfigValue('MODULE_SHIPPING_' . strtoupper($shippingModule) . '_TAX_CLASS');
-        if ($vat !== 0. && count($moduleTaxClass) > 0) {
-            if (!empty($moduleTaxClass[0]['configuration_value']) && !empty($data['delivery_country_iso_code_2'])) {
-                $rateResult = $this->db->query('SELECT r.tax_rate FROM countries c
+        $moduleTaxClass = $this->configHelper->getGxDbConfigValue('MODULE_SHIPPING_' . strtoupper($shippingModule) . '_TAX_CLASS');
+        if ($vat !== 0. && !empty($moduleTaxClass) && !empty($data['delivery_country_iso_code_2'])) {
+            $rateResult = $this->db->query('SELECT r.tax_rate FROM countries c
                           LEFT JOIN zones_to_geo_zones z ON z.zone_country_id = c.countries_id
                           LEFT JOIN tax_rates r ON r.tax_zone_id = z.geo_zone_id
-                          WHERE c.countries_iso_code_2 = "' . $data['delivery_country_iso_code_2'] . '" && r.tax_class_id=' . $moduleTaxClass[0]['configuration_value']);
+                          WHERE c.countries_iso_code_2 = "' . $data['delivery_country_iso_code_2'] . '" && r.tax_class_id=' . $moduleTaxClass);
 
-                if (count($rateResult) > 0 && isset($rateResult[0]['tax_rate'])) {
-                    $vat = floatval($rateResult[0]['tax_rate']);
-                }
+            if (count($rateResult) > 0 && isset($rateResult[0]['tax_rate'])) {
+                $vat = floatval($rateResult[0]['tax_rate']);
             }
         }
 

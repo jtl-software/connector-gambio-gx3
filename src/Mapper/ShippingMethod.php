@@ -1,4 +1,5 @@
 <?php
+
 namespace jtl\Connector\Gambio\Mapper;
 
 use jtl\Connector\Model\Identity;
@@ -13,10 +14,10 @@ class ShippingMethod extends BaseMapper
 
     public function pull($data = null, $limit = null)
     {
-        $moduleStr = $this->configHelper->getDbConfigValue('MODULE_SHIPPING_INSTALLED');
+        $moduleStr = $this->configHelper->getGxDbConfigValue('MODULE_SHIPPING_INSTALLED');
 
-        if (count($moduleStr) > 0) {
-            $modules = explode(';',$moduleStr[0]['configuration_value']);
+        if (!is_null($moduleStr)) {
+            $modules = explode(';', $moduleStr);
             if (count($modules) > 0) {
                 $return = array();
 
