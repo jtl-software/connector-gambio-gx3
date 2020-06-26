@@ -10,7 +10,7 @@ class Connector extends Module
     public function form()
     {
         if (is_null($this->config->platform_root)) {
-            $this->config->platform_root = realpath(CONNECTOR_DIR.'/../');
+            $this->config->platform_root = dirname(CONNECTOR_DIR);
         }
         if (is_null($this->config->auth_token)) {
             $this->config->auth_token = substr(sha1(uniqid()), 0, 16);

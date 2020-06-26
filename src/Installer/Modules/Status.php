@@ -2,7 +2,10 @@
 
 namespace jtl\Connector\Gambio\Installer\Modules;
 
+use jtl\Connector\Core\Config\Config;
+use jtl\Connector\Core\Database\Mysql;
 use jtl\Connector\Gambio\Installer\Module;
+use jtl\Connector\Gambio\Util\ConfigHelper;
 use jtl\Connector\Gambio\Util\ShopVersion;
 
 class Status extends Module
@@ -19,17 +22,11 @@ class Status extends Module
         'canceled' => 'Storniert'
     );
 
-    public function __construct($db, $config, $shopConfig)
+    public function __construct(Mysql $db, Config $config, ConfigHelper $configHelper, array $shopConfig)
     {
-        parent::__construct($db, $config, $shopConfig);
-
+        parent::__construct($db, $config, $configHelper, $shopConfig);
         $customerOrderModel = new \ReflectionClass('\jtl\Connector\Model\CustomerOrder');
-
-        $defaultLanguage = $this->getDefaultShopLanguage();
-
-        if (count($defaultLanguage) > 0) {
-            $this->defaultLanguage = $defaultLanguage[0]['languages_id'];
-        }
+        $this->defaultLanguage = $this->getDefaultShopLanguage();
 
         //Filtering the order status with id 1 so that status 'open' can't be mapped twice
         $this->gambioStats = $this->db->query('SELECT * FROM orders_status WHERE language_id=' . $this->defaultLanguage . " && orders_status_id != 1");
@@ -38,8 +35,6 @@ class Status extends Module
     public function form()
     {
         $default = $this->getDefaultOrderStatusName();
-
-        $default = count($default) > 0 ? $default[0]['orders_status_name'] : '';
 
         $html = '<div class="alert alert-info">Für jeden Auftrags-Zustand aus der Wawi muss hier der zugehörige Shop-Zustand konfiguriert werden. <b>Bitte beachten Sie dass jeder Zustand eindeutig sein muss.</b></div>';
         $html .= '<a class="btn btn-default btn-sm btn-block" href="' . $this->shopConfig['shop']['fullUrl'] . 'admin/orders_status.php">Shop-Status anlegen und verwalten</a>';
@@ -87,19 +82,10 @@ class Status extends Module
      */
     protected function getDefaultShopLanguage()
     {
-        if (ShopVersion::isGreaterOrEqual('4.1')) {
-            $result = $this->db->query('SELECT l.languages_id
-                FROM languages l
-                LEFT JOIN gx_configurations c ON c.value = l.code
-                WHERE c.key =  "configuration/DEFAULT_LANGUAGE"');
-        } else {
-            $result = $this->db->query('SELECT l.languages_id
-                FROM languages l
-                LEFT JOIN configuration c ON c.configuration_value = l.code
-                WHERE c.configuration_key =  "DEFAULT_LANGUAGE"');
-        }
-
-        return $result;
+        $languagesCode = $this->configHelper->getDbConfigValue('DEFAULT_LANGUAGE');
+        $sql = sprintf('SELECT `languages_id` FROM `languages` WHERE `code` = "%s"', $languagesCode);
+        $result =  $this->db->query($sql);
+        return isset($result[0]['languages_id']) ? $result[0]['languages_id'] : null;
     }
 
     /**
@@ -107,18 +93,9 @@ class Status extends Module
      */
     protected function getDefaultOrderStatusName()
     {
-        if (ShopVersion::isGreaterOrEqual('4.1')) {
-            $result = $this->db->query('SELECT o.orders_status_name
-            FROM gx_configurations c
-            LEFT JOIN orders_status o ON c.value = o.orders_status_id
-            WHERE c.key =  "configuration/DEFAULT_ORDERS_STATUS_ID" && o.language_id =' . $this->defaultLanguage);
-        } else {
-            $result = $this->db->query('SELECT o.orders_status_name
-            FROM configuration c
-            LEFT JOIN orders_status o ON c.configuration_value = o.orders_status_id
-            WHERE c.configuration_key =  "DEFAULT_ORDERS_STATUS_ID" && o.language_id =' . $this->defaultLanguage);
-        }
-
-        return $result;
+        $ordersStatusId = $this->configHelper->getDbConfigValue('DEFAULT_ORDERS_STATUS_ID');
+        $sql = sprintf('SELECT `orders_status_name` FROM `orders_status` WHERE `orders_status_id` = "%s"', $ordersStatusId);
+        $result = $this->db->query($sql);
+        return isset($result[0]['orders_status_name']) ? $result[0]['orders_status_name'] : '';
     }
 }

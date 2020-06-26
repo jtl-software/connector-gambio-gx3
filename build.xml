@@ -19,7 +19,6 @@
         </copy>
         <copy todir="./dist/db">
             <fileset dir="./db">
-                <include name="connector.s3db" />
                 <include name=".htaccess" />
                 <include name="updates/*" />
             </fileset>
@@ -54,7 +53,6 @@
 
         <chmod file="./dist/config" mode="0777" />
         <chmod file="./dist/db" mode="0777" />
-        <chmod file="./dist/db/connector.s3db" mode="0777" />
         <chmod file="./dist/logs" mode="0777" />
         <chmod file="./dist/tmp" mode="0777" />
         <chmod file="./dist" mode="0777" />

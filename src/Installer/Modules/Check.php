@@ -3,7 +3,7 @@
 namespace jtl\Connector\Gambio\Installer\Modules;
 
 use jtl\Connector\Gambio\Installer\Module;
-use jtl\Connector\Gambio\Util\ShopVersion;
+use jtl\Connector\Gambio\Util\ConfigHelper;
 
 class Check extends Module
 {
@@ -81,9 +81,9 @@ class Check extends Module
         )
     );
 
-    public function __construct($db, $config, $shopConfig)
+    public function __construct(Mysql $db, Config $config, ConfigHelper $configHelper, array $shopConfig)
     {
-        parent::__construct($db, $config, $shopConfig);
+        parent::__construct($db, $config, $configHelper, $shopConfig);
         $this->runChecks();
     }
 
@@ -248,7 +248,7 @@ class Check extends Module
 
     private function additionalImages()
     {
-        $additionalImages = $this->getSettingValue('MO_PICS');
+        $additionalImages = $this->configHelper->getDbConfigValue('MO_PICS');
 
         static::$checks['additionalImages']['info'] = sprintf(static::$checks['additionalImages']['info'], $this->shopConfig['shop']['fullUrl']);
 
@@ -257,31 +257,11 @@ class Check extends Module
 
     private function groups()
     {
-        $groups = $this->getSettingValue('GROUP_CHECK');
+        $groups = $this->configHelper->getDbConfigValue('GROUP_CHECK');
 
         static::$checks['groups']['info'] = sprintf(static::$checks['groups']['info'], $this->shopConfig['shop']['fullUrl']);
 
         return array($groups[0]['configuration_value'] == 'true');
-    }
-
-    /**
-     * @param $value
-     * @return mixed
-     */
-    protected function getSettingValue($value)
-    {
-        $column = 'configuration_value';
-        $table = 'configuration';
-        $where = 'configuration_key';
-
-        if(ShopVersion::isGreaterOrEqual('4.1')){
-            $column = 'value';
-            $table = 'gx_configurations';
-            $where = 'key';
-            $value = sprintf('configuration/%s',$value);
-        }
-
-        return $this->db->query(sprintf('SELECT `%s` as configuration_value FROM `%s` WHERE `%s`="%s"',$column,$table,$where,$value));
     }
 
     public function save()

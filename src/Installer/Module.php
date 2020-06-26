@@ -1,18 +1,46 @@
 <?php
 namespace jtl\Connector\Gambio\Installer;
 
+use jtl\Connector\Core\Database\Mysql;
+use jtl\Connector\Gambio\Util\ConfigHelper;
+use jtl\Connector\Core\Config\Config;
+
 abstract class Module
 {
+    /**
+     * @var Mysql
+     */
     protected $db;
+
+    /**
+     * @var Config
+     */
     protected $config;
+
+    /**
+     * @var ConfigHelper
+     */
+    protected $configHelper;
+
+    /**
+     * @var array
+     */
     protected $shopConfig;
 
     public static $name = null;
 
-    public function __construct($db, $config, $shopConfig)
+    /**
+     * Module constructor.
+     * @param Mysql $db
+     * @param Config $config
+     * @param ConfigHelper $configHelper
+     * @param array $shopConfig
+     */
+    public function __construct(Mysql $db, Config $config, ConfigHelper $configHelper, array $shopConfig)
     {
         $this->db = $db;
         $this->config = $config;
+        $this->configHelper = $configHelper;
         $this->shopConfig = $shopConfig;
     }
 

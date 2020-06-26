@@ -1,4 +1,5 @@
 <?php
+
 use jtl\Connector\Linker\IdentityLinker;
 
 $types = array(
