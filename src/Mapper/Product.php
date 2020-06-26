@@ -194,13 +194,11 @@ class Product extends BaseMapper
                     $i18n->setLanguageISO($this->id2locale($status['language_id']));
                     $varcombi->addI18n($i18n);
                 }
-                
                 $stockLevel = new ProductStockLevelModel();
                 $stockLevel->setProductId($varcombi->getId());
                 $stockLevel->setStockLevel(floatval($combiData['combi_quantity']));
                 
                 $varcombi->setStockLevel($stockLevel);
-                
                 $default = new ProductPriceModel();
                 $default->setId($this->identity($varcombi->getId()->getEndpoint() . '_default'));
                 $default->setProductId($varcombi->getId());

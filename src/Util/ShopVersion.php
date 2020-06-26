@@ -15,11 +15,15 @@ class ShopVersion
 
     /**
      * @param $version
-     * @return bool|int
+     * @return boolean
+     * @throws \Exception
      */
-    public static function isGreaterOrEqual($version)
+    public static function isGreaterOrEqual($version): bool
     {
-        return version_compare(ShopVersion::$shopVersion, $version, '>=');
+        if(is_null(static::$shopVersion)) {
+            throw new \Exception('Shop version is not set');
+        }
+        return version_compare(static::$shopVersion, $version, '>=');
     }
 
     /**

@@ -4,6 +4,7 @@ namespace jtl\Connector\Gambio\Installer;
 
 use jtl\Connector\Core\Database\Mysql;
 use jtl\Connector\Gambio\Installer\Config;
+use jtl\Connector\Gambio\Util\ConfigHelper;
 
 class Installer
 {
@@ -18,17 +19,24 @@ class Installer
     ];
     
     private $connectorConfig = null;
+
+    /**
+     * @var ConfigHelper
+     */
+    protected $configHelper;
     
     public function __construct()
     {
         error_reporting(E_ALL ^ E_NOTICE);
         ini_set('display_errors', 1);
         
-        $shopConfig = $this->readConfigFile();
-        $this->connectorConfig = new Config(CONNECTOR_DIR . '/config/config.json');
-        
         $db = Mysql::getInstance();
-        
+        $this->configHelper = new ConfigHelper($db);
+
+        $shopConfig = $this->configHelper->readGxConfigFile();
+        $this->connectorConfig = new Config(CONNECTOR_DIR . '/config/config.json');
+
+
         if (!$db->isConnected()) {
             $db->connect([
                 "host"     => $shopConfig['db']["host"],
@@ -44,7 +52,7 @@ class Installer
         
         foreach ($this->modules as $id => $module) {
             $className = '\\jtl\\Connector\\Gambio\\Installer\\Modules\\' . $module;
-            $moduleInstances[$id] = new $className($db, $this->connectorConfig, $shopConfig);
+            $moduleInstances[$id] = new $className($db, $this->connectorConfig, $this->configHelper, $shopConfig);
         }
         
         if ($moduleInstances['check']->hasPassed()) {

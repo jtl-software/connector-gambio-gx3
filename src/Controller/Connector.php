@@ -10,7 +10,7 @@ use jtl\Connector\Core\Model\QueryFilter;
 use jtl\Connector\Model\ConnectorIdentification;
 use jtl\Connector\Session\SessionHelper;
 
-class Connector extends Controller
+class Connector extends BaseController
 {
     public function statistic(QueryFilter $filter)
     {
@@ -73,11 +73,6 @@ class Connector extends Controller
         $action = new Action();
         $action->setHandled(true);
 
-        $session = new SessionHelper("gambio");
-        $config = $session->connectorConfig;
-
-        include($config->platform_root.'/release_info.php');
-
         $returnMegaBytes = function($value) {
             $value = trim($value);
             $unit = strtolower($value[strlen($value) - 1]);
@@ -98,7 +93,7 @@ class Connector extends Controller
         $connector = new ConnectorIdentification();
         $connector->setEndpointVersion(CONNECTOR_VERSION);
         $connector->setPlatformName('Gambio');
-        $connector->setPlatformVersion(ltrim($gx_version,'v'));
+        $connector->setPlatformVersion($this->shopConfig['shop']['version']);
         $connector->setProtocolVersion(Application()->getProtocolVersion());
         $connector->setServerInfo($serverInfo);
 

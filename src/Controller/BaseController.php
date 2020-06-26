@@ -15,9 +15,12 @@ class BaseController extends Controller
 {
     protected $db;
 
+    protected $shopConfig;
+
     public function __construct()
     {
         $this->db = Mysql::getInstance();
+        $this->shopConfig = (new SessionHelper('gambio'))->shopConfig;
     }
 
     public function pull(QueryFilter $queryfilter)
