@@ -91,12 +91,14 @@ class Status extends Module
     }
 
     /**
-     * @return mixed
+     * @return mixed|string
+     * @throws \Exception
      */
     protected function getDefaultOrderStatusName()
     {
         $ordersStatusId = $this->configHelper->getGxDbConfigValue('DEFAULT_ORDERS_STATUS_ID');
-        $sql = sprintf('SELECT `orders_status_name` FROM `orders_status` WHERE `orders_status_id` = "%s"', $ordersStatusId);
+        $sql = sprintf('SELECT `orders_status_name` FROM `orders_status` WHERE `orders_status_id` = "%s" AND `language_id` = %s',
+            $ordersStatusId, $this->defaultLanguage);
         $result = $this->db->query($sql);
         return isset($result[0]['orders_status_name']) ? $result[0]['orders_status_name'] : '';
     }
