@@ -590,16 +590,25 @@ class Image extends BaseMapper
             WHERE l.host_id IS NULL
         ");
 
-        $combiQuery = $this->db->query("
-            SELECT p.*
-            FROM (
-                SELECT CONCAT('vID_',p.products_properties_combis_id) as imgId
-                FROM products_properties_combis p
-                WHERE p.combi_image IS NOT NULL && p.combi_image != ''
-            ) p
-            LEFT JOIN jtl_connector_link_image l ON p.imgId = l.endpoint_id
-            WHERE l.host_id IS NULL
-        ");
+        if(ShopVersion::isGreaterOrEqual('4.1')){
+            $combiQuery = $this->db->query('SELECT CONCAT("vID_",p.products_properties_combis_id) image_id, pli.product_image_list_image_local_path as image_name, CONCAT(p.products_id, "_", p.products_properties_combis_id) foreignKey, 1 image_nr, "product" type
+                        FROM products_properties_combis p
+                        LEFT JOIN product_image_list_combi plc ON p.products_properties_combis_id = plc.products_properties_combis_id
+                        LEFT JOIN product_image_list_image pli ON plc.product_image_list_id = pli.product_image_list_id
+                        LEFT JOIN jtl_connector_link_image l ON CONCAT("vID_",p.products_properties_combis_id) = l.endpoint_id
+                        WHERE l.host_id IS NULL AND pli.product_image_list_image_local_path IS NOT NULL');
+        }else {
+            $combiQuery = $this->db->query("
+                SELECT p.*
+                FROM (
+                    SELECT CONCAT('vID_',p.products_properties_combis_id) as imgId
+                    FROM products_properties_combis p
+                    WHERE p.combi_image IS NOT NULL && p.combi_image != ''
+                ) p
+                LEFT JOIN jtl_connector_link_image l ON p.imgId = l.endpoint_id
+                WHERE l.host_id IS NULL
+            ");
+        }
 
         $categoryQuery = $this->db->query("
             SELECT c.*
@@ -646,7 +655,11 @@ class Image extends BaseMapper
             return $this->shopConfig['shop']['fullUrl'].'images/'.$data['image_name'];
         } else {
             if (strpos($data['image_id'], 'vID_') !== false) {
-                return $this->shopConfig['shop']['fullUrl'].'images/product_images/properties_combis_images/'.$data['image_name'];
+                if(ShopVersion::isGreaterOrEqual('4.1')) {
+                    return $this->shopConfig['shop']['fullUrl'] . $data['image_name'];
+                }else {
+                    return $this->shopConfig['shop']['fullUrl'] . 'images/product_images/properties_combis_images/' . $data['image_name'];
+                }
             } else {
                 return $this->shopConfig['shop']['fullUrl'] . $this->shopConfig['img']['original'] . $data['image_name'];
             }
