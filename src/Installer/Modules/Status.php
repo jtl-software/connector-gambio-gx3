@@ -26,7 +26,7 @@ class Status extends Module
     {
         parent::__construct($db, $config, $configHelper, $shopConfig);
         $customerOrderModel = new \ReflectionClass('\jtl\Connector\Model\CustomerOrder');
-        $this->defaultLanguage = $this->getDefaultShopLanguage();
+        $this->defaultLanguage = $configHelper->getDefaultLanguage();
 
         //Filtering the order status with id 1 so that status 'open' can't be mapped twice
         $this->gambioStats = $this->db->query('SELECT * FROM orders_status WHERE language_id=' . $this->defaultLanguage . " && orders_status_id != 1");
@@ -77,17 +77,6 @@ class Status extends Module
 
             return true;
         }
-    }
-
-    /**
-     * @return mixed
-     */
-    protected function getDefaultShopLanguage()
-    {
-        $languagesCode = $this->configHelper->getGxDbConfigValue('DEFAULT_LANGUAGE');
-        $sql = sprintf('SELECT `languages_id` FROM `languages` WHERE `code` = "%s"', $languagesCode);
-        $result = $this->db->query($sql);
-        return isset($result[0]['languages_id']) ? $result[0]['languages_id'] : null;
     }
 
     /**

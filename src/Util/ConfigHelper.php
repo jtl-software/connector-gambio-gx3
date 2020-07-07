@@ -148,4 +148,16 @@ class ConfigHelper
         $sql = sprintf('UPDATE `%s` SET `%s` = "%s" WHERE `%s` = "%s"', $table, $column, $value, $where, $key);
         $this->db->query($sql);
     }
+
+    /**
+     * @return mixed|null
+     * @throws \Exception
+     */
+    public function getDefaultLanguage()
+    {
+        $languagesCode = $this->getGxDbConfigValue('DEFAULT_LANGUAGE');
+        $sql = sprintf('SELECT `languages_id` FROM `languages` WHERE `code` = "%s"', $languagesCode);
+        $result = $this->db->query($sql);
+        return isset($result[0]['languages_id']) ? $result[0]['languages_id'] : null;
+    }
 }
