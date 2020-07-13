@@ -164,16 +164,17 @@ class Gambio extends BaseConnector
                 if ($result->getError()) {
                     $link->rollback();
                     $message = sprintf('Type: %s %s', get_class($param), $result->getError()->getMessage());
-                    if (method_exists($param, 'getId')) {
-                        if ($param instanceof Product) {
-                            $message = sprintf('Type: Product Host-Id: %s SKU: %s %s', $param->getId()->getHost(), $param->getSku(), $result->getError()->getMessage());
-                        } elseif ($param instanceof ProductPrice || $param instanceof ProductStockLevel || $param instanceof StatusChange || $param instanceof DeliveryNote) {
-                            $message = sprintf('Type: %s Product-Host-Id: %s %s', get_class($param), $param->getProductId()->getHost(), $result->getError()->getMessage());
-                        } else {
-                            $message = sprintf('Type: %s Host-Id: %s %s', get_class($param), $param->getId()->getHost(), $result->getError()->getMessage());
-                        }
+                    
+                    if ($param instanceof Product) {
+                        $message = sprintf('Type: Product Host-Id: %s SKU: %s %s', $param->getId()->getHost(), $param->getSku(), $result->getError()->getMessage());
+                    } elseif ($param instanceof ProductPrice || $param instanceof ProductStockLevel) {
+                        $message = sprintf('Type: %s Product-Host-Id: %s %s', get_class($param), $param->getProductId()->getHost(), $result->getError()->getMessage());
+                    } elseif ($param instanceof StatusChange || $param instanceof DeliveryNote){
+                        $message = sprintf('Type: %s Order-Host-Id: %s %s', get_class($param), $param->getCustomerOrderId()->getHost(), $result->getError()->getMessage());
+                    } elseif (method_exists($param, 'getId')) {
+                        $message = sprintf('Type: %s Host-Id: %s %s', get_class($param), $param->getId()->getHost(), $result->getError()->getMessage());
                     }
-        
+                    
                     throw new \Exception($message);
                 }
                 
