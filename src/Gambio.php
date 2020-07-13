@@ -4,8 +4,11 @@ namespace jtl\Connector\Gambio;
 use \jtl\Connector\Core\Rpc\RequestPacket;
 use \jtl\Connector\Core\Utilities\RpcMethod;
 use \jtl\Connector\Core\Database\Mysql;
+use jtl\Connector\Model\DeliveryNote;
 use jtl\Connector\Model\Product;
 use jtl\Connector\Model\ProductPrice;
+use jtl\Connector\Model\ProductStockLevel;
+use jtl\Connector\Model\StatusChange;
 use \jtl\Connector\Session\SessionHelper;
 use \jtl\Connector\Base\Connector as BaseConnector;
 use \jtl\Connector\Core\Rpc\Method;
@@ -164,8 +167,8 @@ class Gambio extends BaseConnector
                     if (method_exists($param, 'getId')) {
                         if ($param instanceof Product) {
                             $message = sprintf('Type: Product Host-Id: %s SKU: %s %s', $param->getId()->getHost(), $param->getSku(), $result->getError()->getMessage());
-                        } elseif ($param instanceof ProductPrice) {
-                            $message = sprintf('Type: ProductPrice Product-Host-Id: %s %s', $param->getProductId()->getHost(), $result->getError()->getMessage());
+                        } elseif ($param instanceof ProductPrice || $param instanceof ProductStockLevel || $param instanceof StatusChange || $param instanceof DeliveryNote) {
+                            $message = sprintf('Type: %s Product-Host-Id: %s %s', get_class($param), $param->getProductId()->getHost(), $result->getError()->getMessage());
                         } else {
                             $message = sprintf('Type: %s Host-Id: %s %s', get_class($param), $param->getId()->getHost(), $result->getError()->getMessage());
                         }
