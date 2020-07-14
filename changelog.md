@@ -1,3 +1,8 @@
+2.11.0-beta
+-----
+- CO-1038 Added compatibility to Gambio 4.1
+- Fixed category attribute translations
+
 2.10.7
 -----
 - CO-963 Fixed bug when adding new measurement units
