@@ -279,7 +279,7 @@ class ProductVariation extends Product
                 $combi->combi_quantity = $parent->getStockLevel()->getStockLevel();
                 $combi->combi_shipping_status_id = $this->getShippingtime($parent);
                 $combi->combi_weight = $parent->getProductWeight();
-                $combi->combi_price_type = 'calc';
+                $combi->combi_price_type = 'fix';
                 $combi->combi_price = 0.;
                 $combi->vpe_value = $this->products_vpe_value($parent);
                 $combi->products_vpe_id = $this->products_vpe($parent);
