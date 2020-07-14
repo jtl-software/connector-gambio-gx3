@@ -208,7 +208,7 @@ class Product extends BaseMapper
                 
                 $defaultItem = new ProductPriceItemModel();
                 $defaultItem->setProductPriceId($default->getId());
-                $price = $combiData['combi_price_type'] === 'calc' ? floatval($combiData['products_price']) + floatval($combiData['combi_price']) : floatval($combiData['combi_price']);
+                $price = floatval($combiData['products_price']) + floatval($combiData['combi_price']);
                 $defaultItem->setNetPrice($price);
                 
                 $default->addItem($defaultItem);
