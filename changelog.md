@@ -1,3 +1,7 @@
+Unreleased
+-----
+- Fixed problem with product price quicksync in conjunction with variation (combi) children
+
 2.11.0-beta
 -----
 - CO-1038 Added compatibility to Gambio 4.1
