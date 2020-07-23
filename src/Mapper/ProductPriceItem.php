@@ -35,20 +35,19 @@ class ProductPriceItem extends BaseMapper
         $productId = $data->getProductId()->getEndpoint();
 
         if (strpos($productId, '_') !== false) {
-            $ids = explode('_', $productId);
+            list($parentId, $combiId) = explode('_', $productId);
 
-            if (is_null(static::$parentPrice)) {
-                $parentObj = $this->db->query('SELECT products_price FROM products WHERE products_id="' . $ids[0] . '"');
-
-                static::$parentPrice = $parentObj[0]['products_price'];
+            if (!isset(static::$parentPrice[$parentId])) {
+                $parentObj = $this->db->query('SELECT products_price FROM products WHERE products_id="' . $parentId . '"');
+                static::$parentPrice[$parentId] = $parentObj[0]['products_price'];
             }
 
             foreach ($data->getItems() as $price) {
                 $obj = new \stdClass();
 
                 if (is_null($data->getCustomerGroupId()->getEndpoint()) || $data->getCustomerGroupId()->getEndpoint() == '') {
-                    $obj->combi_price = $price->getNetPrice() - static::$parentPrice;
-                    $this->db->updateRow($obj, 'products_properties_combis', 'products_properties_combis_id', $ids[1]);
+                    $obj->combi_price = $price->getNetPrice() - static::$parentPrice[$parentId];
+                    $this->db->updateRow($obj, 'products_properties_combis', 'products_properties_combis_id', $combiId);
                 }
             }
         } else {
@@ -56,7 +55,7 @@ class ProductPriceItem extends BaseMapper
                 $obj = new \stdClass();
 
                 if (is_null($data->getCustomerGroupId()->getEndpoint()) || $data->getCustomerGroupId()->getEndpoint() == '') {
-                    static::$parentPrice = $price->getNetPrice();
+                    static::$parentPrice[$productId] = $price->getNetPrice();
 
                     $obj->products_price = $price->getNetPrice();
 
