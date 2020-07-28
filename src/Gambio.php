@@ -4,20 +4,20 @@ namespace jtl\Connector\Gambio;
 use \jtl\Connector\Core\Rpc\RequestPacket;
 use \jtl\Connector\Core\Utilities\RpcMethod;
 use \jtl\Connector\Core\Database\Mysql;
-use \jtl\Connector\Core\Rpc\ResponsePacket;
 use jtl\Connector\Gambio\Util\ConfigHelper;
 use jtl\Connector\Gambio\Util\ShopVersion;
+use jtl\Connector\Model\DeliveryNote;
 use jtl\Connector\Model\Product;
+use jtl\Connector\Model\ProductPrice;
+use jtl\Connector\Model\ProductStockLevel;
+use jtl\Connector\Model\StatusChange;
 use \jtl\Connector\Session\SessionHelper;
 use \jtl\Connector\Base\Connector as BaseConnector;
-use \jtl\Connector\Core\Rpc\Error as Error;
-use \jtl\Connector\Core\Http\Response;
 use \jtl\Connector\Core\Rpc\Method;
 use \jtl\Connector\Gambio\Mapper\PrimaryKeyMapper;
 use \jtl\Connector\Result\Action;
 use \jtl\Connector\Gambio\Auth\TokenLoader;
 use \jtl\Connector\Gambio\Checksum\ChecksumLoader;
-use \jtl\Connector\Core\Logger\Logger;
 
 class Gambio extends BaseConnector
 {
@@ -113,25 +113,29 @@ class Gambio extends BaseConnector
 
             $action = new Action();
             $results = array();
-            $errors = array();
-    
+
             $link = Mysql::getInstance();
             $link->DB()->begin_transaction();
             
             foreach ($requestpacket->getParams() as $param) {
                 $result = $this->controller->{$this->action}($param);
+
+                $reflectionClass = new \ReflectionClass($param);
     
                 if ($result->getError()) {
                     $link->rollback();
                     $message = sprintf('Type: %s %s', get_class($param), $result->getError()->getMessage());
-                    if (method_exists($param, 'getId')) {
-                        if ($param instanceof Product) {
-                            $message = sprintf('Type: Product Host-Id: %s SKU: %s %s', $param->getId()->getHost(), $param->getSku(), $result->getError()->getMessage());
-                        } else {
-                            $message = sprintf('Type: %s Host-Id: %s %s', get_class($param), $param->getId()->getHost(), $result->getError()->getMessage());
-                        }
+                    
+                    if ($param instanceof Product) {
+                        $message = sprintf('Type: Product Host-Id: %s SKU: %s %s', $param->getId()->getHost(), $param->getSku(), $result->getError()->getMessage());
+                    } elseif ($param instanceof ProductPrice || $param instanceof ProductStockLevel) {
+                        $message = sprintf('Type: %s Product Host-Id: %s %s', $reflectionClass->getShortName(), $param->getProductId()->getHost(), $result->getError()->getMessage());
+                    } elseif ($param instanceof StatusChange || $param instanceof DeliveryNote){
+                        $message = sprintf('Type: %s Order Host-Id: %s %s', $reflectionClass->getShortName(), $param->getCustomerOrderId()->getHost(), $result->getError()->getMessage());
+                    } elseif (method_exists($param, 'getId')) {
+                        $message = sprintf('Type: %s Host-Id: %s %s', $reflectionClass->getShortName(), $param->getId()->getHost(), $result->getError()->getMessage());
                     }
-        
+                    
                     throw new \Exception($message);
                 }
                 
