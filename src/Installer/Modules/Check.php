@@ -125,7 +125,7 @@ class Check extends Module
 
     private function phpVersion()
     {
-        return [(version_compare(PHP_VERSION, '7.0') >= 0), [PHP_VERSION]];
+        return [version_compare(PHP_VERSION, '7.1.3', '>='), [PHP_VERSION]];
     }
 
     private function gdlib()
