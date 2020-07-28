@@ -1,6 +1,8 @@
-Unreleased
+2.11.1
 -----
 - Fixed problem with product price quicksync in conjunction with variation (combi) children
+- Added php cs fixer
+- CO-1040 Fixed error messages for different push calls
 
 2.11.0-beta
 -----
