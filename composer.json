@@ -24,7 +24,8 @@
         "ext-json": "*"
     },
     "require-dev": {
-        "jtl/connector-integration-tests": "dev-develop"
+        "jtl/connector-integration-tests": "dev-develop",
+        "friendsofphp/php-cs-fixer": "^2.16"
     },
     "autoload": {
         "psr-4": {
