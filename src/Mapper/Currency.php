@@ -7,12 +7,12 @@ use jtl\Connector\Gambio\Util\ShopVersion;
 
 class Currency extends BaseMapper
 {
-    protected $mapperConfig = array(
+    protected $mapperConfig = [
         "table" => "currencies",
         "where" => "currencies_id",
         "identity" => "getId",
         "getMethod" => "getCurrencies",
-        "mapPull" => array(
+        "mapPull" => [
             "id" => "currencies_id",
             "name" => "title",
             "factor" => "value",
@@ -20,8 +20,8 @@ class Currency extends BaseMapper
             "delimiterThousand" => "thousands_point",
             "isDefault" => null,
             "iso" => "code"
-        ),
-        "mapPush" => array(
+        ],
+        "mapPush" => [
             "currencies_id" => "id",
             "title" => "name",
             "value" => "factor",
@@ -30,8 +30,8 @@ class Currency extends BaseMapper
             "code" => null,
             "decimal_places" => null,
             "symbol_right" => "name"
-        )
-    );
+        ]
+    ];
 
     public function push($data, $dbObj = null)
     {

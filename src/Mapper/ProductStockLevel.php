@@ -1,4 +1,5 @@
 <?php
+
 namespace jtl\Connector\Gambio\Mapper;
 
 use jtl\Connector\Gambio\Mapper\BaseMapper;
@@ -12,7 +13,7 @@ class ProductStockLevel extends BaseMapper
         $stockLevel->setProductId($this->identity($data['products_id']));
         $stockLevel->setStockLevel(floatval($data['products_quantity']));
 
-        return array($stockLevel);
+        return [$stockLevel];
     }
 
     public function push($stockLevel, $dbObj = null)

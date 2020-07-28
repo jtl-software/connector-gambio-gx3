@@ -1,4 +1,5 @@
 <?php
+
 namespace jtl\Connector\Gambio\Mapper;
 
 use jtl\Connector\Model\StatusChange as StatusChangeModel;
@@ -23,8 +24,8 @@ class StatusChange extends BaseMapper
                 $orderHistory->orders_status_id = $newStatus;
                 $orderHistory->date_added = date('Y-m-d H:i:s');
 
-                $this->db->insertRow($orderHistory, 'orders_status_history');                
-            }            
+                $this->db->insertRow($orderHistory, 'orders_status_history');
+            }
         }
 
         return $status;

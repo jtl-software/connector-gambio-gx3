@@ -95,8 +95,10 @@ class Manufacturer extends BaseMapper
         
         /** @var \jtl\Connector\Model\Manufacturer $manufacturer */
         foreach ($return as &$manufacturer) {
-            $dbObjects = $this->db->query(sprintf('SELECT * FROM manufacturers_info WHERE manufacturers_id = %s',
-                $manufacturer->getId()->getEndpoint()));
+            $dbObjects = $this->db->query(sprintf(
+                'SELECT * FROM manufacturers_info WHERE manufacturers_id = %s',
+                $manufacturer->getId()->getEndpoint()
+            ));
             
             foreach ($dbObjects as $dbObject) {
                 /** @var ManufacturerI18n $i18n */

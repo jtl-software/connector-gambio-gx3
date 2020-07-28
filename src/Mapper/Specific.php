@@ -1,27 +1,29 @@
 <?php
+
 namespace jtl\Connector\Gambio\Mapper;
 
 class Specific extends \jtl\Connector\Gambio\Mapper\BaseMapper
 {
-    protected $mapperConfig = array(
+    protected $mapperConfig = [
         "table" => "feature",
         "query" => "SELECT f.* FROM feature f
             LEFT JOIN jtl_connector_link_specific l ON f.feature_id = l.endpoint_id
             WHERE l.host_id IS NULL",
         "where" => "feature_id",
         "identity" => "getId",
-        "mapPull" => array(
+        "mapPull" => [
             "id" => "feature_id",
             "i18ns" => "SpecificI18n|addI18n",
             "values" => "SpecificValue|addValue"
-        ),
-        "mapPush" => array(
+        ],
+        "mapPush" => [
             "SpecificI18n|addI18n" => "i18ns",
             // TODO: "SpecificValue|addValue" => "values"
-        )
-    );
+        ]
+    ];
 
-    public function push($parent, $dbObj = null) {
+    public function push($parent, $dbObj = null)
+    {
         $id = $parent->getId()->getEndpoint();
 
         if (empty($id)) {
@@ -54,8 +56,7 @@ class Specific extends \jtl\Connector\Gambio\Mapper\BaseMapper
 
                 $this->db->query('DELETE FROM feature_description WHERE feature_id='.$data->getId()->getEndpoint());
                 $this->db->query('DELETE FROM feature WHERE feature_id='.$data->getId()->getEndpoint());
-            }
-            catch(\Exception $e) {
+            } catch (\Exception $e) {
             }
         }
 

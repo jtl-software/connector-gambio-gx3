@@ -7,10 +7,10 @@ use jtl\Connector\Model\ShippingMethod as ShippingMethodModel;
 
 class ShippingMethod extends BaseMapper
 {
-    protected $mapperConfig = array(
+    protected $mapperConfig = [
         "identity" => "getId",
         "getMethod" => "getShippingMethods"
-    );
+    ];
 
     public function pull($data = null, $limit = null)
     {
@@ -19,7 +19,7 @@ class ShippingMethod extends BaseMapper
         if (!is_null($moduleStr)) {
             $modules = explode(';', $moduleStr);
             if (count($modules) > 0) {
-                $return = array();
+                $return = [];
 
                 foreach ($modules as $moduleFile) {
                     $modName = str_replace('.php', '', $moduleFile);

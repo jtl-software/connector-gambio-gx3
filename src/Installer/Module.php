@@ -1,4 +1,5 @@
 <?php
+
 namespace jtl\Connector\Gambio\Installer;
 
 use jtl\Connector\Core\Database\Mysql;

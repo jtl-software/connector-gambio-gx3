@@ -1,9 +1,10 @@
 <?php
+
 namespace jtl\Connector\Gambio\Mapper;
 
 class CustomerGroup extends BaseMapper
 {
-    protected $mapperConfig = array(
+    protected $mapperConfig = [
         "table" => "customers_status",
         "query" => "SELECT customers_status_id, customers_status_discount, customers_status_show_price_tax
           FROM customers_status
@@ -11,18 +12,18 @@ class CustomerGroup extends BaseMapper
           GROUP BY customers_status_id, customers_status_discount, customers_status_show_price_tax",
         "identity" => "getId",
         "getMethod" => "getCustomerGroups",
-        "mapPull" => array(
+        "mapPull" => [
             "id" => "customers_status_id",
             "discount" => "customers_status_discount",
             "applyNetPrice" => null,
             "isDefault" => null,
             "i18ns" => "CustomerGroupI18n|addI18n",
             "attributes" => "CustomerGroupAttr|addAttribute"
-        ),
-        "mapPush" => array(
+        ],
+        "mapPush" => [
             "CustomerGroupI18n|addI18n" => "i18ns"
-        )
-    );
+        ]
+    ];
 
     protected function isDefault($data)
     {

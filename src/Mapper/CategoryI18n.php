@@ -1,17 +1,18 @@
 <?php
+
 namespace jtl\Connector\Gambio\Mapper;
 
 class CategoryI18n extends \jtl\Connector\Gambio\Mapper\BaseMapper
 {
-    protected $mapperConfig = array(
+    protected $mapperConfig = [
         "table" => "categories_description",
         "getMethod" => "getI18ns",
-        "where" => array("categories_id","language_id"),
+        "where" => ["categories_id","language_id"],
         "query" => "SELECT categories_description.*,languages.code
             FROM categories_description
             LEFT JOIN languages ON languages.languages_id=categories_description.language_id
             WHERE categories_description.categories_id=[[categories_id]]",
-        "mapPull" => array(
+        "mapPull" => [
             "languageISO" => null,
             "categoryId" => "categories_id",
             "name" => "categories_name",
@@ -20,8 +21,8 @@ class CategoryI18n extends \jtl\Connector\Gambio\Mapper\BaseMapper
             "metaKeywords" => "categories_meta_keywords",
             "titleTag" => "categories_meta_title",
             "urlPath" => "gm_url_keywords"
-        ),
-        "mapPush" => array(
+        ],
+        "mapPush" => [
             "language_id" => null,
             "categories_id" => null,
             "categories_name" => "name",
@@ -32,8 +33,8 @@ class CategoryI18n extends \jtl\Connector\Gambio\Mapper\BaseMapper
             "gm_url_keywords" => null,
             //"categories_heading_title" => null,
             //"gm_alt_text" => null
-        )
-    );
+        ]
+    ];
     
     protected $relatedAttributes = [
         'categories_description_bottom' => 'Untere Kategoriebeschreibung',
@@ -45,12 +46,12 @@ class CategoryI18n extends \jtl\Connector\Gambio\Mapper\BaseMapper
     {
         $cId = $parent->getId()->getEndpoint();
 
-        if(!empty($cId)) {
+        if (!empty($cId)) {
             $data = $parent->getI18ns();
 
             $currentResults = $this->db->query('SELECT d.language_id FROM categories_description d WHERE d.categories_id="'.$cId.'"');
 
-            $current = array();
+            $current = [];
 
             foreach ($currentResults as $cLang) {
                 $current[] = $cLang['language_id'];
@@ -59,11 +60,11 @@ class CategoryI18n extends \jtl\Connector\Gambio\Mapper\BaseMapper
             $new = [];
             
             $attributes = [];
-            foreach($parent->getAttributes() as $attribute) {
-                foreach($attribute->getI18ns() as $i18n) {
-                    if(isset($this->relatedAttributes[$i18n->getName()])) {
+            foreach ($parent->getAttributes() as $attribute) {
+                foreach ($attribute->getI18ns() as $i18n) {
+                    if (isset($this->relatedAttributes[$i18n->getName()])) {
                         $attributes[$i18n->getLanguageISO()][$i18n->getName()] = $i18n;
-                    } elseif($key = array_search($i18n->getName(), $this->relatedAttributes)) {
+                    } elseif ($key = array_search($i18n->getName(), $this->relatedAttributes)) {
                         $attributes[$i18n->getLanguageISO()][$key] = $i18n;
                     }
                 }
@@ -85,9 +86,8 @@ class CategoryI18n extends \jtl\Connector\Gambio\Mapper\BaseMapper
                 }
                 
                 if (isset($attributes[$obj->getLanguageISO()])) {
-                    foreach($attributes[$obj->getLanguageISO()] as $key => $attribute) {
-
-                        if(property_exists($dbObj, $key)) {
+                    foreach ($attributes[$obj->getLanguageISO()] as $key => $attribute) {
+                        if (property_exists($dbObj, $key)) {
                             $dbObj->$key = $attribute->getValue();
                         }
                     }
@@ -129,9 +129,9 @@ class CategoryI18n extends \jtl\Connector\Gambio\Mapper\BaseMapper
                 $existsKey = array_search($newObj->language_id, $current);
 
                 if ($existsKey === false) {
-                    $this->db->deleteInsertRow($newObj, $this->mapperConfig['table'], array('categories_id', 'language_id'), array($newObj->categories_id, $newObj->language_id));
+                    $this->db->deleteInsertRow($newObj, $this->mapperConfig['table'], ['categories_id', 'language_id'], [$newObj->categories_id, $newObj->language_id]);
                 } else {
-                    $this->db->updateRow($newObj, $this->mapperConfig['table'], array('categories_id', 'language_id'), array($newObj->categories_id, $newObj->language_id));
+                    $this->db->updateRow($newObj, $this->mapperConfig['table'], ['categories_id', 'language_id'], [$newObj->categories_id, $newObj->language_id]);
                 }
 
                 unset($current[$existsKey]);

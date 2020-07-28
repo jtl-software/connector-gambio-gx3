@@ -1,4 +1,5 @@
 <?php
+
 namespace jtl\Connector\Gambio\Mapper;
 
 use jtl\Connector\Gambio\Util\MeasurementUnitHelper;
@@ -12,8 +13,8 @@ use jtl\Connector\Model\Identity;
 
 class GlobalData extends \jtl\Connector\Gambio\Mapper\BaseMapper
 {
-    protected $mapperConfig = array(
-        "mapPull" => array(
+    protected $mapperConfig = [
+        "mapPull" => [
             "languages" => "Language|addLanguage",
             "customerGroups" => "CustomerGroup|addCustomerGroup",
             "taxRates" => "TaxRate|addTaxRate",
@@ -22,15 +23,15 @@ class GlobalData extends \jtl\Connector\Gambio\Mapper\BaseMapper
             "crossSellingGroups" => "CrossSellingGroup|addCrossSellingGroup",
             //"measurementUnits" => "MeasurementUnit|addMeasurementUnit",
             "shippingMethods" => "ShippingMethod|addShippingMethod"
-        ),
-        "mapPush" => array(
+        ],
+        "mapPush" => [
             "Currency|addCurrency" => "currencies",
             "Unit|addUnit" => "units",
             "CrossSellingGroup|addCrossSellingGroup" => "crossSellingGroups",
             "CustomerGroup|addCustomerGroup" => "customerGroups",
             "MeasurementUnit|addMeasurementUnit" => "measurementUnits"
-        )
-    );
+        ]
+    ];
 
     public function pull($parentData = null, $limit = null)
     {
@@ -71,7 +72,6 @@ class GlobalData extends \jtl\Connector\Gambio\Mapper\BaseMapper
                         ->setLanguageISO(Language::convert($lang))
                         ->setUnitId($gUnitId)
                 );
-
             }
 
             $globalData->addUnit($gUnit);

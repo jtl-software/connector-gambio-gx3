@@ -6,13 +6,13 @@ use jtl\Connector\Gambio\Mapper\BaseMapper;
 
 class CustomerOrderItem extends BaseMapper
 {
-    protected $mapperConfig = array(
+    protected $mapperConfig = [
         "table" => "orders_products",
         "query" => "SELECT p.*,v.products_properties_combis_id FROM orders_products p LEFT JOIN (SELECT orders_products_id, products_properties_combis_id FROM orders_products_properties GROUP BY orders_products_id, products_properties_combis_id) v ON v.orders_products_id=p.orders_products_id WHERE p.orders_id=[[orders_id]]",
         "where" => "orders_products_id",
         "getMethod" => "getItems",
         "identity" => "getId",
-        "mapPull" => array(
+        "mapPull" => [
             "id" => "orders_products_id",
             "productId" => null,
             "customerOrderId" => "orders_id",
@@ -24,8 +24,8 @@ class CustomerOrderItem extends BaseMapper
             "sku" => "products_model",
             "variations" => "CustomerOrderItemVariation|addVariation",
             "type" => null
-        ),
-        "mapPush" => array(
+        ],
+        "mapPush" => [
             "orders_products_id" => "id",
             "products_id" => "productId",
             "orders_id" => null,
@@ -37,8 +37,8 @@ class CustomerOrderItem extends BaseMapper
             "allow_tax" => null,
             "final_price" => null,
             "CustomerOrderItemVariation|addVariation" => "variations"
-        )
-    );
+        ]
+    ];
 
     public function addData($model, $data)
     {
@@ -110,7 +110,7 @@ class CustomerOrderItem extends BaseMapper
 
         foreach ($totals as $total) {
             $total->orders_id = $parent->getId()->getEndpoint();
-            $this->db->deleteInsertRow($total, 'orders_total', array('orders_id', 'class'), array($parent->getId()->getEndpoint(), $total->class));
+            $this->db->deleteInsertRow($total, 'orders_total', ['orders_id', 'class'], [$parent->getId()->getEndpoint(), $total->class]);
         }
 
         return $return;
@@ -132,12 +132,12 @@ class CustomerOrderItem extends BaseMapper
 
     protected function priceGross($data)
     {
-        return $data['allow_tax'] === '1' ? $data['products_price'] : $data['products_price'] * ( $data['products_tax'] / 100 + 1);
+        return $data['allow_tax'] === '1' ? $data['products_price'] : $data['products_price'] * ($data['products_tax'] / 100 + 1);
     }
 
     protected function vat($data)
     {
-        if(CustomerOrder::determineDefaultTaxRate($this->db, $data['orders_id']) === 0.) {
+        if (CustomerOrder::determineDefaultTaxRate($this->db, $data['orders_id']) === 0.) {
             return 0.;
         }
         return $data['products_tax'];

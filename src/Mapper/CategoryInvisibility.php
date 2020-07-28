@@ -1,4 +1,5 @@
 <?php
+
 namespace jtl\Connector\Gambio\Mapper;
 
 use jtl\Connector\Model\CategoryInvisibility as CategoryInvisibilityModel;

@@ -1,18 +1,19 @@
 <?php
+
 namespace jtl\Connector\Gambio\Mapper;
 
 class ProductPriceItem extends BaseMapper
 {
     private static $parentPrice = null;
 
-    protected $mapperConfig = array(
+    protected $mapperConfig = [
         "getMethod" => "getItems",
-        "mapPull" => array(
+        "mapPull" => [
             "productPriceId" => null,
             "netPrice" => null,
             "quantity" => null
-        )
-    );
+        ]
+    ];
 
     public function pull($data = null, $limit = null)
     {
@@ -24,7 +25,6 @@ class ProductPriceItem extends BaseMapper
             $priceData['customers_status_id'] = $data['customers_status_id'];
 
             $return[] = $this->generateModel($priceData);
-
         }
 
         return $return;

@@ -11,7 +11,7 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
 {
     protected $db;
 
-    protected static $types = array(
+    protected static $types = [
         IdentityLinker::TYPE_CATEGORY => 'category',
         IdentityLinker::TYPE_CUSTOMER => 'customer',
         IdentityLinker::TYPE_CUSTOMER_ORDER => 'customer_order',
@@ -24,7 +24,7 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
         IdentityLinker::TYPE_PAYMENT => 'payment',
         IdentityLinker::TYPE_CROSSSELLING => 'crossselling',
         IdentityLinker::TYPE_CROSSSELLING_GROUP => 'crossselling_group'
-    );
+    ];
 
     public function __construct()
     {
@@ -81,7 +81,7 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
                 $where[] = 'host_id = ' . $hostId;
             }
 
-            $this->db->query('DELETE FROM jtl_connector_link_' . static::$types[$type] . ' WHERE ' . join(" AND ",$where));
+            $this->db->query('DELETE FROM jtl_connector_link_' . static::$types[$type] . ' WHERE ' . join(" AND ", $where));
         }
     }
 

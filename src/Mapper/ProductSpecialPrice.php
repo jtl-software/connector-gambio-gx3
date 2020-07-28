@@ -1,16 +1,17 @@
 <?php
+
 namespace jtl\Connector\Gambio\Mapper;
 
 use jtl\Connector\Gambio\Mapper\BaseMapper;
 
 class ProductSpecialPrice extends BaseMapper
 {
-    protected $mapperConfig = array(
+    protected $mapperConfig = [
         "table" => "specials",
         "query" => "SELECT * FROM specials WHERE products_id=[[products_id]]",
         "getMethod" => "getSpecialPrices",
         "where" => "specials_id",
-        "mapPull" => array(
+        "mapPull" => [
             "id" => "specials_id",
             "productId" => "products_id",
             "isActive" => "status",
@@ -20,8 +21,8 @@ class ProductSpecialPrice extends BaseMapper
             //"considerStockLimit" => null,
             "considerDateLimit" => null,
             "items" => "ProductSpecialPriceItem|addItem"
-        ),
-        "mapPush" => array(
+        ],
+        "mapPush" => [
             //"specials_id" => null,
             "products_id" => "productId",
             "status" => "isActive",
@@ -29,8 +30,8 @@ class ProductSpecialPrice extends BaseMapper
             "begins_date" => "activeFromDate",
             //"specials_quantity" => "stockLimit",
             "ProductSpecialPriceItem|addItem|true" => "items"
-        )
-    );
+        ]
+    ];
     
     protected function considerDateLimit($data)
     {

@@ -1,14 +1,15 @@
 <?php
+
 namespace jtl\Connector\Gambio\Mapper;
 
 use jtl\Connector\Core\Utilities\Country;
 
 class CustomerOrderShippingAddress extends BaseMapper
 {
-    protected $mapperConfig = array(
+    protected $mapperConfig = [
         "table" => "customer_orders",
         "getMethod" => "getShippingAddress",
-        "mapPull" => array(
+        "mapPull" => [
             "id" => null,
             "customerId" => "customers_id",
             "firstName" => "delivery_firstname",
@@ -23,8 +24,8 @@ class CustomerOrderShippingAddress extends BaseMapper
             "eMail" => "customers_email_address",
             "phone" => "customers_telephone",
             "salutation" => null
-        ),
-        "mapPush" => array(
+        ],
+        "mapPush" => [
             "delivery_name" => null,
             "delivery_firstname" => "firstName",
             "delivery_lastname" => "lastName",
@@ -35,11 +36,12 @@ class CustomerOrderShippingAddress extends BaseMapper
             "delivery_city" => "city",
             "delivery_state" => "state",
             "delivery_country_iso_code_2" => "countryIso"
-        )
-    );
+        ]
+    ];
     
-    protected function street($data){
-        if ($this->shopConfig['settings']['ACCOUNT_SPLIT_STREET_INFORMATION'] === 1 && !empty($data["delivery_house_number"])){
+    protected function street($data)
+    {
+        if ($this->shopConfig['settings']['ACCOUNT_SPLIT_STREET_INFORMATION'] === 1 && !empty($data["delivery_house_number"])) {
             return sprintf("%s %s", $data["delivery_street_address"], $data["delivery_house_number"]);
         } else {
             return $data["delivery_street_address"];
@@ -62,7 +64,7 @@ class CustomerOrderShippingAddress extends BaseMapper
 
     public function pull($data = null, $limit = null)
     {
-        return array($this->generateModel($data));
+        return [$this->generateModel($data)];
     }
 
     protected function id($data)

@@ -53,17 +53,17 @@ class DevLogging extends Module
                 function downloadLogs() {
                     $.ajax({
                       type: "POST",
-                      url: " '. substr($this->shopConfig["shop"]["folder"],0, -1) .'/jtlconnector/install/loggingConfig.php",
+                      url: " '. substr($this->shopConfig["shop"]["folder"], 0, -1) .'/jtlconnector/install/loggingConfig.php",
                       data: {download: ""},
                     }).done(() => {
-                        window.location.href = "'. substr($this->shopConfig["shop"]["folder"],0, -1) .'/jtlconnector/install/logs.zip";
+                        window.location.href = "'. substr($this->shopConfig["shop"]["folder"], 0, -1) .'/jtlconnector/install/logs.zip";
                     });
                 }
                 
                 function clearLogs() {
                     $.ajax({
                       type: "POST",
-                      url: " '. substr($this->shopConfig["shop"]["folder"],0, -1) .'/jtlconnector/install/loggingConfig.php",
+                      url: " '. substr($this->shopConfig["shop"]["folder"], 0, -1) .'/jtlconnector/install/loggingConfig.php",
                       data: {clear: ""},
                     }).done(() => {
                         location.reload();

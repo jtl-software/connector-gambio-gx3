@@ -1,4 +1,5 @@
 <?php
+
 namespace jtl\Connector\Gambio\Installer\Modules;
 
 use jtl\Connector\Gambio\Installer\Module;

@@ -126,9 +126,9 @@ class CustomerOrder extends BaseMapper
                     $orderHistory->orders_status_id = $newStatus;
                     $orderHistory->date_added = date('Y-m-d H:i:s');
 
-                    $this->db->insertRow($orderHistory, 'orders_status_history');    
+                    $this->db->insertRow($orderHistory, 'orders_status_history');
 
-                    $data['orders_status'] = $newStatus;            
+                    $data['orders_status'] = $newStatus;
                 }
             }
         }
@@ -188,11 +188,9 @@ class CustomerOrder extends BaseMapper
     protected function paymentModuleCode($data)
     {
         if (strcmp($data['payment_method'], 'gambio_hub') === 0) {
-
             if (key_exists($data['gambio_hub_module'], $this->paymentMapping)) {
                 return $this->paymentMapping[$data['gambio_hub_module']];
             }
-
         } else {
             if (key_exists($data['payment_method'], $this->paymentMapping)) {
                 return $this->paymentMapping[$data['payment_method']];

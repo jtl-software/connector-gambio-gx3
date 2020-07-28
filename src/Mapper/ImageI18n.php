@@ -1,16 +1,17 @@
 <?php
+
 namespace jtl\Connector\Gambio\Mapper;
 
 class ImageI18n extends \jtl\Connector\Gambio\Mapper\BaseMapper
 {
-    protected $mapperConfig = array(
+    protected $mapperConfig = [
         "getMethod" => "getI18ns",
-        "mapPull" => array(
+        "mapPull" => [
             "id" => "img_alt_id",
             "languageISO" => null,
             "imageId" => "image_id",
             "altText" => "gm_alt_text"
-        ),
+        ],
         /*
         "mapPush" => array(
             "language_id" => null,
@@ -18,7 +19,7 @@ class ImageI18n extends \jtl\Connector\Gambio\Mapper\BaseMapper
             "categories_name" => "name",
         )
         */
-    );
+    ];
 
     public function pull($data = null, $limit = null)
     {
@@ -30,8 +31,7 @@ class ImageI18n extends \jtl\Connector\Gambio\Mapper\BaseMapper
                             FROM products_description d
                             LEFT JOIN languages l ON l.languages_id=d.language_id
                             WHERE d.products_id='" . $data['foreignKey'] . "'";
-                        }
-                    else {
+                    } else {
                         $this->mapperConfig['query'] = "SELECT d.img_alt_id,d.gm_alt_text,d.image_id,l.code
                           FROM gm_prd_img_alt d
                           LEFT JOIN languages l ON l.languages_id=d.language_id

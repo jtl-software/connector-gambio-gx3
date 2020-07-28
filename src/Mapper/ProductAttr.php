@@ -72,13 +72,15 @@ class ProductAttr extends BaseMapper
                             $fieldId = $sql[0]['additional_field_id'];
 
                             if (!empty($pId)) {
-                                $this->db->query('
+                                $this->db->query(
+                                    '
                                       DELETE v, d
                                       FROM additional_field_values v
                                       LEFT JOIN additional_field_value_descriptions d ON d.additional_field_value_id = v.additional_field_value_id
                                       WHERE v.additional_field_id = ' . $fieldId . ' AND item_id=' . $pId
                                 );
-				$this->db->query('
+                                $this->db->query(
+                                    '
                                       UPDATE additional_fields SET multilingual=1 WHERE additional_field_id=' . $fieldId
                                 );
                             }
@@ -97,9 +99,12 @@ class ProductAttr extends BaseMapper
                                 $fieldDesc->language_id = $this->locale2id($i18n->getLanguageISO());
                                 $fieldDesc->name = $i18n->getName();
                                 
-                                $this->db->deleteInsertRow($fieldDesc, 'additional_field_descriptions',
+                                $this->db->deleteInsertRow(
+                                    $fieldDesc,
+                                    'additional_field_descriptions',
                                     ['additional_field_id', 'language_id'],
-                                    [$fieldDesc->additional_field_id, $fieldDesc->language_id]);
+                                    [$fieldDesc->additional_field_id, $fieldDesc->language_id]
+                                );
                             }
                         }
                     }
@@ -163,7 +168,8 @@ class ProductAttr extends BaseMapper
 
             $multiLang = $attr->getIsTranslated() ? ' AND d.language_id = v.language_id' : '';
 
-            $values = $this->db->query('
+            $values = $this->db->query(
+                '
                 SELECT v.value, d.name, d.language_id as lang
                 FROM additional_field_value_descriptions v
                 LEFT JOIN additional_field_values f ON f.additional_field_value_id = v.additional_field_value_id

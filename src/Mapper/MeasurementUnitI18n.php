@@ -1,20 +1,21 @@
 <?php
+
 namespace jtl\Connector\Gambio\Mapper;
 
 use jtl\Connector\Gambio\Mapper\BaseMapper;
 
 class MeasurementUnitI18n extends BaseMapper
 {
-    protected $mapperConfig = array(
+    protected $mapperConfig = [
         "query" => "SELECT quantity_unit_description.*,languages.code FROM quantity_unit_description LEFT JOIN languages ON languages.languages_id=quantity_unit_description.language_id WHERE quantity_unit_id=[[quantity_unit_id]]",
         "table" => "quantity_unit_description",
         "getMethod" => "getI18ns",
-        "mapPull" => array(
+        "mapPull" => [
             "measurementUnitId" => "quantity_unit_id",
             "languageISO" => null,
             "name" => "unit_name"
-        )
-    );
+        ]
+    ];
 
     public function push($data, $dbObj = null)
     {

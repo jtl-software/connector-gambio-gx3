@@ -1,4 +1,5 @@
 <?php
+
 namespace jtl\Connector\Gambio;
 
 use \jtl\Connector\Core\Rpc\RequestPacket;
@@ -41,15 +42,15 @@ class Gambio extends BaseConnector
         }
 
         if (!$db->isConnected()) {
-            $db->connect(array(
+            $db->connect([
                 "host" => $session->shopConfig['db']["host"],
                 "user" => $session->shopConfig['db']["user"],
                 "password" => $session->shopConfig['db']["pass"],
                 "name" => $session->shopConfig['db']["name"]
-            ));
+            ]);
         }
 
-        if(!isset($session->connectorConfig->utf8) || $session->connectorConfig->utf8 !== '1') {
+        if (!isset($session->connectorConfig->utf8) || $session->connectorConfig->utf8 !== '1') {
             $db->setNames();
             $db->setCharset();
         }
@@ -67,10 +68,10 @@ class Gambio extends BaseConnector
 
     private function update($db)
     {
-        if(version_compare(file_get_contents(CONNECTOR_DIR.'/db/version'), CONNECTOR_VERSION) == -1) {
+        if (version_compare(file_get_contents(CONNECTOR_DIR.'/db/version'), CONNECTOR_VERSION) == -1) {
             $versions = [];
             foreach (new \DirectoryIterator(CONNECTOR_DIR.'/db/updates') as $item) {
-                if($item->isFile()) {
+                if ($item->isFile()) {
                     $versions[] = $item->getBasename('.php');
                 }
             }
@@ -78,7 +79,7 @@ class Gambio extends BaseConnector
             sort($versions);
 
             foreach ($versions as $version) {
-                if(version_compare(file_get_contents(CONNECTOR_DIR.'/db/version'), $version) == -1) {
+                if (version_compare(file_get_contents(CONNECTOR_DIR.'/db/version'), $version) == -1) {
                     include(CONNECTOR_DIR.'/db/updates/' . $version . '.php');
                 }
             }
@@ -94,7 +95,7 @@ class Gambio extends BaseConnector
             $this->controller = $class::getInstance();
             $this->action = RpcMethod::buildAction($this->getMethod()->getAction());
 
-            return is_callable(array($this->controller, $this->action));
+            return is_callable([$this->controller, $this->action]);
         }
 
         return false;
@@ -104,7 +105,7 @@ class Gambio extends BaseConnector
     {
         $this->controller->setMethod($this->getMethod());
 
-        $result = array();
+        $result = [];
 
         if ($this->action === Method::ACTION_PUSH || $this->action === Method::ACTION_DELETE) {
             if (!is_array($requestpacket->getParams())) {
@@ -112,7 +113,7 @@ class Gambio extends BaseConnector
             }
 
             $action = new Action();
-            $results = array();
+            $results = [];
 
             $link = Mysql::getInstance();
             $link->DB()->begin_transaction();
@@ -130,7 +131,7 @@ class Gambio extends BaseConnector
                         $message = sprintf('Type: Product Host-Id: %s SKU: %s %s', $param->getId()->getHost(), $param->getSku(), $result->getError()->getMessage());
                     } elseif ($param instanceof ProductPrice || $param instanceof ProductStockLevel) {
                         $message = sprintf('Type: %s Product Host-Id: %s %s', $reflectionClass->getShortName(), $param->getProductId()->getHost(), $result->getError()->getMessage());
-                    } elseif ($param instanceof StatusChange || $param instanceof DeliveryNote){
+                    } elseif ($param instanceof StatusChange || $param instanceof DeliveryNote) {
                         $message = sprintf('Type: %s Order Host-Id: %s %s', $reflectionClass->getShortName(), $param->getCustomerOrderId()->getHost(), $result->getError()->getMessage());
                     } elseif (method_exists($param, 'getId')) {
                         $message = sprintf('Type: %s Host-Id: %s %s', $reflectionClass->getShortName(), $param->getId()->getHost(), $result->getError()->getMessage());

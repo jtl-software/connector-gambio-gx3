@@ -93,8 +93,12 @@ class ProductVariation extends Product
                         $varObj->language_id = $this->locale2id($i18n->getLanguageISO());
                         $varObj->products_options_name = $i18n->getName();
 
-                        $this->db->deleteInsertRow($varObj, 'products_options', ['products_options_id', 'language_id'],
-                            [$variationId, $varObj->language_id]);
+                        $this->db->deleteInsertRow(
+                            $varObj,
+                            'products_options',
+                            ['products_options_id', 'language_id'],
+                            [$variationId, $varObj->language_id]
+                        );
                     }
 
                     // VariationValues
@@ -124,8 +128,12 @@ class ProductVariation extends Product
                             $valueObj->language_id = $this->locale2id($i18n->getLanguageISO());
                             $valueObj->products_options_values_name = $i18n->getName();
 
-                            $this->db->deleteInsertRow($valueObj, 'products_options_values',
-                                ['products_options_values_id', 'language_id'], [$valueId, $valueObj->language_id]);
+                            $this->db->deleteInsertRow(
+                                $valueObj,
+                                'products_options_values',
+                                ['products_options_values_id', 'language_id'],
+                                [$valueId, $valueObj->language_id]
+                            );
                         }
 
                         // insert/update values to variation mapping
@@ -133,8 +141,12 @@ class ProductVariation extends Product
                         $val2varObj->products_options_id = $variationId;
                         $val2varObj->products_options_values_id = $valueId;
 
-                        $this->db->deleteInsertRow($val2varObj, 'products_options_values_to_products_options',
-                            ['products_options_id', 'products_options_values_id'], [$variationId, $valueId]);
+                        $this->db->deleteInsertRow(
+                            $val2varObj,
+                            'products_options_values_to_products_options',
+                            ['products_options_id', 'products_options_values_id'],
+                            [$variationId, $valueId]
+                        );
 
                         // insert/update product variation
                         $pVarObj = new \stdClass();
@@ -203,8 +215,12 @@ class ProductVariation extends Product
                             $varObj->language_id = $this->locale2id($i18n->getLanguageISO());
                             $varObj->properties_name = $i18n->getName();
 
-                            $this->db->deleteInsertRow($varObj, 'properties_description',
-                                ['properties_id', 'language_id'], [$variationId, $varObj->language_id]);
+                            $this->db->deleteInsertRow(
+                                $varObj,
+                                'properties_description',
+                                ['properties_id', 'language_id'],
+                                [$variationId, $varObj->language_id]
+                            );
                         }
 
                         // VariationValues
@@ -248,8 +264,12 @@ class ProductVariation extends Product
                                 $valueObj->language_id = $this->locale2id($i18n->getLanguageISO());
                                 $valueObj->values_name = $i18n->getName();
 
-                                $this->db->deleteInsertRow($valueObj, 'properties_values_description',
-                                    ['properties_values_id', 'language_id'], [$valueId, $valueObj->language_id]);
+                                $this->db->deleteInsertRow(
+                                    $valueObj,
+                                    'properties_values_description',
+                                    ['properties_values_id', 'language_id'],
+                                    [$valueId, $valueObj->language_id]
+                                );
                             }
                         }
                     }
@@ -285,7 +305,6 @@ class ProductVariation extends Product
                 $combi->products_vpe_id = $this->products_vpe($parent);
                 foreach ($parent->getPrices() as $price) {
                     if (is_null($price->getCustomerGroupId()->getEndpoint()) || $price->getCustomerGroupId()->getEndpoint() == '') {
-
                         $childPrice = $price->getItems()[0]->getNetPrice();
                         if (is_null(static::$parentPrices[$parent->getMasterProductId()->getHost()])) {
                             $parentObj = $this->db->query('SELECT products_price FROM products WHERE products_id="' . $combi->products_id . '"');
@@ -293,7 +312,7 @@ class ProductVariation extends Product
                         }
 
                         $parentPrice = static::$parentPrices[$parent->getMasterProductId()->getHost()];
-                        if($childPrice !== $parentPrice) {
+                        if ($childPrice !== $parentPrice) {
                             $combi->combi_price = ($childPrice - $parentPrice);
                         }
 
@@ -302,8 +321,12 @@ class ProductVariation extends Product
                 }
 
                 if (isset($combi->products_properties_combis_id)) {
-                    $result = $this->db->updateRow($combi, 'products_properties_combis',
-                        'products_properties_combis_id', $combi->products_properties_combis_id);
+                    $result = $this->db->updateRow(
+                        $combi,
+                        'products_properties_combis',
+                        'products_properties_combis_id',
+                        $combi->products_properties_combis_id
+                    );
                 } else {
                     $result = $this->db->insertRow($combi, 'products_properties_combis');
                 }
@@ -339,29 +362,40 @@ class ProductVariation extends Product
                             $index->values_name = $i18n->getName();
                             $index->value_sort_order = $value->getSort();
 
-                            $this->db->deleteInsertRow($index, 'products_properties_index',
-                                ['products_properties_combis_id', 'properties_values_id', 'language_id'], [
+                            $this->db->deleteInsertRow(
+                                $index,
+                                'products_properties_index',
+                                ['products_properties_combis_id', 'properties_values_id', 'language_id'],
+                                [
                                     $index->products_properties_combis_id,
                                     $index->properties_values_id,
                                     $index->language_id,
-                                ]);
+                                ]
+                            );
                         }
 
                         $combiValue = new \stdClass();
                         $combiValue->products_properties_combis_id = $combi->products_properties_combis_id;
                         $combiValue->properties_values_id = $this->getValueId($value, $variation);
 
-                        $this->db->deleteInsertRow($combiValue, 'products_properties_combis_values',
+                        $this->db->deleteInsertRow(
+                            $combiValue,
+                            'products_properties_combis_values',
                             ['products_properties_combis_id', 'properties_values_id'],
-                            [$combiValue->products_properties_combis_id, $combiValue->properties_values_id]);
+                            [$combiValue->products_properties_combis_id, $combiValue->properties_values_id]
+                        );
                     }
                 }
 
                 $combiId = new \StdClass();
                 $combiId->endpoint_id = $parent->getMasterProductId()->getEndpoint() . '_' . $result->getKey();
                 $combiId->host_id = $parent->getId()->getHost();
-                $this->db->deleteInsertRow($combiId, 'jtl_connector_link_product', 'endpoint_id',
-                    $combiId->endpoint_id);
+                $this->db->deleteInsertRow(
+                    $combiId,
+                    'jtl_connector_link_product',
+                    'endpoint_id',
+                    $combiId->endpoint_id
+                );
             }
         }
 
@@ -464,9 +498,12 @@ class ProductVariation extends Product
                             $status->language_id = $this->locale2id($i18n->getLanguageISO());
                             $status->shipping_status_name = $i18n->getDeliveryStatus();
 
-                            $this->db->deleteInsertRow($status, 'shipping_status',
+                            $this->db->deleteInsertRow(
+                                $status,
+                                'shipping_status',
                                 ['shipping_status_id', 'language_id'],
-                                [$status->shipping_status_id, $status->language_id]);
+                                [$status->shipping_status_id, $status->language_id]
+                            );
                         }
 
                         return $id;

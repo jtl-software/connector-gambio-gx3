@@ -1,21 +1,22 @@
 <?php
+
 namespace jtl\Connector\Gambio\Mapper;
 
 use jtl\Connector\Gambio\Mapper\BaseMapper;
 
 class Language extends BaseMapper
 {
-    protected $mapperConfig = array(
+    protected $mapperConfig = [
         "table" => "languages",
         "identity" => "getId",
-        "mapPull" => array(
+        "mapPull" => [
             "id" => "languages_id",
             "nameEnglish" => "name",
             "nameGerman" => "name",
             "languageISO" => null,
             "isDefault" => null
-        )
-    );
+        ]
+    ];
 
     protected function languageISO($data)
     {

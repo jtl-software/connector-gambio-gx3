@@ -1,34 +1,35 @@
 <?php
+
 namespace jtl\Connector\Gambio\Mapper;
 
 use jtl\Connector\Gambio\Mapper\BaseMapper;
 
 class ProductVariationValueI18n extends BaseMapper
 {
-    protected $mapperConfig = array(
+    protected $mapperConfig = [
         "table" => "properties_values_description",
         "query" => 'SELECT * FROM properties_values_description WHERE properties_values_id=[[properties_values_id]]',
         "getMethod" => "getI18ns",
-        "mapPull" => array(
+        "mapPull" => [
             "productVariationValueId" => "properties_values_id",
             "name" => "values_name",
             "languageISO" => null
-        )
-    );
+        ]
+    ];
 
     public function pull($data = null, $limit = null)
     {
         if (isset($data['options_values_id'])) {
-            $this->mapperConfig = array(
+            $this->mapperConfig = [
                 "table" => "products_options_values",
                 "query" => 'SELECT * FROM products_options_values WHERE products_options_values_id=[[options_values_id]]',
                 "getMethod" => "getI18ns",
-                "mapPull" => array(
+                "mapPull" => [
                     "productVariationValueId" => "products_options_values_id",
                     "name" => "products_options_values_name",
                     "languageISO" => null
-                )
-            );
+                ]
+            ];
         }
 
         return parent::pull($data, $limit);

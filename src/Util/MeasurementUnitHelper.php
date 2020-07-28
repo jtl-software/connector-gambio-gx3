@@ -40,7 +40,7 @@ final class MeasurementUnitHelper
     public static function isUnit($unit)
     {
         foreach (self::$measurementUnits as $code => $data) {
-            if(strtolower($unit) === strtolower($code)) {
+            if (strtolower($unit) === strtolower($code)) {
                 return true;
             }
         }
@@ -54,8 +54,8 @@ final class MeasurementUnitHelper
     public static function isUnitByName($name)
     {
         foreach (self::$measurementUnits as $code => $data) {
-            foreach($data['lang'] as $lang => $mUnitName) {
-                if(strtolower($name) === strtolower($mUnitName)) {
+            foreach ($data['lang'] as $lang => $mUnitName) {
+                if (strtolower($name) === strtolower($mUnitName)) {
                     return true;
                 }
             }
@@ -70,7 +70,7 @@ final class MeasurementUnitHelper
     public static function getUnit($unit)
     {
         foreach (self::$measurementUnits as $code => $data) {
-            if(strtolower($unit) === strtolower($code)) {
+            if (strtolower($unit) === strtolower($code)) {
                 return array_merge(['code' => $code], self::$measurementUnits[$code]);
             }
         }
@@ -84,7 +84,7 @@ final class MeasurementUnitHelper
     public static function getUnitNames($unit)
     {
         foreach (self::$measurementUnits as $code => $data) {
-            if(strtolower($unit) === strtolower($code)) {
+            if (strtolower($unit) === strtolower($code)) {
                 return $data['lang'];
             }
         }
@@ -144,7 +144,7 @@ final class MeasurementUnitHelper
      */
     public static function splitCombinedUnit($unit)
     {
-        if(!static::isCombinedUnit($unit)) {
+        if (!static::isCombinedUnit($unit)) {
             throw new \RuntimeException($unit . ' is not a combined unit!');
         }
 

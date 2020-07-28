@@ -1,4 +1,5 @@
 <?php
+
 namespace jtl\Connector\Gambio\Mapper;
 
 use jtl\Connector\Core\Database\Mysql;
@@ -142,7 +143,7 @@ class BaseMapper
     {
         $return = [];
         if (!is_array($data)) {
-            $data = array($data);
+            $data = [$data];
         }
 
         foreach ($data as $obj) {
@@ -159,11 +160,10 @@ class BaseMapper
             foreach ($this->mapperConfig['mapPush'] as $endpoint => $host) {
                 if (is_null($host) && method_exists(get_class($this), $endpoint)) {
                     $value = $this->$endpoint($obj, $model, $parentObj);
-                    if($value instanceof \DateTimeInterface) {
+                    if ($value instanceof \DateTimeInterface) {
                         $value = $value->format("Y-m-d H:i:s");
                     }
                     $dbObj->$endpoint = $value;
-    
                 } elseif ($this->type->getProperty($host)->isNavigation()) {
                     list($preEndpoint, $preNavSetMethod, $preMapper) = array_pad(explode('|', $endpoint), 3, null);
 
@@ -277,7 +277,7 @@ class BaseMapper
 
                     $values = $subMapper->push($obj);
 
-                    if(!is_null($values) && is_array($values)) {
+                    if (!is_null($values) && is_array($values)) {
                         foreach ($values as $setObj) {
                             $model->$navSetMethod($setObj);
                         }
@@ -310,7 +310,7 @@ class BaseMapper
     {
         $dbResult = $this->executeQuery($parentData, $limit);
 
-        $return = array();
+        $return = [];
 
         if (isset($dbResult)) {
             foreach ($dbResult as $data) {
@@ -383,10 +383,10 @@ class BaseMapper
     public function statistic()
     {
         if (isset($this->mapperConfig['query'])) {
-            $result = $this->db->query($this->mapperConfig['query']);            
+            $result = $this->db->query($this->mapperConfig['query']);
             return count($result);
         } else {
-            $objs = $this->db->query("SELECT count(*) as count FROM {$this->mapperConfig['table']} LIMIT 1", array("return" => "object"));
+            $objs = $this->db->query("SELECT count(*) as count FROM {$this->mapperConfig['table']} LIMIT 1", ["return" => "object"]);
         }
 
         return $objs !== null ? intval($objs[0]->count) : 0;
@@ -477,8 +477,8 @@ class BaseMapper
 
     public function cleanName($name, $p_replace = '-')
     {
-        $search_array  = array('ä', 'Ä', 'ö', 'Ö', 'ü', 'Ü', '&auml;', '&Auml;', '&ouml;', '&Ouml;', '&uuml;', '&Uuml;', 'ß', '&szlig;');
-        $replace_array = array('ae', 'Ae', 'oe', 'Oe', 'ue', 'Ue', 'ae', 'Ae', 'oe', 'Oe', 'ue', 'Ue', 'ss', 'ss');
+        $search_array  = ['ä', 'Ä', 'ö', 'Ö', 'ü', 'Ü', '&auml;', '&Auml;', '&ouml;', '&Ouml;', '&uuml;', '&Uuml;', 'ß', '&szlig;'];
+        $replace_array = ['ae', 'Ae', 'oe', 'Oe', 'ue', 'Ue', 'ae', 'Ae', 'oe', 'Oe', 'ue', 'Ue', 'ss', 'ss'];
         $name          = str_replace($search_array, $replace_array, $name);
 
         $replace_param = '/[^a-zA-Z0-9]/';

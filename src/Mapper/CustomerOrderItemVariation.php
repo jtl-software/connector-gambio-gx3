@@ -1,4 +1,5 @@
 <?php
+
 namespace jtl\Connector\Gambio\Mapper;
 
 use jtl\Connector\Model\CustomerOrderItemVariation as CustomerOrderItemVariationModel;
@@ -6,13 +7,13 @@ use jtl\Connector\Model\Identity;
 
 class CustomerOrderItemVariation extends BaseMapper
 {
-    protected $mapperConfig = array(
+    protected $mapperConfig = [
         "table" => "orders_products_attributes",
         "query" => "SELECT *,[[products_id]] AS products_id FROM orders_products_attributes WHERE orders_products_id=[[orders_products_id]]",
         "where" => "orders_products_attributes_id",
         "getMethod" => "getVariations",
         "identity" => "getId",
-        "mapPull" => array(
+        "mapPull" => [
             "id" => "orders_products_attributes_id",
             "customerOrderItemId" => "orders_products_id",
             "productVariationId" => "orders_products_options_id",
@@ -20,8 +21,8 @@ class CustomerOrderItemVariation extends BaseMapper
             "productVariationName" => "products_options",
             "valueName" => "products_options_values",
             "surcharge" => null
-        ),
-        "mapPush" => array(
+        ],
+        "mapPush" => [
             "orders_products_attributes_id" => "id",
             "orders_products_id" => "customerOrderItemId",
             "products_options" => "productVariationName",
@@ -31,16 +32,16 @@ class CustomerOrderItemVariation extends BaseMapper
             "orders_products_options_id" => null,
             "orders_products_options_values_id" => null,
             "orders_id" => null
-        )
-    );
+        ]
+    ];
 
     public function pull($data = null, $limit = null)
     {
         $oldVars = parent::pull($data, $limit);
-        $newVars = array();
+        $newVars = [];
 
         $newVarsQuery = $this->db->query('SELECT * FROM orders_products_properties WHERE orders_products_id="'.$data['orders_products_id'].'"');
-        foreach($newVarsQuery as $variation) {
+        foreach ($newVarsQuery as $variation) {
             $var = new CustomerOrderItemVariationModel();
             $var->setId(new Identity($variation['orders_products_properties_id']));
             $var->setCustomerOrderItemId(new Identity($variation['orders_products_id']));

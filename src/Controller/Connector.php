@@ -1,4 +1,5 @@
 <?php
+
 namespace jtl\Connector\Gambio\Controller;
 
 use jtl\Connector\Model\ConnectorServerInfo;
@@ -19,7 +20,7 @@ class Connector extends BaseController
 
         $return = [];
 
-        $mainControllers = array(
+        $mainControllers = [
             'Category',
             'Customer',
             'CustomerOrder',
@@ -27,7 +28,7 @@ class Connector extends BaseController
             'Product',
             'Manufacturer',
             'CrossSelling'
-        );
+        ];
 
         foreach ($mainControllers as $controller) {
             $class = "\\jtl\\Connector\\Gambio\\Mapper\\{$controller}";
@@ -73,7 +74,7 @@ class Connector extends BaseController
         $action = new Action();
         $action->setHandled(true);
 
-        $returnMegaBytes = function($value) {
+        $returnMegaBytes = function ($value) {
             $value = trim($value);
             $unit = strtolower($value[strlen($value) - 1]);
             switch ($unit) {

@@ -19,7 +19,6 @@ if (isset($_REQUEST['download'])) {
         }
     }
     $zip->close();
-    
 } elseif (isset($_REQUEST['clear'])) {
     foreach (scandir($logFolder) as $file) {
         if ($file !== '.' && $file !== '..' && $file !== '.htaccess') {

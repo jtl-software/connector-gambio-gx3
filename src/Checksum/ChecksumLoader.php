@@ -1,4 +1,5 @@
 <?php
+
 namespace jtl\Connector\Gambio\Checksum;
 
 use jtl\Connector\Checksum\IChecksumLoader;

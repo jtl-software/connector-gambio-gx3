@@ -54,14 +54,15 @@ class Category extends \jtl\Connector\Gambio\Mapper\BaseMapper
     
     protected function isActive($data)
     {
-        $results = $this->db->query(sprintf('
+        $results = $this->db->query(sprintf(
+            '
               SELECT categories_status
               FROM categories
               WHERE categories_id="%s"',
             $data['categories_id']
         ));
     
-        if (!empty($results)){
+        if (!empty($results)) {
             return $results[0]["categories_status"];
         }
     
@@ -120,8 +121,10 @@ class Category extends \jtl\Connector\Gambio\Mapper\BaseMapper
     public function pushDone($model, $dbObj)
     {
         static::$idCache[$model->getId()->getHost()] = $model->getId()->getEndpoint();
-        $this->db->query('UPDATE categories SET date_added="' . date('Y-m-d H:m:i',
-                time()) . '" WHERE categories_id=' . $model->getId()->getEndpoint() . ' && date_added IS NULL');
+        $this->db->query('UPDATE categories SET date_added="' . date(
+            'Y-m-d H:m:i',
+            time()
+        ) . '" WHERE categories_id=' . $model->getId()->getEndpoint() . ' && date_added IS NULL');
         BaseController::resetCache();
     }
     

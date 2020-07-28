@@ -1,4 +1,5 @@
 <?php
+
 namespace jtl\Connector\Gambio\Installer;
 
 class Config
@@ -9,7 +10,7 @@ class Config
     
     public function __construct($file)
     {
-        try{
+        try {
             $this->data = \Noodlehaus\Config::load($file)->all();
         } catch (\Noodlehaus\Exception\FileNotFoundException $e) {
             $this->data = [];
@@ -21,7 +22,6 @@ class Config
             if (!isset($this->data[self::DISPLAY_COMBI_DELIVERY_TIME])) {
                 $this->data[self::DISPLAY_COMBI_DELIVERY_TIME] = true;
             }
-    
         }
     }
 

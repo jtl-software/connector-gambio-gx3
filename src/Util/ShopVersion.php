@@ -20,7 +20,7 @@ class ShopVersion
      */
     public static function isGreaterOrEqual($version): bool
     {
-        if(is_null(static::$shopVersion)) {
+        if (is_null(static::$shopVersion)) {
             throw new \Exception('Shop version is not set');
         }
         return version_compare(static::$shopVersion, $version, '>=');

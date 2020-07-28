@@ -1,4 +1,5 @@
 <?php
+
 namespace jtl\Connector\Gambio\Controller;
 
 use jtl\Connector\Core\Controller\Controller;
@@ -72,7 +73,7 @@ class BaseController extends Controller
 
             $result = $mapper->push($model);
             
-            if ($reflect->getShortName() == "Product"){
+            if ($reflect->getShortName() == "Product") {
                 $this->resetCache('view_*.html*');
             }
 
@@ -162,12 +163,12 @@ class BaseController extends Controller
         $returnI18n = reset($i18ns);
         $langIso = \jtl\Connector\Core\Utilities\Language::convert($shortCode);
 
-        foreach($i18ns as $i18n) {
-            if(!method_exists($i18n, 'getLanguageISO')) {
+        foreach ($i18ns as $i18n) {
+            if (!method_exists($i18n, 'getLanguageISO')) {
                 throw new \RuntimeException('Given element does not seem to be a valid i18n object!');
             }
 
-            if($i18n->getLanguageISO() === $langIso) {
+            if ($i18n->getLanguageISO() === $langIso) {
                 $returnI18n = $i18n;
                 break;
             }
@@ -175,15 +176,16 @@ class BaseController extends Controller
         return $returnI18n;
     }
     
-    public static function resetCache($pattern = "*") {
+    public static function resetCache($pattern = "*")
+    {
         $cacheDir = CONNECTOR_DIR . '/../cache/';
     
         $cacheFiles = glob($cacheDir.$pattern);
-        if(is_array($cacheFiles) === false) {
+        if (is_array($cacheFiles) === false) {
             return true;
         }
     
-        foreach($cacheFiles as $cacheFile) {
+        foreach ($cacheFiles as $cacheFile) {
             unlink($cacheFile);
         }
         return true;

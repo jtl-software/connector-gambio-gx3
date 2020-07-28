@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="de">
   <head>
     <meta charset="utf-8">
@@ -24,7 +24,7 @@
         <br>
         <br>
         <?php
-        $errors = array();
+        $errors = [];
 
         if (!is_writable(sys_get_temp_dir())) {
             $errors[] = 'Das temporäre Verzeichnis "'.sys_get_temp_dir().'" ist nicht beschreibbar.';
@@ -35,7 +35,7 @@
         }
 
         if (extension_loaded('suhosin')) {
-            if (strpos(ini_get('suhosin.executor.include.whitelist'),'phar') === false) {
+            if (strpos(ini_get('suhosin.executor.include.whitelist'), 'phar') === false) {
                 $errors[] = 'Die PHP Extension Suhosin ist installiert, unterbindet jedoch die notwendige Verwendung von PHAR-Archiven.';
             }
         }
@@ -47,8 +47,7 @@
             }
             echo '</ul></div>';
         } else {
-            include('../index.php');
-        ?>
+            include('../index.php'); ?>
         <div class="panel panel-primary">
             <div class="panel-heading">
                 <h3 class="panel-title">
@@ -58,8 +57,7 @@
             <div class="panel-body">
                 <form class="form-horizontal" role="form" method="post">
                     <?php
-                        new \jtl\Connector\Gambio\Installer\Installer();
-                    ?>
+                        new \jtl\Connector\Gambio\Installer\Installer(); ?>
                 </form>
             </div>
         </div>

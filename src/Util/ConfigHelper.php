@@ -3,7 +3,6 @@
 
 namespace jtl\Connector\Gambio\Util;
 
-
 use jtl\Connector\Core\Database\Mysql;
 
 class ConfigHelper
@@ -47,28 +46,28 @@ class ConfigHelper
         $version = ltrim($gx_version, 'v');
         ShopVersion::setShopVersion($version);
 
-        return array(
-            'shop' => array(
+        return [
+            'shop' => [
                 'url' => HTTP_SERVER,
                 'folder' => DIR_WS_CATALOG,
                 'path' => DIR_FS_DOCUMENT_ROOT,
                 'fullUrl' => HTTP_SERVER . DIR_WS_CATALOG,
                 'version' => $version
-            ),
-            'db' => array(
+            ],
+            'db' => [
                 'host' => DB_SERVER,
                 'name' => DB_DATABASE,
                 'user' => DB_SERVER_USERNAME,
                 'pass' => DB_SERVER_PASSWORD
-            ),
-            'img' => array(
+            ],
+            'img' => [
                 'original' => DIR_WS_ORIGINAL_IMAGES,
                 'thumbnails' => DIR_WS_THUMBNAIL_IMAGES,
                 'info' => DIR_WS_INFO_IMAGES,
                 'popup' => DIR_WS_POPUP_IMAGES,
                 'gallery' => 'images/product_images/gallery_images/'
-            )
-        );
+            ]
+        ];
     }
 
     /**
@@ -90,7 +89,7 @@ class ConfigHelper
         }
 
         $configDb = $this->db->query(sprintf("SElECT `%s`,`%s` FROM `%s` %s", $key, $value, $table, $where));
-        $return = array();
+        $return = [];
 
         foreach ($configDb as $entry) {
             if (ShopVersion::isGreaterOrEqual('4.1')) {
@@ -99,9 +98,9 @@ class ConfigHelper
             $return[$entry[$key]] = $entry[$value] == 'true' ? 1 : ($entry[$value] == 'false' ? 0 : $entry[$value]);
         }
 
-        return array(
+        return [
             'settings' => $return
-        );
+        ];
     }
 
     /**

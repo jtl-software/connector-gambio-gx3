@@ -1,4 +1,5 @@
 <?php
+
 namespace jtl\Connector\Gambio\Mapper;
 
 use jtl\Connector\Core\Result\Mysql;
@@ -8,10 +9,10 @@ use jtl\Connector\Gambio\Util\ShopVersion;
 
 class Image extends BaseMapper
 {
-    protected $mapperConfig = array(
+    protected $mapperConfig = [
         "table" => "products_images",
         "identity" => "getId",
-        "mapPull" => array(
+        "mapPull" => [
             "id" => "image_id",
             "relationType" => "type",
             "foreignKey" => "foreignKey",
@@ -19,8 +20,8 @@ class Image extends BaseMapper
             "sort" => "image_nr",
             "name" => "image_name",
             "i18ns" => "ImageI18n|addI18n|true"
-        )
-    );
+        ]
+    ];
 
     private $thumbConfig;
 
@@ -30,24 +31,24 @@ class Image extends BaseMapper
 
 
 
-        $this->thumbConfig = array(
-            'info' => array(
+        $this->thumbConfig = [
+            'info' => [
                 $this->shopConfig['settings']['PRODUCT_IMAGE_INFO_WIDTH'],
                 $this->shopConfig['settings']['PRODUCT_IMAGE_INFO_HEIGHT']
-            ),
-            'popup' => array(
+            ],
+            'popup' => [
                 $this->shopConfig['settings']['PRODUCT_IMAGE_POPUP_WIDTH'],
                 $this->shopConfig['settings']['PRODUCT_IMAGE_POPUP_HEIGHT']
-            ),
-            'thumbnails' => array(
+            ],
+            'thumbnails' => [
                 $this->shopConfig['settings']['PRODUCT_IMAGE_THUMBNAIL_WIDTH'],
                 $this->shopConfig['settings']['PRODUCT_IMAGE_THUMBNAIL_HEIGHT']
-            ),
-            'gallery' => array(
+            ],
+            'gallery' => [
                 86,
                 86
-            )
-        );
+            ]
+        ];
     }
 
     public function pull($data = null, $limit = null)
@@ -188,7 +189,6 @@ class Image extends BaseMapper
                                 }
 
                                 if (ShopVersion::isGreaterOrEqual('4.1')) {
-
                                     $rootPath = $this->shopConfig['shop']['path'];
                                     $imagePath = $this->shopConfig['img']['original'] . $imgFileName;
 
@@ -217,7 +217,7 @@ class Image extends BaseMapper
                                         }
                                     }
 
-                                    if(!is_null($imageListId)) {
+                                    if (!is_null($imageListId)) {
                                         $obj = new \stdClass();
                                         $obj->product_image_list_id = $imageListId;
                                         $obj->product_image_list_image_local_path = $imagePath;
@@ -240,7 +240,7 @@ class Image extends BaseMapper
                                         );
 
                                         $i18ns = $data->getI18ns();
-                                        if(empty($i18ns)){
+                                        if (empty($i18ns)) {
                                             $defaultLanguageId = $this->configHelper->getDefaultLanguage();
                                             $this->saveCombiI18n(
                                                 $imageListImageId,
@@ -275,15 +275,18 @@ class Image extends BaseMapper
                                         $this->generateThumbs($imgFileName);
                                     }
                                 } else {
-
                                     if (!rename($data->getFilename(), $this->shopConfig['shop']['path'] . 'images/product_images/properties_combis_images/' . $imgFileName)) {
                                         throw new \Exception('Cannot move uploaded image file');
                                     }
 
                                     $combisObj = new \stdClass();
                                     $combisObj->combi_image = $imgFileName;
-                                    $this->db->updateRow($combisObj, 'products_properties_combis',
-                                        'products_properties_combis_id', $combisId);
+                                    $this->db->updateRow(
+                                        $combisObj,
+                                        'products_properties_combis',
+                                        'products_properties_combis_id',
+                                        $combisId
+                                    );
                                 }
 
                                 $this->db->query('INSERT INTO jtl_connector_link_image SET host_id="'.$data->getId()->getHost().'", endpoint_id="vID_'.$combisId.'"');
@@ -333,7 +336,7 @@ class Image extends BaseMapper
 
                             $data->getId()->setEndpoint('pID_' . $data->getForeignKey()->getEndpoint());
 
-                            foreach($data->getI18ns() as $i18n) {
+                            foreach ($data->getI18ns() as $i18n) {
                                 $this->db->query('UPDATE products_description SET gm_alt_text="'.$i18n->getAltText().'" WHERE products_id="'.$data->getForeignKey()->getEndpoint().'" && language_id='.$this->locale2id($i18n->getLanguageISO()));
                             }
 
@@ -391,11 +394,11 @@ class Image extends BaseMapper
                         $imgObj->image_name = $imgFileName;
                         $imgObj->image_nr = ($data->getSort() - 1);
 
-                        $newIdQuery = $this->db->deleteInsertRow($imgObj, 'products_images', array('image_nr', 'products_id'), array($imgObj->image_nr, $imgObj->products_id));
+                        $newIdQuery = $this->db->deleteInsertRow($imgObj, 'products_images', ['image_nr', 'products_id'], [$imgObj->image_nr, $imgObj->products_id]);
 
                         $newId = $newIdQuery->getKey();
 
-                        foreach($data->getI18ns() as $i18n) {
+                        foreach ($data->getI18ns() as $i18n) {
                             $this->db->query('INSERT INTO gm_prd_img_alt SET gm_alt_text="'.$i18n->getAltText().'", products_id="'.$imgObj->products_id.'", image_id="'.$newId.'", language_id='.$this->locale2id($i18n->getLanguageISO()));
                         }
 
@@ -493,31 +496,29 @@ class Image extends BaseMapper
                             $combisId = $combisId[1];
 
                             if (!empty($combisId)) {
-
-                                if(ShopVersion::isGreaterOrEqual('4.1')){
+                                if (ShopVersion::isGreaterOrEqual('4.1')) {
                                     $oldCImage = $this->db->query(sprintf('
                                                 SELECT pli.product_image_list_image_local_path AS combi_image, 
                                                        pli.product_image_list_id AS list_id,
                                                        pli.product_image_list_image_id AS image_id                                                    
                                                 FROM product_image_list_combi plc
                                                 LEFT JOIN product_image_list_image pli ON plc.product_image_list_id = pli.product_image_list_id
-                                                WHERE products_properties_combis_id = %s',$combisId));
+                                                WHERE products_properties_combis_id = %s', $combisId));
                                     $oldCImage = $oldCImage[0]['combi_image'] ?? null;
                                     $imageId = $oldCImage[0]['image_id'] ?? null;
                                     $listId = $oldCImage[0]['list_id'] ?? null;
 
-                                    if(!is_null($oldCImage)){
+                                    if (!is_null($oldCImage)) {
                                         $combisObj = new \stdClass();
-                                        $this->db->deleteRow($combisObj,'product_image_list_image','product_image_list_image_id', $imageId);
-                                        $this->db->deleteRow($combisObj,'product_image_list_combi','products_properties_combis_id', $combisId);
-                                        $this->db->deleteRow($combisObj,'product_image_list_image_text','product_image_list_image_id', $imageId);
+                                        $this->db->deleteRow($combisObj, 'product_image_list_image', 'product_image_list_image_id', $imageId);
+                                        $this->db->deleteRow($combisObj, 'product_image_list_combi', 'products_properties_combis_id', $combisId);
+                                        $this->db->deleteRow($combisObj, 'product_image_list_image_text', 'product_image_list_image_id', $imageId);
 
                                         @unlink($this->shopConfig['shop']['path'] . $oldCImage);
-                                        $path = explode('/',$oldCImage);
+                                        $path = explode('/', $oldCImage);
                                         $oldImage = end($path);
                                     }
-                                }
-                                else {
+                                } else {
                                     $oldCImage = $this->db->query('SELECT combi_image FROM products_properties_combis WHERE products_properties_combis_id = "' . $combisId . '"');
                                     $oldCImage = $oldCImage[0]['combi_image'];
 
@@ -528,8 +529,12 @@ class Image extends BaseMapper
                                     $combisObj = new \stdClass();
                                     $combisObj->combi_image = null;
 
-                                    $this->db->updateRow($combisObj, 'products_properties_combis',
-                                        'products_properties_combis_id', $combisId);
+                                    $this->db->updateRow(
+                                        $combisObj,
+                                        'products_properties_combis',
+                                        'products_properties_combis_id',
+                                        $combisId
+                                    );
                                 }
                             }
                         } else {
@@ -590,14 +595,14 @@ class Image extends BaseMapper
             WHERE l.host_id IS NULL
         ");
 
-        if(ShopVersion::isGreaterOrEqual('4.1')){
+        if (ShopVersion::isGreaterOrEqual('4.1')) {
             $combiQuery = $this->db->query('SELECT CONCAT("vID_",p.products_properties_combis_id) image_id, pli.product_image_list_image_local_path as image_name, CONCAT(p.products_id, "_", p.products_properties_combis_id) foreignKey, 1 image_nr, "product" type
                         FROM products_properties_combis p
                         LEFT JOIN product_image_list_combi plc ON p.products_properties_combis_id = plc.products_properties_combis_id
                         LEFT JOIN product_image_list_image pli ON plc.product_image_list_id = pli.product_image_list_id
                         LEFT JOIN jtl_connector_link_image l ON CONCAT("vID_",p.products_properties_combis_id) = l.endpoint_id
                         WHERE l.host_id IS NULL AND pli.product_image_list_image_local_path IS NOT NULL');
-        }else {
+        } else {
             $combiQuery = $this->db->query("
                 SELECT p.*
                 FROM (
@@ -655,9 +660,9 @@ class Image extends BaseMapper
             return $this->shopConfig['shop']['fullUrl'].'images/'.$data['image_name'];
         } else {
             if (strpos($data['image_id'], 'vID_') !== false) {
-                if(ShopVersion::isGreaterOrEqual('4.1')) {
+                if (ShopVersion::isGreaterOrEqual('4.1')) {
                     return $this->shopConfig['shop']['fullUrl'] . $data['image_name'];
-                }else {
+                } else {
                     return $this->shopConfig['shop']['fullUrl'] . 'images/product_images/properties_combis_images/' . $data['image_name'];
                 }
             } else {
@@ -714,7 +719,7 @@ class Image extends BaseMapper
 
             $thumb = imagecreatetruecolor($new_width, $new_height);
             imagefill($thumb, 0, 0, imagecolorallocate($thumb, 255, 255, 255));
-            if($imgInfo[2] == 1 || $imgInfo[2] == 3){
+            if ($imgInfo[2] == 1 || $imgInfo[2] == 3) {
                 imagealphablending($thumb, false);
                 imagesavealpha($thumb, true);
                 $transparent = imagecolorallocatealpha($thumb, 255, 255, 255, 127);

@@ -340,7 +340,6 @@ class Product extends BaseMapper
         }
         
         for ($i = 1; $i < $number; $i *= 10) {
-        
         }
         
         return ($i / 10.);
@@ -374,8 +373,7 @@ class Product extends BaseMapper
                         DELETE FROM products_attributes
                         WHERE products_id="%s" AND products_attributes_id NOT IN (
                             SELECT products_attributes_id FROM products_attributes_download
-                        )'
-                , $id));
+                        )', $id));
         }
         
         return parent::push($product, $dbObj);
@@ -505,7 +503,7 @@ class Product extends BaseMapper
             $quantityProduct->quantity_unit_id = $id;
             
             $this->db->deleteInsertRow($quantityProduct, 'products_quantity_unit', 'products_id', $quantityProduct->products_id);
-        } else{
+        } else {
             $this->db->query('DELETE FROM products_quantity_unit WHERE products_id=' . $data->getId()->getEndpoint());
         }
     }
@@ -570,7 +568,7 @@ class Product extends BaseMapper
     
     protected function products_date_added($data)
     {
-        if($data->getisNewProduct()) {
+        if ($data->getisNewProduct()) {
             return $data->getNewReleaseDate();
         }
     
@@ -610,15 +608,15 @@ class Product extends BaseMapper
         /** @var ProductModel $data */
         $name = $data->getMeasurementUnitCode();
         
-        if ($data->getConsiderBasePrice()){
+        if ($data->getConsiderBasePrice()) {
             $name = $data->getBasePriceUnitCode();
         }
         
-        if(MeasurementUnitHelper::isUnit($name)) {
+        if (MeasurementUnitHelper::isUnit($name)) {
             $name = MeasurementUnitHelper::getUnitName($name);
         }
 
-        if($data->getConsiderBasePrice() && !is_null($data->getBasePriceQuantity()) && $data->getBasePriceQuantity() > 1.) {
+        if ($data->getConsiderBasePrice() && !is_null($data->getBasePriceQuantity()) && $data->getBasePriceQuantity() > 1.) {
             $name = $data->getBasePriceQuantity() . $data->getBasePriceUnitName();
         }
 
@@ -817,7 +815,7 @@ class Product extends BaseMapper
     
     public function use_properties_combis_shipping_time()
     {
-        if (isset($this->connectorConfig->{Config::DISPLAY_COMBI_DELIVERY_TIME})){
+        if (isset($this->connectorConfig->{Config::DISPLAY_COMBI_DELIVERY_TIME})) {
             $result = $this->connectorConfig->{Config::DISPLAY_COMBI_DELIVERY_TIME} === true ? 1 : 0;
             
             return $result;
@@ -836,18 +834,19 @@ class Product extends BaseMapper
     
     public function keywords($data)
     {
-            $results = $this->db->query(sprintf('
+        $results = $this->db->query(sprintf(
+            '
               SELECT products_keywords
               FROM products_description
               WHERE products_id="%s" && language_id = %s',
-                $data['products_id'],
-                $this->locale2id($this->fullLocale($this->shopConfig['settings']['DEFAULT_LANGUAGE']))
-            ));
+            $data['products_id'],
+            $this->locale2id($this->fullLocale($this->shopConfig['settings']['DEFAULT_LANGUAGE']))
+        ));
             
-            if (!empty($results)){
-                return $results[0]["products_keywords"];
-            }
+        if (!empty($results)) {
+            return $results[0]["products_keywords"];
+        }
             
-            return '';
+        return '';
     }
 }

@@ -1,4 +1,5 @@
 <?php
+
 namespace jtl\Connector\Gambio\Auth;
 
 use \jtl\Connector\Authentication\ITokenLoader;
