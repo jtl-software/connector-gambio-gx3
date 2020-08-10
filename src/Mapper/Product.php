@@ -609,15 +609,11 @@ class Product extends BaseMapper
         $name = $data->getMeasurementUnitCode();
         
         if ($data->getConsiderBasePrice()) {
-            $name = $data->getBasePriceUnitCode();
+            $name = $data->getBasePriceQuantity() . $data->getBasePriceUnitName();
         }
         
         if (MeasurementUnitHelper::isUnit($name)) {
             $name = MeasurementUnitHelper::getUnitName($name);
-        }
-
-        if ($data->getConsiderBasePrice() && !is_null($data->getBasePriceQuantity()) && $data->getBasePriceQuantity() > 1.) {
-            $name = $data->getBasePriceQuantity() . $data->getBasePriceUnitName();
         }
 
         if (!empty($name)) {
