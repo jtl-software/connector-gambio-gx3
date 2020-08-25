@@ -3,6 +3,7 @@
 namespace jtl\Connector\Gambio\Mapper;
 
 use jtl\Connector\Core\Database\Mysql;
+use jtl\Connector\Gambio\Util\CacheHelper;
 use jtl\Connector\Gambio\Util\ConfigHelper;
 use jtl\Connector\Gambio\Util\ShopVersion;
 use jtl\Connector\Session\SessionHelper;
@@ -363,7 +364,9 @@ class BaseMapper
         }
 
         $return = $this->generateDbObj($data, $dbObj, $parent);
-
+        
+        (new CacheHelper)->rebuildProductCategoryCache();
+        
         return $return;
     }
 
