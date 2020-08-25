@@ -12,9 +12,9 @@ class CategoryIndexHelper
     protected $db;
     
     /**
-     * @var string
+     * @var string[]
      */
-    protected $queryValuesPart;
+    protected $queryValuesPart = [];
     
     /**
      * CategoryIndexHelper constructor.
@@ -29,28 +29,17 @@ class CategoryIndexHelper
      */
     public function rebuildProductCategoryCache()
     {
-        $productId = null;
-        $categoryIds = [];
-        
+        $categoryIdsByProduct = [];
         $results = $this->db->query("SELECT categories_id, products_id FROM products_to_categories ORDER BY products_id");
         foreach ($results as $result) {
-            if ($productId === null || $productId === $result['products_id']) {
-                $categoryIds[] = $result['categories_id'];
-                $productId = $result['products_id'];
-                continue;
-            }
-            
-            $this->addQueryValuesPart($productId, ...$categoryIds);
-            $this->writeCategoriesIndex();
-            
-            $productId = $result['products_id'];
-            $categoryIds = [$result['categories_id']];
+            $categoryIdsByProduct[$result['products_id']][] = $result['categories_id'];
         }
-        
-        if ($productId !== null) {
+
+        foreach($categoryIdsByProduct as $productId => $categoryIds) {
             $this->addQueryValuesPart($productId, ...$categoryIds);
-            $this->writeCategoriesIndex(true);
         }
+
+        $this->writeCategoriesIndex();
     }
     
     /**
@@ -108,7 +97,7 @@ class CategoryIndexHelper
      * @param int $productId
      * @param int ...$productsCategoryIds
      */
-    protected function addQueryValuesPart(int $productId, int ...$productsCategoryIds)
+    protected function addQueryValuesPart(int $productId, int ...$productsCategoryIds): void
     {
         $categoryIds = [];
         
@@ -131,24 +120,26 @@ class CategoryIndexHelper
             $categoriesIndex .= sprintf("-%s-", (int)$categoryId);
         }
         
-        $this->queryValuesPart .= sprintf('(%s,"%s")',
+        $this->queryValuesPart[] = sprintf('(%s,"%s")',
             $productId,
             $categoriesIndex
         );
     }
-    
+
     /**
-     * @param bool $forceWrite
+     *
      */
-    protected function writeCategoriesIndex(bool $forceWrite = false)
+    protected function writeCategoriesIndex(): void
     {
-        if ($this->queryValuesPart !== '' && $forceWrite) {
+        if (!empty($this->queryValuesPart)) {
             //save built index
-            $this->db->query(sprintf("REPLACE INTO `categories_index` (`products_id`, `categories_index`) VALUES %s",
-                substr($this->queryValuesPart, 0, -1)
-            ));
-            
-            $this->queryValuesPart = '';
+            foreach(array_chunk($this->queryValuesPart, 500) as $part) {
+                $this->db->query(sprintf("REPLACE INTO `categories_index` (`products_id`, `categories_index`) VALUES %s",
+                    implode(',', $part)
+                ));
+            }
+
+            $this->queryValuesPart = [];
         }
     }
 }
