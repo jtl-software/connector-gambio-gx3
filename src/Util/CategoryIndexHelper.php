@@ -34,13 +34,13 @@ class CategoryIndexHelper
         
         $results = $this->db->query("SELECT categories_id, products_id FROM products_to_categories ORDER BY products_id");
         foreach ($results as $result) {
-            if ($productId === null) {
+            if ($productId === null || $productId === $result['products_id']) {
                 $categoryIds[] = $result['categories_id'];
                 $productId = $result['products_id'];
                 continue;
             }
             
-            $this->addQueryValuesPart($productId, $categoryIds);
+            $this->addQueryValuesPart($productId, ...$categoryIds);
             $this->writeCategoriesIndex();
             
             $productId = $result['products_id'];
@@ -48,7 +48,7 @@ class CategoryIndexHelper
         }
         
         if ($productId !== null) {
-            $this->addQueryValuesPart($productId, $categoryIds);
+            $this->addQueryValuesPart($productId, ...$categoryIds);
             $this->writeCategoriesIndex(true);
         }
     }

@@ -3,6 +3,7 @@
 namespace jtl\Connector\Gambio\Mapper;
 
 use jtl\Connector\Gambio\Controller\BaseController;
+use jtl\Connector\Gambio\Util\CategoryIndexHelper;
 
 class Category extends \jtl\Connector\Gambio\Mapper\BaseMapper
 {
@@ -120,6 +121,8 @@ class Category extends \jtl\Connector\Gambio\Mapper\BaseMapper
     
     public function pushDone($model, $dbObj)
     {
+        (new CategoryIndexHelper())->rebuildProductCategoryCache();
+        
         static::$idCache[$model->getId()->getHost()] = $model->getId()->getEndpoint();
         $this->db->query('UPDATE categories SET date_added="' . date(
             'Y-m-d H:m:i',

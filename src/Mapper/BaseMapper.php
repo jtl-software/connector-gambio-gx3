@@ -3,13 +3,10 @@
 namespace jtl\Connector\Gambio\Mapper;
 
 use jtl\Connector\Core\Database\Mysql;
-use jtl\Connector\Gambio\Util\CategoryIndexHelper;
 use jtl\Connector\Gambio\Util\ConfigHelper;
 use jtl\Connector\Session\SessionHelper;
 use jtl\Connector\Core\Utilities\Language;
 use jtl\Connector\Model\Identity;
-use jtl\Connector\Model\Product as ProductModel;
-use jtl\Connector\Model\Category as CategoryModel;
 
 class BaseMapper
 {
@@ -365,10 +362,6 @@ class BaseMapper
         }
 
         $return = $this->generateDbObj($data, $dbObj, $parent);
-        
-        if( $data instanceof ProductModel or $data instanceof CategoryModel) {
-            (new CategoryIndexHelper())->rebuildProductCategoryCache();
-        }
         
         return $return;
     }

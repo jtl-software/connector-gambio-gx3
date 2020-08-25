@@ -4,6 +4,7 @@ namespace jtl\Connector\Gambio\Mapper;
 
 use jtl\Connector\Gambio\Installer\Config;
 use \jtl\Connector\Gambio\Mapper\BaseMapper;
+use jtl\Connector\Gambio\Util\CategoryIndexHelper;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\ProductAttr as ProductAttrModel;
 use jtl\Connector\Model\ProductAttrI18n as ProductAttrI18nModel;
@@ -386,6 +387,8 @@ class Product extends BaseMapper
      */
     protected function pushDone($returnModel, $dbObj, $product)
     {
+        (new CategoryIndexHelper())->rebuildProductCategoryCache();
+        
         if ($product->getIsMasterProduct() === true) {
             static::$idCache[$product->getId()->getHost()] = $product->getId()->getEndpoint();
         }
