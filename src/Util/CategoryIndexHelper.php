@@ -4,16 +4,29 @@ namespace jtl\Connector\Gambio\Util;
 
 use jtl\Connector\Core\Database\Mysql;
 
-class CacheHelper
+class CategoryIndexHelper
 {
+    /**
+     * @var Mysql
+     */
     protected $db;
+    
+    /**
+     * @var string
+     */
     protected $queryValuesPart;
     
+    /**
+     * CategoryIndexHelper constructor.
+     */
     public function __construct()
     {
         $this->db = Mysql::getInstance();
     }
     
+    /**
+     *
+     */
     public function rebuildProductCategoryCache()
     {
         $productId = null;
@@ -40,21 +53,23 @@ class CacheHelper
         }
     }
     
-    public function getCategoriesParentsArray($p_categoryId)
+    /**
+     * @param int $categoryId
+     * @return array|bool|mixed
+     */
+    public function getCategoriesParentsArray(int $categoryId)
     {
         static $categoryParents;
         
-        $c_categoryId = (int)$p_categoryId;
-        
         if ($categoryParents === null) {
             $categoryParents = [];
-        } elseif (array_key_exists($c_categoryId, $categoryParents)) {
-            return $categoryParents[$c_categoryId];
+        } elseif (array_key_exists($categoryId, $categoryParents)) {
+            return $categoryParents[$categoryId];
         }
         
         $outputArray = [];
         
-        if ($c_categoryId === 0) {
+        if ($categoryId === 0) {
             //categories_id is root and has no parents. return empty array.
             return $outputArray;
         }
@@ -62,7 +77,7 @@ class CacheHelper
         //get category's status and parent_id
         $result = $this->db->query(sprintf(
             "SELECT categories_status, parent_id FROM categories WHERE categories_id = %s",
-            $c_categoryId
+            $categoryId
         ));
         
         if ($result[0]['categories_status'] === '0') {
@@ -84,21 +99,25 @@ class CacheHelper
             $outputArray = array_merge($outputArray, $parentIds);
         }
         
-        $categoryParents[$c_categoryId] = $outputArray;
+        $categoryParents[$categoryId] = $outputArray;
         
         return $outputArray;
     }
     
-    protected function addQueryValuesPart($p_productsId, array $p_categoryIds)
+    /**
+     * @param int $productId
+     * @param int ...$productsCategoryIds
+     */
+    protected function addQueryValuesPart(int $productId, int ...$productsCategoryIds)
     {
         $categoryIds = [];
         
-        foreach ($p_categoryIds as $categoryId) {
-            $t_parent_id_array = $this->getCategoriesParentsArray($categoryId);
+        foreach ($productsCategoryIds as $categoryId) {
+            $parentIdArray = $this->getCategoriesParentsArray($categoryId);
             
-            if ($t_parent_id_array !== false) {
+            if ($parentIdArray !== false) {
                 $categoryIds[] = $categoryId;
-                $categoryIds = array_merge($categoryIds, $t_parent_id_array);
+                $categoryIds = array_merge($categoryIds, $parentIdArray);
             }
         }
         
@@ -113,12 +132,15 @@ class CacheHelper
         }
         
         $this->queryValuesPart .= sprintf('(%s,"%s")',
-            (int)$p_productsId,
+            $productId,
             $categoriesIndex
         );
     }
     
-    protected function writeCategoriesIndex($forceWrite = false)
+    /**
+     * @param bool $forceWrite
+     */
+    protected function writeCategoriesIndex(bool $forceWrite = false)
     {
         if ($this->queryValuesPart !== '' && $forceWrite) {
             //save built index
