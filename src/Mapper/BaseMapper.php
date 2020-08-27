@@ -4,7 +4,6 @@ namespace jtl\Connector\Gambio\Mapper;
 
 use jtl\Connector\Core\Database\Mysql;
 use jtl\Connector\Gambio\Util\ConfigHelper;
-use jtl\Connector\Gambio\Util\ShopVersion;
 use jtl\Connector\Session\SessionHelper;
 use jtl\Connector\Core\Utilities\Language;
 use jtl\Connector\Model\Identity;
@@ -114,7 +113,10 @@ class BaseMapper
                     $type = $this->type->getProperty($host)->getType();
 
                     if ($type == "DateTime" && !is_null($value)) {
-                        $value = ($value == '0000-00-00 00:00:00' || $value == null) ? null : new \DateTime($value);
+                        $value = new \DateTime($value);
+                        if ((int)$value->format("Y") <= 0){
+                            $value = null;
+                        }
                     } else {
                         settype($value, $type);
                     }
