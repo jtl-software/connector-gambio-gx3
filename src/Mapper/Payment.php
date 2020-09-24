@@ -106,19 +106,24 @@ class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
     private function paypal()
     {
         $return = [];
+
+        $sql = "
+            SELECT p.orders_id order_id, p.payment_id transaction_id, o.date_purchased creation_date, o.payment_class payment_module, t.value total_sum
+            FROM orders_paypal_payments p
+            LEFT JOIN jtl_connector_link_payment l ON p.payment_id = l.endpoint_id
+            LEFT JOIN orders o ON o.orders_id = p.orders_id
+            LEFT JOIN orders_total t ON t.orders_id = p.orders_id AND t.class = 'ot_total'
+        ";
         
-        $results = $this->db->query('SELECT p.orders_id, p.transaction_id, p.payment_date, p.grossamount
-          FROM paypal_transactions p
-          LEFT JOIN jtl_connector_link_payment l ON p.transaction_id = l.endpoint_id COLLATE utf8_unicode_ci
-          WHERE l.host_id IS NULL && p.paymentstatus="Completed"');
+        $results = $this->db->query($sql);
         
         foreach ($results as $paymentData) {
             $payment = new PaymentModel();
-            $payment->setCreationDate(new \DateTime($paymentData['payment_date']));
-            $payment->setCustomerOrderId($this->identity($paymentData['orders_id']));
+            $payment->setCreationDate(new \DateTime($paymentData['creation_date']));
+            $payment->setCustomerOrderId($this->identity($paymentData['order_id']));
             $payment->setId($this->identity($paymentData['transaction_id']));
-            $payment->setPaymentModuleCode('pm_paypal_standard');
-            $payment->setTotalSum(floatval($paymentData['grossamount']));
+            $payment->setPaymentModuleCode($paymentData['payment_module']);
+            $payment->setTotalSum(floatval($paymentData['total_sum']));
             $payment->setTransactionId($paymentData['transaction_id']);
             
             $return[] = $payment;
