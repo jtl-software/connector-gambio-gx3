@@ -33,10 +33,7 @@ class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
         'moneyorder'                => PaymentTypes::TYPE_PREPAYMENT,
         'banktransfer'              => PaymentTypes::TYPE_BANK_TRANSFER,
         'cod'                       => PaymentTypes::TYPE_CASH_ON_DELIVERY,
-        //'paypal' => 'pm_paypal_standard',
-        //'paypal_ipn' => 'pm_paypal_standard',
-        //'paypalexpress' => 'pm_paypal_express',
-        'paypal3'                   => PaymentTypes::TYPE_PAYPAL_PLUS,
+        'paypal3'                   => PaymentTypes::TYPE_PAYPAL,
         'amoneybookers'             => PaymentTypes::TYPE_SKRILL,
         'moneybookers_giropay'      => PaymentTypes::TYPE_SKRILL,
         'moneybookers_ideal'        => PaymentTypes::TYPE_SKRILL,
@@ -60,6 +57,7 @@ class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
         'MoneyOrderHub'             => PaymentTypes::TYPE_PREPAYMENT,
         'MoneyOrderPlusHub'         => PaymentTypes::TYPE_PREPAYMENT,
         'PayPalHub'                 => PaymentTypes::TYPE_PAYPAL_PLUS,
+        'PayPal2Hub'                 => PaymentTypes::TYPE_PAYPAL_PLUS,
         'SofortHub'                 => PaymentTypes::TYPE_SOFORT,
         'WirecardCreditcardHub'     => PaymentTypes::TYPE_WIRECARD,
         'WirecardInvoiceHub'        => PaymentTypes::TYPE_WIRECARD,
@@ -186,7 +184,7 @@ class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
     static public function mapPaymentType(string $moduleCode, bool $toJtl = true)
     {
         if ($toJtl === false) {
-            return  array_flip(self::$paymentMapping)[$moduleCode] ?? $moduleCode;
+            return array_flip(self::$paymentMapping)[$moduleCode] ?? $moduleCode;
         }
         
         return self::$paymentMapping[$moduleCode] ?? $moduleCode;
