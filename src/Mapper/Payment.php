@@ -186,7 +186,7 @@ class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
     static public function mapPaymentType(string $moduleCode, bool $toJtl = true)
     {
         if ($toJtl === false) {
-            return  array_flip(self::$paymentMapping[$moduleCode] ?? $moduleCode);
+            return  array_flip(self::$paymentMapping)[$moduleCode] ?? $moduleCode;
         }
         
         return self::$paymentMapping[$moduleCode] ?? $moduleCode;
