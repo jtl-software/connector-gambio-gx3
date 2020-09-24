@@ -187,31 +187,17 @@ class CustomerOrder extends BaseMapper
 
     protected function paymentModuleCode($data)
     {
-        if (strcmp($data['payment_method'], 'gambio_hub') === 0) {
-            if (key_exists($data['gambio_hub_module'], $this->paymentMapping)) {
-                return $this->paymentMapping[$data['gambio_hub_module']];
-            }
-        } else {
-            if (key_exists($data['payment_method'], $this->paymentMapping)) {
-                return $this->paymentMapping[$data['payment_method']];
-            }
-        }
-
-        return $data['payment_method'];
+        return Payment::mapPaymentType($data['gambio_hub_module'] ?? $data["payment_method"]);
     }
 
     protected function payment_method($data)
     {
-        $payments = array_flip($this->paymentMapping);
-
-        return $payments[$data->getPaymentModuleCode()];
+        return Payment::mapPaymentType($data->getPaymentModuleCode(), false);
     }
 
     protected function payment_class($data)
     {
-        $payments = array_flip($this->paymentMapping);
-
-        return $payments[$data->getPaymentModuleCode()];
+        return Payment::mapPaymentType($data->getPaymentModuleCode(), false);
     }
 
     protected function customers_address_format_id($data)

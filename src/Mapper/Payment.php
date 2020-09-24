@@ -25,7 +25,7 @@ class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
         ],
     ];
     
-    private $paymentMapping = [
+    private static $paymentMapping = [
         'cash'                      => PaymentTypes::TYPE_CASH,
         'klarna_SpecCamp'           => PaymentTypes::TYPE_KLARNA,
         'klarna_invoice'            => PaymentTypes::TYPE_KLARNA,
@@ -68,6 +68,9 @@ class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
         'WirecardWiretransferHub'   => PaymentTypes::TYPE_WIRECARD,
     ];
     
+    /**
+     * Payment constructor.
+     */
     public function __construct()
     {
         parent::__construct();
@@ -77,6 +80,12 @@ class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
         }
     }
     
+    /**
+     * @param null $parent
+     * @param null $limit
+     * @return array
+     * @throws \Exception
+     */
     public function pull($parent = null, $limit = null)
     {
         $additional = [];
@@ -98,15 +107,22 @@ class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
         return $result;
     }
     
+    /**
+     * @return int|number
+     */
     public function statistic()
     {
         return count($this->pull());
     }
     
+    /**
+     * @return array
+     * @throws \Exception
+     */
     private function paypal()
     {
         $return = [];
-
+        
         $sql = "
             SELECT p.orders_id order_id, p.payment_id transaction_id, o.date_purchased creation_date, o.payment_class payment_module, t.value total_sum
             FROM orders_paypal_payments p
@@ -122,7 +138,7 @@ class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
             $payment->setCreationDate(new \DateTime($paymentData['creation_date']));
             $payment->setCustomerOrderId($this->identity($paymentData['order_id']));
             $payment->setId($this->identity($paymentData['transaction_id']));
-            $payment->setPaymentModuleCode($paymentData['payment_module']);
+            $payment->setPaymentModuleCode(self::mapPaymentType($paymentData['payment_module']));
             $payment->setTotalSum(floatval($paymentData['total_sum']));
             $payment->setTransactionId($paymentData['transaction_id']);
             
@@ -132,6 +148,10 @@ class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
         return $return;
     }
     
+    /**
+     * @return array
+     * @throws \Exception
+     */
     private function hubPayments()
     {
         $return = [];
@@ -142,17 +162,13 @@ class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
               LEFT JOIN jtl_connector_link_payment l ON o.gambio_hub_transaction_code = l.endpoint_id
             WHERE l.host_id IS NULL AND o.payment_method = "gambio_hub" AND ot.class = "ot_total"
             ');
-            
+        
         foreach ($results as $paymentData) {
             $payment = new PaymentModel();
             $payment->setCreationDate(new \DateTime($paymentData['date_purchased']));
             $payment->setCustomerOrderId($this->identity($paymentData['orders_id']));
             $payment->setId($this->identity($paymentData['gambio_hub_transaction_code']));
-            $payment->setPaymentModuleCode(
-                isset($this->paymentMapping[$paymentData['gambio_hub_module']])
-                ? $this->paymentMapping[$paymentData['gambio_hub_module']]
-                : $paymentData['gambio_hub_module']
-            );
+            $payment->setPaymentModuleCode(self::mapPaymentType($paymentData["gambio_hub_module"]));
             $payment->setTotalSum(floatval($paymentData['value']));
             $payment->setTransactionId($paymentData['gambio_hub_transaction_code']);
             
@@ -160,5 +176,19 @@ class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
         }
         
         return $return;
+    }
+    
+    /**
+     * @param string $moduleCode
+     * @param bool $toJtl
+     * @return mixed|string
+     */
+    static public function mapPaymentType(string $moduleCode, bool $toJtl = true)
+    {
+        if ($toJtl === false) {
+            return  array_flip(self::$paymentMapping[$moduleCode] ?? $moduleCode);
+        }
+        
+        return self::$paymentMapping[$moduleCode] ?? $moduleCode;
     }
 }
