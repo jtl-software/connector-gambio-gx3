@@ -651,7 +651,7 @@ class Product extends BaseMapper
     {
         /** @var ProductModel $data */
         $value = $data->getMeasurementQuantity();
-        if ($data->getConsiderBasePrice() && $data->getBasePriceQuantity() > 0 && MeasurementUnitHelper::isUnit($data->getMeasurementUnitCode())) {
+        if ($data->getConsiderBasePrice() && $data->getBasePriceQuantity() > 0 && MeasurementUnitHelper::isUnit($data->getMeasurementUnitCode()) && MeasurementUnitHelper::isUnit($data->getBasePriceUnitCode())) {
             //$value /= $data->getBasePriceQuantity();
             $value = ($data->getMeasurementQuantity() * MeasurementUnitHelper::getUnitFactor($data->getMeasurementUnitCode())) / ($data->getBasePriceQuantity() * MeasurementUnitHelper::getUnitFactor($data->getBasePriceUnitCode()));
         }
