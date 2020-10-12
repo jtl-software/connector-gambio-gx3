@@ -609,7 +609,7 @@ class Product extends BaseMapper
         $name = $data->getMeasurementUnitCode();
         
         if ($data->getConsiderBasePrice()) {
-            $data->getBasePriceUnitCode();
+            $name = $data->getBasePriceUnitCode();
         }
     
         if ($data->getConsiderBasePrice() && !is_null($data->getBasePriceQuantity()) && $data->getBasePriceQuantity() !== 1.) {
