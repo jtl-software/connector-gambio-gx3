@@ -1,3 +1,8 @@
+2.12.0
+------
+- CO-1080 - Product category cache rebuilding 
+- CO-1127 - Fixed problems with DateTime property import
+
 2.11.1
 -----
 - Fixed problem with product price quicksync in conjunction with variation (combi) children
