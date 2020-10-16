@@ -104,20 +104,21 @@ class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
         
         return $result;
     }
-    
+
     /**
-     * @return int|number
+     * @return int
+     * @throws \Exception
      */
-    public function statistic()
+    public function statistic(): int
     {
         return count($this->pull());
     }
-    
+
     /**
      * @return array
      * @throws \Exception
      */
-    private function paypal()
+    private function paypal(): array
     {
         $return = [];
         
@@ -132,15 +133,13 @@ class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
         $results = $this->db->query($sql);
         
         foreach ($results as $paymentData) {
-            $payment = new PaymentModel();
-            $payment->setCreationDate(new \DateTime($paymentData['creation_date']));
-            $payment->setCustomerOrderId($this->identity($paymentData['order_id']));
-            $payment->setId($this->identity($paymentData['transaction_id']));
-            $payment->setPaymentModuleCode(self::mapPaymentType($paymentData['payment_module']));
-            $payment->setTotalSum(floatval($paymentData['total_sum']));
-            $payment->setTransactionId($paymentData['transaction_id']);
-            
-            $return[] = $payment;
+            $return[] = (new PaymentModel())
+                ->setCreationDate(new \DateTime($paymentData['creation_date']))
+                ->setCustomerOrderId($this->identity($paymentData['order_id']))
+                ->setId($this->identity($paymentData['transaction_id']))
+                ->setPaymentModuleCode(self::mapPaymentType($paymentData['payment_module']))
+                ->setTotalSum(floatval($paymentData['total_sum']))
+                ->setTransactionId($paymentData['transaction_id']);
         }
         
         return $return;
@@ -150,7 +149,7 @@ class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
      * @return array
      * @throws \Exception
      */
-    private function hubPayments()
+    private function hubPayments(): array
     {
         $return = [];
         
@@ -162,26 +161,24 @@ class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
             ');
         
         foreach ($results as $paymentData) {
-            $payment = new PaymentModel();
-            $payment->setCreationDate(new \DateTime($paymentData['date_purchased']));
-            $payment->setCustomerOrderId($this->identity($paymentData['orders_id']));
-            $payment->setId($this->identity($paymentData['gambio_hub_transaction_code']));
-            $payment->setPaymentModuleCode(self::mapPaymentType($paymentData["gambio_hub_module"]));
-            $payment->setTotalSum(floatval($paymentData['value']));
-            $payment->setTransactionId($paymentData['gambio_hub_transaction_code']);
-            
-            $return[] = $payment;
+            $return[] = (new PaymentModel())
+                ->setCreationDate(new \DateTime($paymentData['date_purchased']))
+                ->setCustomerOrderId($this->identity($paymentData['orders_id']))
+                ->setId($this->identity($paymentData['gambio_hub_transaction_code']))
+                ->setPaymentModuleCode(self::mapPaymentType($paymentData["gambio_hub_module"]))
+                ->setTotalSum(floatval($paymentData['value']))
+                ->setTransactionId($paymentData['gambio_hub_transaction_code']);
         }
         
         return $return;
     }
-    
+
     /**
      * @param string $moduleCode
      * @param bool $toJtl
-     * @return mixed|string
+     * @return string
      */
-    static public function mapPaymentType(string $moduleCode, bool $toJtl = true)
+    public static function mapPaymentType(string $moduleCode, bool $toJtl = true): string
     {
         if ($toJtl === false) {
             return array_flip(self::$paymentMapping)[$moduleCode] ?? $moduleCode;
