@@ -1,3 +1,7 @@
+2.12.1
+------
+- Fixed type error when parent id is null in category index helper
+
 2.12.0
 ------
 - CO-1080 - Product category cache rebuilding 
