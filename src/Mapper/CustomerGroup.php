@@ -8,7 +8,6 @@ class CustomerGroup extends BaseMapper
         "table" => "customers_status",
         "query" => "SELECT customers_status_id, customers_status_discount, customers_status_show_price_tax
           FROM customers_status
-          WHERE customers_status_id <> 0
           GROUP BY customers_status_id, customers_status_discount, customers_status_show_price_tax",
         "identity" => "getId",
         "getMethod" => "getCustomerGroups",
