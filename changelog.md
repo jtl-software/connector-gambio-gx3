@@ -1,3 +1,9 @@
+2.13.0
+------
+- Customer groups pull fixed, admin group is now imported
+- CO-1156 - Fixed payment import of PayPalPlus
+- CO-1065 - Fixed unit name in base price
+
 2.12.1
 ------
 - Fixed type error when parent id is null in category index helper
