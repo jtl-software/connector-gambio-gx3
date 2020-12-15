@@ -50,49 +50,6 @@ class CustomerOrder extends BaseMapper
         ],
     ];
 
-    private $paymentMapping = [
-        'cash' => PaymentTypes::TYPE_CASH,
-        'klarna_SpecCamp' => PaymentTypes::TYPE_KLARNA,
-        'klarna_invoice' => PaymentTypes::TYPE_KLARNA,
-        'klarna_partPayment' => PaymentTypes::TYPE_KLARNA,
-        'moneyorder' => PaymentTypes::TYPE_PREPAYMENT,
-        'banktransfer' => PaymentTypes::TYPE_BANK_TRANSFER,
-        'cod' => PaymentTypes::TYPE_CASH_ON_DELIVERY,
-        //'paypal' => 'pm_paypal_standard',
-        //'paypal_ipn' => 'pm_paypal_standard',
-        //'paypalexpress' => 'pm_paypal_express',
-        'paypal3' => PaymentTypes::TYPE_PAYPAL_PLUS,
-        'amoneybookers' => PaymentTypes::TYPE_SKRILL,
-        'moneybookers_giropay' => PaymentTypes::TYPE_SKRILL,
-        'moneybookers_ideal' => PaymentTypes::TYPE_SKRILL,
-        'moneybookers_mae' => PaymentTypes::TYPE_SKRILL,
-        'moneybookers_netpay' => PaymentTypes::TYPE_SKRILL,
-        'moneybookers_psp' => PaymentTypes::TYPE_SKRILL,
-        'moneybookers_pwy' => PaymentTypes::TYPE_SKRILL,
-        'moneybookers_sft' => PaymentTypes::TYPE_SKRILL,
-        'moneybookers_wlt' => PaymentTypes::TYPE_SKRILL,
-        'invoice' => PaymentTypes::TYPE_INVOICE,
-        'sofort_sofortueberweisung' => PaymentTypes::TYPE_SOFORT,
-        'worldpay' => PaymentTypes::TYPE_WORLDPAY,
-        //HUB TYPES
-        'CashHub' => PaymentTypes::TYPE_CASH,
-        'CashOnDeliveryHub' => PaymentTypes::TYPE_CASH_ON_DELIVERY,
-        'InvoiceHub' => PaymentTypes::TYPE_INVOICE,
-        'KlarnaPaylaterHub' => PaymentTypes::TYPE_KLARNA,
-        'KlarnaPaynowHub' => PaymentTypes::TYPE_KLARNA,
-        'KlarnaSliceitHub' => PaymentTypes::TYPE_KLARNA,
-        'KlarnaBanktrankferHub' => PaymentTypes::TYPE_KLARNA,
-        'MoneyOrderHub' => PaymentTypes::TYPE_PREPAYMENT,
-        'MoneyOrderPlusHub' => PaymentTypes::TYPE_PREPAYMENT,
-        'PayPalHub' => PaymentTypes::TYPE_PAYPAL_PLUS,
-        'SofortHub' => PaymentTypes::TYPE_SOFORT,
-        'WirecardCreditcardHub' => PaymentTypes::TYPE_WIRECARD,
-        'WirecardInvoiceHub' => PaymentTypes::TYPE_WIRECARD,
-        'WirecardSepaddHub' => PaymentTypes::TYPE_WIRECARD,
-        'WirecardSofortbankingHub' => PaymentTypes::TYPE_WIRECARD,
-        'WirecardWiretransferHub' => PaymentTypes::TYPE_WIRECARD,
-    ];
-
     public function __construct()
     {
         parent::__construct();
@@ -187,31 +144,17 @@ class CustomerOrder extends BaseMapper
 
     protected function paymentModuleCode($data)
     {
-        if (strcmp($data['payment_method'], 'gambio_hub') === 0) {
-            if (key_exists($data['gambio_hub_module'], $this->paymentMapping)) {
-                return $this->paymentMapping[$data['gambio_hub_module']];
-            }
-        } else {
-            if (key_exists($data['payment_method'], $this->paymentMapping)) {
-                return $this->paymentMapping[$data['payment_method']];
-            }
-        }
-
-        return $data['payment_method'];
+        return Payment::mapPaymentType(!empty($data['gambio_hub_module']) ? $data['gambio_hub_module'] : $data['payment_method']);
     }
 
     protected function payment_method($data)
     {
-        $payments = array_flip($this->paymentMapping);
-
-        return $payments[$data->getPaymentModuleCode()];
+        return Payment::mapPaymentType($data->getPaymentModuleCode(), false);
     }
 
     protected function payment_class($data)
     {
-        $payments = array_flip($this->paymentMapping);
-
-        return $payments[$data->getPaymentModuleCode()];
+        return Payment::mapPaymentType($data->getPaymentModuleCode(), false);
     }
 
     protected function customers_address_format_id($data)

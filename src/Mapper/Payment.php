@@ -25,7 +25,7 @@ class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
         ],
     ];
     
-    private $paymentMapping = [
+    private static $paymentMapping = [
         'cash'                      => PaymentTypes::TYPE_CASH,
         'klarna_SpecCamp'           => PaymentTypes::TYPE_KLARNA,
         'klarna_invoice'            => PaymentTypes::TYPE_KLARNA,
@@ -33,10 +33,7 @@ class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
         'moneyorder'                => PaymentTypes::TYPE_PREPAYMENT,
         'banktransfer'              => PaymentTypes::TYPE_BANK_TRANSFER,
         'cod'                       => PaymentTypes::TYPE_CASH_ON_DELIVERY,
-        //'paypal' => 'pm_paypal_standard',
-        //'paypal_ipn' => 'pm_paypal_standard',
-        //'paypalexpress' => 'pm_paypal_express',
-        'paypal3'                   => PaymentTypes::TYPE_PAYPAL_PLUS,
+        'paypal3'                   => PaymentTypes::TYPE_PAYPAL,
         'amoneybookers'             => PaymentTypes::TYPE_SKRILL,
         'moneybookers_giropay'      => PaymentTypes::TYPE_SKRILL,
         'moneybookers_ideal'        => PaymentTypes::TYPE_SKRILL,
@@ -60,6 +57,7 @@ class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
         'MoneyOrderHub'             => PaymentTypes::TYPE_PREPAYMENT,
         'MoneyOrderPlusHub'         => PaymentTypes::TYPE_PREPAYMENT,
         'PayPalHub'                 => PaymentTypes::TYPE_PAYPAL_PLUS,
+        'PayPal2Hub'                 => PaymentTypes::TYPE_PAYPAL_PLUS,
         'SofortHub'                 => PaymentTypes::TYPE_SOFORT,
         'WirecardCreditcardHub'     => PaymentTypes::TYPE_WIRECARD,
         'WirecardInvoiceHub'        => PaymentTypes::TYPE_WIRECARD,
@@ -68,6 +66,9 @@ class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
         'WirecardWiretransferHub'   => PaymentTypes::TYPE_WIRECARD,
     ];
     
+    /**
+     * Payment constructor.
+     */
     public function __construct()
     {
         parent::__construct();
@@ -77,6 +78,12 @@ class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
         }
     }
     
+    /**
+     * @param null $parent
+     * @param null $limit
+     * @return array
+     * @throws \Exception
+     */
     public function pull($parent = null, $limit = null)
     {
         $additional = [];
@@ -97,37 +104,52 @@ class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
         
         return $result;
     }
-    
-    public function statistic()
+
+    /**
+     * @return int
+     * @throws \Exception
+     */
+    public function statistic(): int
     {
         return count($this->pull());
     }
-    
-    private function paypal()
+
+    /**
+     * @return array
+     * @throws \Exception
+     */
+    private function paypal(): array
     {
         $return = [];
         
-        $results = $this->db->query('SELECT p.orders_id, p.transaction_id, p.payment_date, p.grossamount
-          FROM paypal_transactions p
-          LEFT JOIN jtl_connector_link_payment l ON p.transaction_id = l.endpoint_id COLLATE utf8_unicode_ci
-          WHERE l.host_id IS NULL && p.paymentstatus="Completed"');
+        $sql = "
+            SELECT p.orders_id order_id, p.payment_id transaction_id, o.date_purchased creation_date, o.payment_class payment_module, t.value total_sum
+            FROM orders_paypal_payments p
+            LEFT JOIN jtl_connector_link_payment l ON p.payment_id = l.endpoint_id
+            LEFT JOIN orders o ON o.orders_id = p.orders_id
+            LEFT JOIN orders_total t ON t.orders_id = p.orders_id AND t.class = 'ot_total'
+        ";
+        
+        $results = $this->db->query($sql);
         
         foreach ($results as $paymentData) {
-            $payment = new PaymentModel();
-            $payment->setCreationDate(new \DateTime($paymentData['payment_date']));
-            $payment->setCustomerOrderId($this->identity($paymentData['orders_id']));
-            $payment->setId($this->identity($paymentData['transaction_id']));
-            $payment->setPaymentModuleCode('pm_paypal_standard');
-            $payment->setTotalSum(floatval($paymentData['grossamount']));
-            $payment->setTransactionId($paymentData['transaction_id']);
-            
-            $return[] = $payment;
+            $return[] = (new PaymentModel())
+                ->setCreationDate(new \DateTime($paymentData['creation_date']))
+                ->setCustomerOrderId($this->identity($paymentData['order_id']))
+                ->setId($this->identity($paymentData['transaction_id']))
+                ->setPaymentModuleCode(self::mapPaymentType($paymentData['payment_module']))
+                ->setTotalSum(floatval($paymentData['total_sum']))
+                ->setTransactionId($paymentData['transaction_id']);
         }
         
         return $return;
     }
     
-    private function hubPayments()
+    /**
+     * @return array
+     * @throws \Exception
+     */
+    private function hubPayments(): array
     {
         $return = [];
         
@@ -137,23 +159,31 @@ class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
               LEFT JOIN jtl_connector_link_payment l ON o.gambio_hub_transaction_code = l.endpoint_id
             WHERE l.host_id IS NULL AND o.payment_method = "gambio_hub" AND ot.class = "ot_total"
             ');
-            
+        
         foreach ($results as $paymentData) {
-            $payment = new PaymentModel();
-            $payment->setCreationDate(new \DateTime($paymentData['date_purchased']));
-            $payment->setCustomerOrderId($this->identity($paymentData['orders_id']));
-            $payment->setId($this->identity($paymentData['gambio_hub_transaction_code']));
-            $payment->setPaymentModuleCode(
-                isset($this->paymentMapping[$paymentData['gambio_hub_module']])
-                ? $this->paymentMapping[$paymentData['gambio_hub_module']]
-                : $paymentData['gambio_hub_module']
-            );
-            $payment->setTotalSum(floatval($paymentData['value']));
-            $payment->setTransactionId($paymentData['gambio_hub_transaction_code']);
-            
-            $return[] = $payment;
+            $return[] = (new PaymentModel())
+                ->setCreationDate(new \DateTime($paymentData['date_purchased']))
+                ->setCustomerOrderId($this->identity($paymentData['orders_id']))
+                ->setId($this->identity($paymentData['gambio_hub_transaction_code']))
+                ->setPaymentModuleCode(self::mapPaymentType($paymentData["gambio_hub_module"]))
+                ->setTotalSum(floatval($paymentData['value']))
+                ->setTransactionId($paymentData['gambio_hub_transaction_code']);
         }
         
         return $return;
+    }
+
+    /**
+     * @param string $moduleCode
+     * @param bool $toJtl
+     * @return string
+     */
+    public static function mapPaymentType(string $moduleCode, bool $toJtl = true): string
+    {
+        if ($toJtl === false) {
+            return array_flip(self::$paymentMapping)[$moduleCode] ?? $moduleCode;
+        }
+        
+        return self::$paymentMapping[$moduleCode] ?? $moduleCode;
     }
 }
