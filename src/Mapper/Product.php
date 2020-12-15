@@ -614,13 +614,9 @@ class Product extends BaseMapper
         if ($data->getConsiderBasePrice()) {
             $name = $data->getBasePriceUnitCode();
         }
-        
-        if (MeasurementUnitHelper::isUnit($name)) {
-            $name = MeasurementUnitHelper::getUnitName($name);
-        }
-
-        if ($data->getConsiderBasePrice() && !is_null($data->getBasePriceQuantity()) && $data->getBasePriceQuantity() > 1.) {
-            $name = $data->getBasePriceQuantity() . $data->getBasePriceUnitName();
+    
+        if ($data->getConsiderBasePrice() && !is_null($data->getBasePriceQuantity()) && $data->getBasePriceQuantity() !== 1.) {
+            $name = $data->getBasePriceQuantity() . $data->getBasePriceUnitCode();
         }
 
         if (!empty($name)) {
@@ -658,7 +654,7 @@ class Product extends BaseMapper
     {
         /** @var ProductModel $data */
         $value = $data->getMeasurementQuantity();
-        if ($data->getConsiderBasePrice() && $data->getBasePriceQuantity() > 0 && MeasurementUnitHelper::isUnit($data->getMeasurementUnitCode())) {
+        if ($data->getConsiderBasePrice() && $data->getBasePriceQuantity() > 0 && MeasurementUnitHelper::isUnit($data->getMeasurementUnitCode()) && MeasurementUnitHelper::isUnit($data->getBasePriceUnitCode())) {
             //$value /= $data->getBasePriceQuantity();
             $value = ($data->getMeasurementQuantity() * MeasurementUnitHelper::getUnitFactor($data->getMeasurementUnitCode())) / ($data->getBasePriceQuantity() * MeasurementUnitHelper::getUnitFactor($data->getBasePriceUnitCode()));
         }
