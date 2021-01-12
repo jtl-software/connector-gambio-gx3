@@ -24,9 +24,9 @@ use jtl\Connector\Gambio\Util\MeasurementUnitHelper;
 class Product extends BaseMapper
 {
     private static $idCache = [];
-    
+
     protected $mapperConfig = [
-        "table"    => "products",
+        "table" => "products",
         /*
         "query" => "SELECT p.*, q.quantity_unit_id, c.code_isbn, c.code_mpn, c.code_upc, c.google_export_condition, c.google_export_availability_id, g.google_category
             FROM products p
@@ -36,91 +36,91 @@ class Product extends BaseMapper
             LEFT JOIN jtl_connector_link l ON CONVERT(p.products_id, CHAR(16)) = l.endpointId COLLATE utf8_unicode_ci AND l.type = 64
             WHERE l.hostId IS NULL",
         */
-        "where"    => "products_id",
+        "where" => "products_id",
         "identity" => "getId",
-        "mapPull"  => [
-            "id"                     => "products_id",
-            "ean"                    => "products_ean",
-            "stockLevel"             => "ProductStockLevel|setStockLevel",
-            "sku"                    => "products_model",
-            "sort"                   => "products_sort",
-            "creationDate"           => "products_date_added",
-            "availableFrom"          => "products_date_available",
-            "productWeight"          => "products_weight",
-            "manufacturerId"         => null,
-            "unitId"                 => null,
-            "basePriceDivisor"       => "products_vpe_value",
-            "considerBasePrice"      => null,
-            "isActive"               => null,
-            "isTopProduct"           => "products_startpage",
-            "considerStock"          => null,
+        "mapPull" => [
+            "id" => "products_id",
+            "ean" => "products_ean",
+            "stockLevel" => "ProductStockLevel|setStockLevel",
+            "sku" => "products_model",
+            "sort" => "products_sort",
+            "creationDate" => "products_date_added",
+            "availableFrom" => "products_date_available",
+            "productWeight" => "products_weight",
+            "manufacturerId" => null,
+            "unitId" => null,
+            "basePriceDivisor" => "products_vpe_value",
+            "considerBasePrice" => null,
+            "isActive" => null,
+            "isTopProduct" => "products_startpage",
+            "considerStock" => null,
             "considerVariationStock" => null,
-            "permitNegativeStock"    => null,
-            "i18ns"                  => "ProductI18n|addI18n",
-            "categories"             => "Product2Category|addCategory",
-            "prices"                 => "ProductPrice|addPrice",
-            "specialPrices"          => "ProductSpecialPrice|addSpecialPrice",
-            "variations"             => "ProductVariation|addVariation",
-            "invisibilities"         => "ProductInvisibility|addInvisibility",
-            "attributes"             => "ProductAttr|addAttribute",
-            "vat"                    => null,
-            "isMasterProduct"        => null,
-            "measurementUnitId"      => null,
-            "isbn"                   => "code_isbn",
-            "manufacturerNumber"     => "code_mpn",
-            "upc"                    => "code_upc",
-            "minimumOrderQuantity"   => "gm_min_order",
-            "packagingQuantity"      => "gm_graduated_qty",
-            "keywords"               => null,
+            "permitNegativeStock" => null,
+            "i18ns" => "ProductI18n|addI18n",
+            "categories" => "Product2Category|addCategory",
+            "prices" => "ProductPrice|addPrice",
+            "specialPrices" => "ProductSpecialPrice|addSpecialPrice",
+            "variations" => "ProductVariation|addVariation",
+            "invisibilities" => "ProductInvisibility|addInvisibility",
+            "attributes" => "ProductAttr|addAttribute",
+            "vat" => null,
+            "isMasterProduct" => null,
+            "measurementUnitId" => null,
+            "isbn" => "code_isbn",
+            "manufacturerNumber" => "code_mpn",
+            "upc" => "code_upc",
+            "minimumOrderQuantity" => "gm_min_order",
+            "packagingQuantity" => "gm_graduated_qty",
+            "keywords" => null,
         ],
-        "mapPush"  => [
-            "products_id"                              => "id",
-            "products_ean"                             => "ean",
-            "products_quantity"                        => null,
-            "products_model"                           => "sku",
-            "products_sort"                            => "sort",
-            "products_date_added"                      => null,
-            "products_date_available"                  => "availableFrom",
-            "products_weight"                          => "productWeight",
-            "manufacturers_id"                         => null,
-            "products_vpe"                             => null,
-            "products_vpe_value"                       => null,
-            "products_vpe_status"                      => null,
-            "products_status"                          => "isActive",
-            "products_startpage"                       => "isTopProduct",
-            "products_tax_class_id"                    => null,
-            "Product2Category|addCategory"             => "categories",
-            "ProductPrice|addPrice"                    => "prices",
-            "ProductSpecialPrice|addSpecialPrice"      => "specialPrices",
-            "ProductVariation|addVariation"            => "variations",
+        "mapPush" => [
+            "products_id" => "id",
+            "products_ean" => "ean",
+            "products_quantity" => null,
+            "products_model" => "sku",
+            "products_sort" => "sort",
+            "products_date_added" => null,
+            "products_date_available" => "availableFrom",
+            "products_weight" => "productWeight",
+            "manufacturers_id" => null,
+            "products_vpe" => null,
+            "products_vpe_value" => null,
+            "products_vpe_status" => null,
+            "products_status" => "isActive",
+            "products_startpage" => "isTopProduct",
+            "products_tax_class_id" => null,
+            "Product2Category|addCategory" => "categories",
+            "ProductPrice|addPrice" => "prices",
+            "ProductSpecialPrice|addSpecialPrice" => "specialPrices",
+            "ProductVariation|addVariation" => "variations",
             "ProductInvisibility|addInvisibility|true" => "invisibilities",
             //"ProductAttr|addAttribute|true" => "attributes",
-            "ProductI18n|addI18n"                      => "i18ns",
-            "products_image"                           => null,
-            "products_shippingtime"                    => null,
-            "gm_min_order"                             => null,
-            "gm_graduated_qty"                         => null,
-            "gm_show_date_added"                       => null,
+            "ProductI18n|addI18n" => "i18ns",
+            "products_image" => null,
+            "products_shippingtime" => null,
+            "gm_min_order" => null,
+            "gm_graduated_qty" => null,
+            "gm_show_date_added" => null,
             "use_properties_combis_shipping_time" => null
         ],
     ];
-    
+
     protected static $specialAttributes = [
-        'products_status'         => 'Aktiv',
-        'gm_price_status'         => 'Preis-Status',
-        'gm_show_qty_info'        => 'Lagerbestand anzeigen',
-        'gm_show_weight'          => 'Gewicht anzeigen',
-        'products_fsk18'          => 'FSK 18',
-        'product_template'        => 'Produkt Vorlage',
-        'options_template'        => 'Optionen Vorlage',
+        'products_status' => 'Aktiv',
+        'gm_price_status' => 'Preis-Status',
+        'gm_show_qty_info' => 'Lagerbestand anzeigen',
+        'gm_show_weight' => 'Gewicht anzeigen',
+        'products_fsk18' => 'FSK 18',
+        'product_template' => 'Produkt Vorlage',
+        'options_template' => 'Optionen Vorlage',
         'products_startpage_sort' => 'Sortierreihenfolge auf Startseite',
-        'nc_ultra_shipping_costs'  => 'Versandkosten',
-        'gm_show_price_offer'     => 'Woanders günstiger?-Modul anzeigen',
-        'gm_options_template'     => 'Vorlage für Artikelattribute in Übersicht',
-        'gm_priority'            => 'Priorität in Sitemap',
-        'gm_changefreq'           => 'Änderungsfrequenz in Sitemap',
-        'gm_sitemap_entry'        => 'In Sitemap aufnehmen',
-        'product_type'            => 'Artikeltyp',
+        'nc_ultra_shipping_costs' => 'Versandkosten',
+        'gm_show_price_offer' => 'Woanders günstiger?-Modul anzeigen',
+        'gm_options_template' => 'Vorlage für Artikelattribute in Übersicht',
+        'gm_priority' => 'Priorität in Sitemap',
+        'gm_changefreq' => 'Änderungsfrequenz in Sitemap',
+        'gm_sitemap_entry' => 'In Sitemap aufnehmen',
+        'product_type' => 'Artikeltyp',
     ];
 
     public function pull($data = null, $limit = null)
@@ -141,9 +141,9 @@ class Product extends BaseMapper
             'LEFT JOIN languages la ON la.code = \'' . $this->shopConfig['settings']['DEFAULT_LANGUAGE'] . '\' ' . "\n" .
             'LEFT JOIN quantity_unit_description qud ON pqu.quantity_unit_id = qud.quantity_unit_id AND qud.language_id = la.languages_id ' . "\n" .
             'LEFT JOIN products_vpe pv ON pv.products_vpe_id = j.products_vpe AND pv.language_id = la.languages_id';
-        
+
         $dbResult = $this->executeQuery($data, $limit);
-        
+
         $return = [];
         foreach ($dbResult as $data) {
             /** @var \jtl\Connector\Model\Product $product */
@@ -151,10 +151,10 @@ class Product extends BaseMapper
             $this->setMeasurementsData($product, $data);
             $return[] = $product;
         }
-        
+
         if (count($return) < $limit) {
             $limitQuery = isset($limit) ? ' LIMIT ' . $limit : '';
-            
+
             $sql =
                 'SELECT j.* , qud.unit_name, pv.products_vpe_name vpe_name ' . "\n" .
                 'FROM (' . "\n" .
@@ -168,9 +168,9 @@ class Product extends BaseMapper
                 'LEFT JOIN languages la ON la.code = \'' . $this->shopConfig['settings']['DEFAULT_LANGUAGE'] . '\' ' . "\n" .
                 'LEFT JOIN quantity_unit_description qud ON pqu.quantity_unit_id = qud.quantity_unit_id AND qud.language_id = la.languages_id ' . "\n" .
                 'LEFT JOIN products_vpe pv ON pv.products_vpe_id = j.products_vpe_id AND pv.language_id = la.languages_id';
-            
+
             $combis = $this->db->query($sql);
-            
+
             foreach ($combis as $combiData) {
                 $varcombi = (new ProductModel())
                     ->setMasterProductId($this->identity($combiData['products_id']))
@@ -183,11 +183,11 @@ class Product extends BaseMapper
                     ->setConsiderVariationStock(true)
                     ->setIsActive(true)
                     ->setVat($this->vat($combiData));
-                
+
                 $this->setMeasurementsData($varcombi, $combiData, true);
-                
+
                 $i18nStatus = $this->db->query('SELECT * FROM shipping_status WHERE shipping_status_id=' . $combiData['combi_shipping_status_id']);
-                
+
                 foreach ($i18nStatus as $status) {
                     $i18n = new ProductI18nModel();
                     $i18n->setProductId($varcombi->getId());
@@ -198,82 +198,82 @@ class Product extends BaseMapper
                 $stockLevel = new ProductStockLevelModel();
                 $stockLevel->setProductId($varcombi->getId());
                 $stockLevel->setStockLevel(floatval($combiData['combi_quantity']));
-                
+
                 $varcombi->setStockLevel($stockLevel);
                 $default = new ProductPriceModel();
                 $default->setId($this->identity($varcombi->getId()->getEndpoint() . '_default'));
                 $default->setProductId($varcombi->getId());
                 $default->setCustomerGroupId($this->identity(null));
-                
+
                 $defaultItem = new ProductPriceItemModel();
                 $defaultItem->setProductPriceId($default->getId());
                 $price = floatval($combiData['products_price']) + floatval($combiData['combi_price']);
                 $defaultItem->setNetPrice($price);
-                
+
                 $default->addItem($defaultItem);
-                
+
                 $varcombi->setprices([$default]);
-                
+
                 $variationQuery = $this->db->query('SELECT * FROM products_properties_index WHERE products_properties_combis_id=' . $combiData['products_properties_combis_id']);
-                
+
                 $variations = [];
-                
+
                 foreach ($variationQuery as $variation) {
                     if (!isset($variations[$variation['properties_id']])) {
                         $variations[$variation['properties_id']] = $variation;
                     }
-                    
+
                     $variations[$variation['properties_id']]['i18ns'][$variation['language_id']] = [$variation['properties_name'], $variation['values_name']];
                 }
-                
+
                 $variationsArray = [];
-                
+
                 foreach ($variations as $variation) {
                     $varModel = new ProductVariationModel();
                     $varModel->setId($this->identity($variation['properties_id']));
                     $varModel->setProductId($varcombi->getId());
                     $varModel->setSort(intval($variation['properties_sort_order']));
-                    
+
                     $varValueModel = new ProductVariationValueModel();
                     $varValueModel->setId($this->identity($variation['properties_values_id']));
                     $varValueModel->setProductVariationId($varModel->getId());
                     $varValueModel->setSort(intval($variation['value_sort_order']));
-                    
+
                     $variationI18ns = [];
                     $variationValueI18ns = [];
-                    
+
                     foreach ($variation['i18ns'] as $language => $names) {
                         $variationI18n = new ProductVariationI18nModel();
                         $variationI18n->setProductvariationId($varModel->getId());
                         $variationI18n->setLanguageISO($this->id2locale($language));
                         $variationI18n->setName($names[0]);
-                        
+
                         $variationValueI18n = new ProductVariationValueI18nModel();
                         $variationValueI18n->setProductvariationValueId($varValueModel->getId());
                         $variationValueI18n->setLanguageISO($variationI18n->getLanguageISO());
                         $variationValueI18n->setName($names[1]);
-                        
+
                         $variationI18ns[] = $variationI18n;
                         $variationValueI18ns[] = $variationValueI18n;
                     }
-                    
+
                     $varModel->setI18ns($variationI18ns);
                     $varValueModel->setI18ns($variationValueI18ns);
-                    
+
                     $varModel->setValues([$varValueModel]);
-                    
+
                     $variationsArray[] = $varModel;
                 }
-                
+
                 $varcombi->setVariations($variationsArray);
-                
+
                 $return[] = $varcombi;
             }
         }
-        
+
         return $return;
     }
-    
+
     /**
      * @param ProductModel $product
      * @param mixed[] $data
@@ -286,13 +286,13 @@ class Product extends BaseMapper
         if ($isCombi) {
             $vpeValue = (isset($data['vpe_value']) && !empty($data['vpe_value']) ? (float)$data['vpe_value'] : null);
         }
-        
+
         if (isset($data['unit_name']) && !empty($data['unit_name'])) {
             $unitId = new Identity($data['unit_name']);
             $product->setUnitId($unitId);
             $product->setBasePriceUnitName($data['unit_name']);
         }
-        
+
         if (!is_null($vpeName)) {
             $measurementUnit = null;
             $basePriceQuantity = 1.0;
@@ -305,7 +305,7 @@ class Product extends BaseMapper
                 $measurementUnit = $splitted['unit'];
                 $basePriceQuantity = $splitted['quantity'];
             }
-            
+
             if (!is_null($measurementUnit) && MeasurementUnitHelper::isUnit($measurementUnit)) {
                 $measurementUnitId = new Identity(MeasurementUnitHelper::getUnitName($measurementUnit));
                 $product->setBasepriceUnitId($measurementUnitId);
@@ -314,7 +314,7 @@ class Product extends BaseMapper
                     ->setMeasurementQuantity($quantity)
                     ->setBasePriceUnitCode($measurementUnit)
                     ->setMeasurementUnitCode($measurementUnit);
-                
+
                 if ($quantity > 0) {
                     $factor = MeasurementUnitHelper::getUnitFactor($measurementUnit);
                     if ($factor !== 1 && $basePriceQuantity === 1.0) {
@@ -329,7 +329,7 @@ class Product extends BaseMapper
             }
         }
     }
-    
+
     /**
      * @param float $number
      * @return float
@@ -339,25 +339,25 @@ class Product extends BaseMapper
         if (!is_numeric($number)) {
             throw new \RuntimeException($number . ' is not a number!');
         }
-        
+
         for ($i = 1; $i < $number; $i *= 10) {
         }
-        
+
         return ($i / 10.);
     }
-    
+
     public function push($product, $dbObj = null)
     {
         if (is_null($dbObj)) {
             $dbObj = new \stdClass();
         }
-        
+
         $masterId = $product->getMasterProductId()->getEndpoint();
         if (empty($masterId) && isset(static::$idCache[$product->getMasterProductId()->getHost()])) {
             $masterId = static::$idCache[$product->getMasterProductId()->getHost()];
             $product->getMasterProductId()->setEndpoint($masterId);
         }
-        
+
         $isVarCombiChild = !empty($masterId);
         $id = $product->getId()->getEndpoint();
         if ($isVarCombiChild) {
@@ -368,7 +368,7 @@ class Product extends BaseMapper
             foreach ($this->getCustomerGroups() as $group) {
                 $this->db->query('DELETE FROM personal_offers_by_customers_status_' . $group['customers_status_id'] . ' WHERE products_id="' . $id . '"');
             }
-            
+
             //$this->db->query('DELETE FROM specials WHERE products_id='.$id);
             $this->db->query(sprintf('
                         DELETE FROM products_attributes
@@ -376,10 +376,10 @@ class Product extends BaseMapper
                             SELECT products_attributes_id FROM products_attributes_download
                         )', $id));
         }
-        
+
         return parent::push($product, $dbObj);
     }
-    
+
     /**
      * @param $returnModel
      * @param $dbObj
@@ -388,25 +388,25 @@ class Product extends BaseMapper
     protected function pushDone($returnModel, $dbObj, $product)
     {
         (new CategoryIndexHelper())->rebuildProductCategoryCache();
-        
+
         if ($product->getIsMasterProduct() === true) {
             static::$idCache[$product->getId()->getHost()] = $product->getId()->getEndpoint();
         }
-        
+
         $productsId = $product->getId()->getEndpoint();
         if (empty($productsId) || $product->getMasterProductId()->getHost() !== 0) {
             return;
         }
-        
+
         $checkCodes = $this->db->query('SELECT products_id FROM products_item_codes WHERE products_id="' . $product->getId()->getEndpoint() . '"');
-        
+
         $codes = new \stdClass();
         $codes->products_id = $productsId;
         $codes->code_isbn = $product->getIsbn();
         $codes->code_upc = $product->getUpc();
         $codes->code_mpn = $product->getManufacturerNumber();
         $codes->expiration_date = $product->getMinBestBeforeDate() ? $product->getMinBestBeforeDate()->format('Y-m-d') : '0000-00-00';
-        
+
         $dbObj->products_status = 1;
         foreach ($product->getAttributes() as $attr) {
             foreach ($attr->getI18ns() as $i18n) {
@@ -419,7 +419,7 @@ class Product extends BaseMapper
                         $attributeName = trim($result);
                     }
                 }
-                
+
                 if ($specialAttribute) {
                     $dbObj->$attributeName = trim($i18n->getValue());
                     break;
@@ -445,43 +445,43 @@ class Product extends BaseMapper
                 }
             }
         }
-        
+
         $this->db->updateRow($dbObj, 'products', 'products_id', $productsId);
         $attributes = (new ProductAttr())->push($product);
-        
+
         if (count($checkCodes) > 0) {
             $this->db->updateRow($codes, 'products_item_codes', 'products_id', $productsId);
         } else {
             $this->db->insertRow($codes, 'products_item_codes');
         }
-        
+
         $this->determineQuantityUnit($product);
     }
-    
+
     private function determineQuantityUnit($data)
     {
         $id = null;
-        
+
         $skip = true;
-        
+
         foreach ($data->getI18ns() as $i18n) {
             $name = $i18n->getUnitName();
             $language_id = $this->locale2id($i18n->getLanguageISO());
-            
+
             $dbResult = $this->db->query('SELECT code FROM languages WHERE languages_id=' . $language_id);
-            
+
             if ($dbResult[0]['code'] == $this->shopConfig['settings']['DEFAULT_LANGUAGE']) {
                 $sql = $this->db->query('SELECT quantity_unit_id FROM quantity_unit_description WHERE language_id=' . $language_id . ' && unit_name="' . $name . '"');
                 if (count($sql) > 0) {
                     $id = $sql[0]['quantity_unit_id'];
                 }
             }
-            
+
             if (!empty($name)) {
                 $skip = false;
             }
         }
-        
+
         if ($skip === false) {
             if (is_null($id)) {
                 $newUnit = new \stdClass();
@@ -491,40 +491,40 @@ class Product extends BaseMapper
             } else {
                 $this->db->query('DELETE FROM quantity_unit_description WHERE quantity_unit_id=' . $id);
             }
-            
+
             foreach ($data->getI18ns() as $i18n) {
                 $unit = new \stdClass();
                 $unit->language_id = $this->locale2id($i18n->getLanguageISO());
                 $unit->quantity_unit_id = $id;
                 $unit->unit_name = $i18n->getUnitName();
-                
+
                 $this->db->insertRow($unit, 'quantity_unit_description');
             }
-            
+
             $quantityProduct = new \stdClass();
             $quantityProduct->products_id = $data->getId()->getEndpoint();
             $quantityProduct->quantity_unit_id = $id;
-            
+
             $this->db->deleteInsertRow($quantityProduct, 'products_quantity_unit', 'products_id', $quantityProduct->products_id);
         } else {
             $this->db->query('DELETE FROM products_quantity_unit WHERE products_id=' . $data->getId()->getEndpoint());
         }
     }
-    
+
     public function delete($data)
     {
         $id = $data->getId()->getEndpoint();
-        
+
         if (strpos($id, '_') !== false) {
             if (!empty($id) && $id != '') {
                 try {
                     $combiId = explode('_', $id);
                     $combiId = $combiId[1];
-                    
+
                     $this->db->query('DELETE FROM products_properties_index WHERE products_properties_combis_id=' . $combiId);
                     $this->db->query('DELETE FROM products_properties_combis_values WHERE products_properties_combis_id=' . $combiId);
                     $this->db->query('DELETE FROM products_properties_combis WHERE products_properties_combis_id=' . $combiId);
-                    
+
                     $this->db->query('DELETE FROM jtl_connector_link_product WHERE endpoint_id="' . $id . '"');
                 } catch (\Exception $e) {
                 }
@@ -546,39 +546,39 @@ class Product extends BaseMapper
                     $this->db->query('DELETE FROM products_quantity_unit WHERE products_id=' . $id);
                     $this->db->query('DELETE FROM categories_index WHERE products_id=' . $id);
                     $this->db->query('DELETE FROM products_item_codes WHERE products_id=' . $id);
-                    
+
                     //General product attribute values cleanings
                     $this->db->query('DELETE FROM additional_field_value_descriptions WHERE additional_field_value_id IN (SELECT `additional_field_value_id` FROM `additional_field_values` afv LEFT JOIN additional_fields af ON afv.additional_field_id = af.additional_field_id WHERE af.item_type = \'product\' AND item_id NOT IN (SELECT products_id FROM products WHERE 1))');
                     $this->db->query('DELETE afv FROM `additional_field_values` afv LEFT JOIN additional_fields af ON afv.additional_field_id = af.additional_field_id WHERE af.item_type = \'product\' AND item_id NOT IN (SELECT products_id FROM products WHERE 1)');
-                    
+
                     foreach ($this->getCustomerGroups() as $group) {
                         $this->db->query('DELETE FROM personal_offers_by_customers_status_' . $group['customers_status_id'] . ' WHERE products_id=' . $id);
                     }
-                    
+
                     $this->db->query('DELETE FROM jtl_connector_link_product WHERE endpoint_id="' . $id . '"');
                 } catch (\Exception $e) {
                 }
             }
         }
-        
+
         return $data;
     }
-    
+
     protected function isActive($data)
     {
         return true;
     }
-    
+
     protected function products_date_added($data)
     {
         if ($data->getisNewProduct()) {
             return $data->getNewReleaseDate();
         }
-    
+
         return $data->getCreationDate();
     }
-    
-    
+
+
     protected function gm_show_date_added($data)
     {
         return $data->getAvailableFrom() > new \DateTime() ? 1 : 0;
@@ -597,7 +597,7 @@ class Product extends BaseMapper
     protected function isMasterProduct($data)
     {
         $query = $this->db->query('SELECT products_properties_combis_id FROM products_properties_combis WHERE products_id=' . $data['products_id']);
-        
+
         return count($query) === 0 ? false : true;
     }
 
@@ -610,11 +610,11 @@ class Product extends BaseMapper
     {
         /** @var ProductModel $data */
         $name = $data->getMeasurementUnitCode();
-        
+
         if ($data->getConsiderBasePrice()) {
             $name = $data->getBasePriceUnitCode();
         }
-    
+
         if ($data->getConsiderBasePrice() && !is_null($data->getBasePriceQuantity()) && $data->getBasePriceQuantity() !== 1.) {
             $name = $data->getBasePriceQuantity() . $data->getBasePriceUnitCode();
         }
@@ -637,7 +637,7 @@ class Product extends BaseMapper
                             $status->products_vpe_id = $id;
                             $status->language_id = $this->locale2id($i18n->getLanguageISO());
                             $status->products_vpe_name = $name;
-                            
+
                             $this->db->deleteInsertRow($status, 'products_vpe', ['products_vpe_id', 'language_id'], [$status->product_vpe_id, $status->language_id]);
                         }
 
@@ -658,11 +658,11 @@ class Product extends BaseMapper
             //$value /= $data->getBasePriceQuantity();
             $value = ($data->getMeasurementQuantity() * MeasurementUnitHelper::getUnitFactor($data->getMeasurementUnitCode())) / ($data->getBasePriceQuantity() * MeasurementUnitHelper::getUnitFactor($data->getBasePriceUnitCode()));
         }
-        
+
         return $value;
     }
 
-    protected function products_shippingtime($data)
+    protected function products_shippingtime($data): int
     {
         foreach ($data->getI18ns() as $i18n) {
             $name = $i18n->getDeliveryStatus();
@@ -684,17 +684,17 @@ class Product extends BaseMapper
                             $status->shipping_status_id = $id;
                             $status->language_id = $this->locale2id($i18n->getLanguageISO());
                             $status->shipping_status_name = $i18n->getDeliveryStatus();
-                            
+
                             $this->db->deleteInsertRow($status, 'shipping_status', ['shipping_status_id', 'language_id'], [$status->shipping_status_id, $status->language_id]);
                         }
 
-                        return $id;
+                        return (int)$id;
                     }
                 }
             }
         }
 
-        return '';
+        return isset($this->shopConfig['settings']['DEFAULT_SHIPPING_STATUS_ID']) ? (int)$this->shopConfig['settings']['DEFAULT_SHIPPING_STATUS_ID'] : 0;
     }
 
     protected function products_vpe_status($data)
@@ -811,18 +811,18 @@ class Product extends BaseMapper
 
         return $count;
     }
-    
+
     public function use_properties_combis_shipping_time()
     {
         if (isset($this->connectorConfig->{Config::DISPLAY_COMBI_DELIVERY_TIME})) {
             $result = $this->connectorConfig->{Config::DISPLAY_COMBI_DELIVERY_TIME} === true ? 1 : 0;
-            
+
             return $result;
         }
-        
+
         return 0;
     }
-    
+
     /**
      * @return string[]
      */
@@ -830,7 +830,7 @@ class Product extends BaseMapper
     {
         return self::$specialAttributes;
     }
-    
+
     public function keywords($data)
     {
         $results = $this->db->query(sprintf(
@@ -841,11 +841,11 @@ class Product extends BaseMapper
             $data['products_id'],
             $this->locale2id($this->fullLocale($this->shopConfig['settings']['DEFAULT_LANGUAGE']))
         ));
-            
+
         if (!empty($results)) {
             return $results[0]["products_keywords"];
         }
-            
+
         return '';
     }
 }

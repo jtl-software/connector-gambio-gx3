@@ -270,7 +270,7 @@ class BaseMapper
             foreach ($subMapper as $endpoint => $host) {
                 list($endpoint, $navSetMethod) = explode('|', $endpoint);
 
-                $subMapperClass = "\\jtl\\Connector\\Gambio\\Mapper\\".$endpoint;
+                $subMapperClass = "\\jtl\\Connector\\Gambio\\Mapper\\" . $endpoint;
 
                 if (!class_exists($subMapperClass)) {
                     throw new \Exception("There is no mapper for ".$host);
