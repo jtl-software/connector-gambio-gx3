@@ -123,7 +123,7 @@ class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
         $return = [];
         
         $sql = "
-            SELECT p.orders_id order_id, p.payment_id transaction_id, o.date_purchased creation_date, o.payment_class payment_module, t.value total_sum
+            SELECT p.orders_id order_id, p.payment_id transaction_id, o.date_purchased creation_date, o.payment_method, t.value total_sum
             FROM orders_paypal_payments p
             LEFT JOIN jtl_connector_link_payment l ON p.payment_id = l.endpoint_id
             LEFT JOIN orders o ON o.orders_id = p.orders_id
@@ -137,7 +137,7 @@ class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
                 ->setCreationDate(new \DateTime($paymentData['creation_date']))
                 ->setCustomerOrderId($this->identity($paymentData['order_id']))
                 ->setId($this->identity($paymentData['transaction_id']))
-                ->setPaymentModuleCode(self::mapPaymentType($paymentData['payment_module']))
+                ->setPaymentModuleCode(self::mapPaymentType($paymentData['payment_method']))
                 ->setTotalSum(floatval($paymentData['total_sum']))
                 ->setTransactionId($paymentData['transaction_id']);
         }
