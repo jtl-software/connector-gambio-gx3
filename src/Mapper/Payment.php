@@ -122,22 +122,23 @@ class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
     {
         $return = [];
 
-        $sql = 'SELECT p.orders_id as order_id, p.payment_id as transaction_id, o.date_purchased as payment_date, o.payment_method as payment_method, t.value as total_sum
+        $sql = 'SELECT p.orders_id, p.payment_id, o.date_purchased, o.payment_method, t.value
                 FROM orders_paypal_payments p
-                LEFT JOIN jtl_connector_link_payment l ON p.payment_id = l.endpoint_id
                 LEFT JOIN orders o ON o.orders_id = p.orders_id
-                LEFT JOIN orders_total t ON t.orders_id = p.orders_id AND t.class = \'ot_total\'';
+                LEFT JOIN jtl_connector_link_payment l ON o.orders_id = l.endpoint_id
+                LEFT JOIN orders_total t ON t.orders_id = p.orders_id AND t.class = \'ot_total\'
+                WHERE l.host_id IS NULL';
 
         $results = $this->db->query($sql);
 
         foreach ($results as $paymentData) {
             $return[] = (new PaymentModel())
-                ->setCreationDate(new \DateTime($paymentData['payment_date']))
-                ->setCustomerOrderId($this->identity($paymentData['order_id']))
-                ->setId($this->identity($paymentData['transaction_id']))
+                ->setCreationDate(new \DateTime($paymentData['date_purchased']))
+                ->setCustomerOrderId($this->identity($paymentData['orders_id']))
+                ->setId($this->identity($paymentData['orders_id']))
                 ->setPaymentModuleCode(self::mapPaymentType($paymentData['payment_method'] ?? 'unknown'))
-                ->setTotalSum(floatval($paymentData['total_sum']))
-                ->setTransactionId($paymentData['transaction_id']);
+                ->setTotalSum(floatval($paymentData['value']))
+                ->setTransactionId($paymentData['payment_id']);
         }
 
         return $return;
