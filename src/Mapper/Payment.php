@@ -136,7 +136,7 @@ class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
                 ->setCreationDate(new \DateTime($paymentData['date_purchased']))
                 ->setCustomerOrderId($this->identity($paymentData['orders_id']))
                 ->setId($this->identity($paymentData['orders_id']))
-                ->setPaymentModuleCode(self::mapPaymentType($paymentData['payment_method'] ?? 'unknown'))
+                ->setPaymentModuleCode(self::mapPaymentType($paymentData['payment_method']))
                 ->setTotalSum(floatval($paymentData['value']))
                 ->setTransactionId($paymentData['payment_id']);
         }
@@ -154,9 +154,9 @@ class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
 
         $sql = 'SELECT *
                 FROM orders o
-                LEFT JOIN orders_total ot ON o.orders_id = ot.orders_id
-                LEFT JOIN jtl_connector_link_payment l ON o.gambio_hub_transaction_code = l.endpoint_id
-                WHERE l.host_id IS NULL AND o.payment_method = "gambio_hub" AND ot.class = \'ot_total\'';
+                LEFT JOIN orders_total ot ON o.orders_id = ot.orders_id AND ot.class = \'ot_total\'
+                LEFT JOIN jtl_connector_link_payment l ON o.orders_id = l.endpoint_id
+                WHERE l.host_id IS NULL AND o.payment_method = \'gambio_hub\'';
 
         $results = $this->db->query($sql);
 
@@ -164,8 +164,8 @@ class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
             $return[] = (new PaymentModel())
                 ->setCreationDate(new \DateTime($paymentData['date_purchased']))
                 ->setCustomerOrderId($this->identity($paymentData['orders_id']))
-                ->setId($this->identity($paymentData['gambio_hub_transaction_code']))
-                ->setPaymentModuleCode(self::mapPaymentType($paymentData['gambio_hub_module'] ?? 'unknown'))
+                ->setId($this->identity($paymentData['orders_id']))
+                ->setPaymentModuleCode(self::mapPaymentType($paymentData['gambio_hub_module']))
                 ->setTotalSum(floatval($paymentData['value']))
                 ->setTransactionId($paymentData['gambio_hub_transaction_code']);
         }
