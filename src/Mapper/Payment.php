@@ -127,8 +127,7 @@ class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
                 LEFT JOIN orders_paypal_payments p ON o.orders_id = p.orders_id
                 LEFT JOIN jtl_connector_link_payment l ON o.orders_id = l.endpoint_id
                 LEFT JOIN orders_total t ON t.orders_id = p.orders_id AND t.class = \'ot_total\'
-                WHERE l.host_id IS NULL
-                GROUP BY o.orders_id';
+                WHERE l.host_id IS NULL';
 
         $results = $this->db->query($sql);
 
