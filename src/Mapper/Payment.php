@@ -125,9 +125,10 @@ class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
         $sql = 'SELECT o.orders_id, p.payment_id, o.date_purchased, o.payment_method, t.value
                 FROM orders o
                 LEFT JOIN orders_paypal_payments p ON o.orders_id = p.orders_id
-                LEFT JOIN jtl_connector_link_payment l ON o.orders_id = l.endpoint_id
                 LEFT JOIN orders_total t ON t.orders_id = p.orders_id AND t.class = \'ot_total\'
-                WHERE l.host_id IS NULL';
+                LEFT JOIN jtl_connector_link_payment l ON o.orders_id = l.endpoint_id
+                LEFT JOIN jtl_connector_link_customer_order lo ON o.orders_id = lo.endpoint_id
+                WHERE o.payment_method = \'paypal3\' AND l.host_id IS NULL AND lo.endpoint_id IS NOT NULL';
 
         $results = $this->db->query($sql);
 
@@ -152,11 +153,12 @@ class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
     {
         $return = [];
 
-        $sql = 'SELECT *
+        $sql = 'SELECT o.orders_id, o.date_purchased, o.gambio_hub_module, o.gambio_hub_transaction_code, t.value
                 FROM orders o
-                LEFT JOIN orders_total ot ON o.orders_id = ot.orders_id AND ot.class = \'ot_total\'
+                LEFT JOIN orders_total t ON o.orders_id = t.orders_id AND t.class = \'ot_total\'
                 LEFT JOIN jtl_connector_link_payment l ON o.orders_id = l.endpoint_id
-                WHERE l.host_id IS NULL AND o.payment_method = \'gambio_hub\'';
+                LEFT JOIN jtl_connector_link_customer_order lo ON o.orders_id = lo.endpoint_id
+                WHERE o.payment_method = \'gambio_hub\' AND l.host_id IS NULL AND lo.endpoint_id IS NOT NULL';
 
         $results = $this->db->query($sql);
 
