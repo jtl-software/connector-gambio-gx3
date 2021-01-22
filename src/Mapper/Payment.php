@@ -123,8 +123,8 @@ class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
         $return = [];
 
         $sql = 'SELECT p.orders_id, p.payment_id, o.date_purchased, o.payment_method, t.value
-                FROM orders_paypal_payments p
-                LEFT JOIN orders o ON o.orders_id = p.orders_id
+                FROM orders o
+                LEFT JOIN orders_paypal_payments p ON o.orders_id = p.orders_id
                 LEFT JOIN jtl_connector_link_payment l ON o.orders_id = l.endpoint_id
                 LEFT JOIN orders_total t ON t.orders_id = p.orders_id AND t.class = \'ot_total\'
                 WHERE l.host_id IS NULL';
