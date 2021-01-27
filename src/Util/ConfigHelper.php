@@ -11,6 +11,11 @@ class ConfigHelper
     protected $db;
 
     /**
+     * @var array<mixed>
+     */
+    protected $storage;
+
+    /**
      * ConfigHelper constructor.
      * @param Mysql $db
      * @throws \Exception
@@ -71,36 +76,83 @@ class ConfigHelper
     }
 
     /**
-     * @param $db
      * @return array[]
+     * @throws \Exception
      */
     public function readGxConfigDb(): array
     {
+        $table = 'configuration';
         $key = 'configuration_key';
         $value = 'configuration_value';
-        $table = 'configuration';
-        $where = '';
+        $prefix = null;
 
         if (ShopVersion::isGreaterOrEqual('4.1')) {
-            $key = 'key';
-            $value = 'value';
-            $table = 'gx_configurations';
-            $where = 'WHERE language_id IS NULL AND `key` LIKE "configuration/%"';
-        }
-
-        $configDb = $this->db->query(sprintf("SElECT `%s`,`%s` FROM `%s` %s", $key, $value, $table, $where));
-        $return = [];
-
-        foreach ($configDb as $entry) {
-            if (ShopVersion::isGreaterOrEqual('4.1')) {
-                $entry[$key] = str_replace('configuration/', '', $entry[$key]);
-            }
-            $return[$entry[$key]] = $entry[$value] == 'true' ? 1 : ($entry[$value] == 'false' ? 0 : $entry[$value]);
+            $prefix = 'configuration/';
         }
 
         return [
-            'settings' => $return
+            'settings' => $this->readConfiguration($table, $key, $value, $prefix)
         ];
+    }
+
+    /**
+     * @param string $table
+     * @param string $keyColumn
+     * @param string $valueColumn
+     * @param string|null $prefix
+     * @return array
+     * @throws \Exception
+     */
+    public function readConfiguration(string $table, string $keyColumn, string $valueColumn, string $prefix = null): array
+    {
+        if (ShopVersion::isGreaterOrEqual('4.1')) {
+            $keyColumn = 'key';
+            $valueColumn = 'value';
+            $table = 'gx_configurations';
+        }
+
+        $storageKey = $table;
+        if (!is_null($prefix)) {
+            $storageKey .= '||' . $prefix;
+        }
+
+        if(!isset($this->storage[$storageKey])) {
+            $columns = [sprintf('`%s` `key`', $keyColumn), sprintf('`%s` `value`', $valueColumn)];
+
+            $where = [];
+            if (!is_null($prefix)) {
+                $where[] = sprintf('`key` LIKE "%s%%"', $prefix);
+            }
+
+            if (count($where) === 0) {
+                $where[] = '1';
+            }
+
+            $sql = sprintf('SELECT %s FROM %s WHERE %s', implode(',', $columns), $table, implode(' AND ', $where));
+
+            $rows = $this->db->query($sql);
+
+            $data = [];
+            foreach ($rows as $row) {
+                $key = is_null($prefix) ? $row['key'] : substr($row['key'], strlen($prefix));
+
+                switch ($row['value']) {
+                    case 'true':
+                        $data[$key] = 1;
+                        break;
+                    case 'false':
+                        $data[$key] = 0;
+                        break;
+                    default:
+                        $data[$key] = $row['value'];
+                        break;
+                }
+            }
+
+            $this->storage[$storageKey] = $data;
+        }
+
+        return $this->storage[$storageKey];
     }
 
     /**

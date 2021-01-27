@@ -120,7 +120,8 @@ class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
      */
     private function paypal(): array
     {
-        $return = [];
+        $orderStatus = $this->configHelper->readConfiguration('configuration_storage', 'key', 'value', 'modules/payment/paypal3/orderstatus/');
+        $orderStatusIds = [$orderStatus['error'] ?? '99', $orderStatus['pending'] ?? '99', '99'];
 
         $sql = 'SELECT o.orders_id, p.payment_id, o.date_purchased, o.payment_method, t.value
                 FROM orders o
@@ -130,12 +131,9 @@ class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
                 LEFT JOIN jtl_connector_link_customer_order lo ON o.orders_id = lo.endpoint_id
                 WHERE o.orders_status NOT IN (%s) AND o.payment_method = \'paypal3\' AND l.host_id IS NULL AND lo.endpoint_id IS NOT NULL';
 
-        $orderStatusIds[] = $this->shopConfig['settings']['PAYPAL_ORDER_STATUS_PENDING_ID'] ?? '99';
-        $orderStatusIds[] = $this->shopConfig['settings']['PAYPAL_ORDER_STATUS_REJECTED_ID'] ?? '99';
-        $orderStatusIds[] = '99';
-
         $results = $this->db->query(sprintf($sql, implode(',', $orderStatusIds)));
 
+        $return = [];
         foreach ($results as $paymentData) {
             $return[] = (new PaymentModel())
                 ->setCreationDate(new \DateTime($paymentData['date_purchased']))
