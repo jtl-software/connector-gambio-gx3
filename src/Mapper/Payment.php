@@ -128,9 +128,13 @@ class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
                 LEFT JOIN orders_total t ON t.orders_id = p.orders_id AND t.class = \'ot_total\'
                 LEFT JOIN jtl_connector_link_payment l ON o.orders_id = l.endpoint_id
                 LEFT JOIN jtl_connector_link_customer_order lo ON o.orders_id = lo.endpoint_id
-                WHERE o.payment_method = \'paypal3\' AND l.host_id IS NULL AND lo.endpoint_id IS NOT NULL';
+                WHERE o.orders_status NOT IN (%s) AND o.payment_method = \'paypal3\' AND l.host_id IS NULL AND lo.endpoint_id IS NOT NULL';
 
-        $results = $this->db->query($sql);
+        $orderStatusIds[] = $this->shopConfig['settings']['PAYPAL_ORDER_STATUS_PENDING_ID'] ?? '99';
+        $orderStatusIds[] = $this->shopConfig['settings']['PAYPAL_ORDER_STATUS_REJECTED_ID'] ?? '99';
+        $orderStatusIds[] = '99';
+
+        $results = $this->db->query(sprintf($sql, implode(',', $orderStatusIds)));
 
         foreach ($results as $paymentData) {
             $return[] = (new PaymentModel())
