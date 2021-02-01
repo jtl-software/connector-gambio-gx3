@@ -79,7 +79,7 @@ class ConfigHelper
      * @return array[]
      * @throws \Exception
      */
-    public function readGxConfigDb(): array
+    public function getDbConfig(): array
     {
         $table = 'configuration';
         $key = 'configuration_key';
@@ -90,9 +90,7 @@ class ConfigHelper
             $prefix = 'configuration/';
         }
 
-        return [
-            'settings' => $this->readConfiguration($table, $key, $value, $prefix)
-        ];
+        return $this->readDbConfig($table, $key, $value, $prefix);
     }
 
     /**
@@ -103,7 +101,7 @@ class ConfigHelper
      * @return array
      * @throws \Exception
      */
-    public function readConfiguration(string $table, string $keyColumn, string $valueColumn, string $prefix = null): array
+    public function readDbConfig(string $table, string $keyColumn, string $valueColumn, string $prefix = null): array
     {
         if (ShopVersion::isGreaterOrEqual('4.1')) {
             $keyColumn = 'key';
@@ -116,7 +114,7 @@ class ConfigHelper
             $storageKey .= '||' . $prefix;
         }
 
-        if(!isset($this->storage[$storageKey])) {
+        if (!isset($this->storage[$storageKey])) {
             $columns = [sprintf('`%s` `key`', $keyColumn), sprintf('`%s` `value`', $valueColumn)];
 
             $where = [];
@@ -161,21 +159,16 @@ class ConfigHelper
      * @return mixed|null
      * @throws \Exception
      */
-    public function getGxDbConfigValue(string $key, $default = null)
+    public function getDbConfigValue(string $key, $default = null)
     {
-        $column = 'configuration_value';
-        $table = 'configuration';
-        $where = 'configuration_key';
-
+        $prefix = null;
         if (ShopVersion::isGreaterOrEqual('4.1')) {
-            $column = 'value';
-            $table = 'gx_configurations';
-            $where = 'key';
-            $key = sprintf('configuration/%s', $key);
+            $prefix = 'configuration/';
         }
 
-        $result = $this->db->query(sprintf('SELECT `%s` as configuration_value FROM `%s` WHERE `%s` = "%s"', $column, $table, $where, $key));
-        return $result[0]['configuration_value'] ?? $default;
+        $config = $this->readDbConfig('configuration', 'configuration_key', 'configuration_value', $prefix);
+
+        return $config[$key] ?? $default;
     }
 
     /**
@@ -206,7 +199,7 @@ class ConfigHelper
      */
     public function getDefaultLanguage()
     {
-        $languagesCode = $this->getGxDbConfigValue('DEFAULT_LANGUAGE');
+        $languagesCode = $this->getDbConfigValue('DEFAULT_LANGUAGE');
         $sql = sprintf('SELECT `languages_id` FROM `languages` WHERE `code` = "%s"', $languagesCode);
         $result = $this->db->query($sql);
         return isset($result[0]['languages_id']) ? $result[0]['languages_id'] : null;

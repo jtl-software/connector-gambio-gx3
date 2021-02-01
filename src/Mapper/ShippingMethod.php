@@ -14,7 +14,7 @@ class ShippingMethod extends BaseMapper
 
     public function pull($data = null, $limit = null)
     {
-        $moduleStr = $this->configHelper->getGxDbConfigValue('MODULE_SHIPPING_INSTALLED');
+        $moduleStr = $this->configHelper->getDbConfigValue('MODULE_SHIPPING_INSTALLED');
 
         if (!is_null($moduleStr)) {
             $modules = explode(';', $moduleStr);

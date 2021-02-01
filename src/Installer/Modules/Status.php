@@ -85,7 +85,7 @@ class Status extends Module
      */
     protected function getDefaultOrderStatusName()
     {
-        $ordersStatusId = $this->configHelper->getGxDbConfigValue('DEFAULT_ORDERS_STATUS_ID');
+        $ordersStatusId = $this->configHelper->getDbConfigValue('DEFAULT_ORDERS_STATUS_ID');
         $sql = sprintf(
             'SELECT `orders_status_name` FROM `orders_status` WHERE `orders_status_id` = "%s" AND `language_id` = %s',
             $ordersStatusId,

@@ -66,7 +66,7 @@ class CustomerOrder extends BaseMapper
 
     protected function status($data)
     {
-        $defaultStatus = $this->configHelper->getGxDbConfigValue('DEFAULT_ORDERS_STATUS_ID');
+        $defaultStatus = $this->configHelper->getDbConfigValue('DEFAULT_ORDERS_STATUS_ID');
 
         /*
         if (count($defaultStatus) > 0) {
@@ -306,7 +306,7 @@ class CustomerOrder extends BaseMapper
 
         list($shippingModule, $shippingName) = explode('_', $data['shipping_class']);
 
-        $moduleTaxClass = $this->configHelper->getGxDbConfigValue('MODULE_SHIPPING_' . strtoupper($shippingModule) . '_TAX_CLASS');
+        $moduleTaxClass = $this->configHelper->getDbConfigValue('MODULE_SHIPPING_' . strtoupper($shippingModule) . '_TAX_CLASS');
         if ($vat !== 0. && !empty($moduleTaxClass) && !empty($data['delivery_country_iso_code_2'])) {
             $rateResult = $this->db->query('SELECT r.tax_rate FROM countries c
                           LEFT JOIN zones_to_geo_zones z ON z.zone_country_id = c.countries_id

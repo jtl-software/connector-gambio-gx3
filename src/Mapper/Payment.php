@@ -120,7 +120,7 @@ class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
      */
     private function paypal(): array
     {
-        $orderStatus = $this->configHelper->readConfiguration('configuration_storage', 'key', 'value', 'modules/payment/paypal3/orderstatus/');
+        $orderStatus = $this->configHelper->readDbConfig('configuration_storage', 'key', 'value', 'modules/payment/paypal3/orderstatus/');
         $orderStatusIds = [$orderStatus['error'] ?? '99', $orderStatus['pending'] ?? '99', '99'];
 
         $sql = 'SELECT o.orders_id, p.payment_id, o.date_purchased, o.payment_method, t.value
@@ -131,20 +131,17 @@ class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
                 LEFT JOIN jtl_connector_link_customer_order lo ON o.orders_id = lo.endpoint_id
                 WHERE o.orders_status NOT IN (%s) AND o.payment_method = \'paypal3\' AND l.host_id IS NULL AND lo.endpoint_id IS NOT NULL';
 
-        $results = $this->db->query(sprintf($sql, implode(',', $orderStatusIds)));
+        $rows = $this->db->query(sprintf($sql, implode(',', $orderStatusIds)));
 
-        $return = [];
-        foreach ($results as $paymentData) {
-            $return[] = (new PaymentModel())
-                ->setCreationDate(new \DateTime($paymentData['date_purchased']))
-                ->setCustomerOrderId($this->identity($paymentData['orders_id']))
-                ->setId($this->identity($paymentData['orders_id']))
-                ->setPaymentModuleCode(self::mapPaymentType($paymentData['payment_method']))
-                ->setTotalSum(floatval($paymentData['value']))
-                ->setTransactionId($paymentData['payment_id']);
-        }
-
-        return $return;
+        return array_map(function(array $row) {
+            (new PaymentModel())
+                ->setCreationDate(new \DateTime($row['date_purchased']))
+                ->setCustomerOrderId($this->identity($row['orders_id']))
+                ->setId($this->identity($row['orders_id']))
+                ->setPaymentModuleCode(self::mapPaymentType($row['payment_method']))
+                ->setTotalSum(floatval($row['value']))
+                ->setTransactionId($row['payment_id']);
+        }, $rows);
     }
 
     /**
@@ -153,8 +150,6 @@ class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
      */
     private function hubPayments(): array
     {
-        $return = [];
-
         $sql = 'SELECT o.orders_id, o.date_purchased, o.gambio_hub_module, o.gambio_hub_transaction_code, t.value
                 FROM orders o
                 LEFT JOIN orders_total t ON o.orders_id = t.orders_id AND t.class = \'ot_total\'
@@ -162,19 +157,17 @@ class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
                 LEFT JOIN jtl_connector_link_customer_order lo ON o.orders_id = lo.endpoint_id
                 WHERE o.payment_method = \'gambio_hub\' AND l.host_id IS NULL AND lo.endpoint_id IS NOT NULL';
 
-        $results = $this->db->query($sql);
+        $rows = $this->db->query($sql);
 
-        foreach ($results as $paymentData) {
-            $return[] = (new PaymentModel())
-                ->setCreationDate(new \DateTime($paymentData['date_purchased']))
-                ->setCustomerOrderId($this->identity($paymentData['orders_id']))
-                ->setId($this->identity($paymentData['orders_id']))
-                ->setPaymentModuleCode(self::mapPaymentType($paymentData['gambio_hub_module']))
-                ->setTotalSum(floatval($paymentData['value']))
-                ->setTransactionId($paymentData['gambio_hub_transaction_code']);
-        }
-
-        return $return;
+        return array_map(function(array $row) {
+            return (new PaymentModel())
+                ->setCreationDate(new \DateTime($row['date_purchased']))
+                ->setCustomerOrderId($this->identity($row['orders_id']))
+                ->setId($this->identity($row['orders_id']))
+                ->setPaymentModuleCode(self::mapPaymentType($row['gambio_hub_module']))
+                ->setTotalSum(floatval($row['value']))
+                ->setTransactionId($row['gambio_hub_transaction_code']);
+        }, $rows);
     }
 
     /**

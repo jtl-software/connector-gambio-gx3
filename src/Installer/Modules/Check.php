@@ -256,7 +256,7 @@ class Check extends Module
 
     private function additionalImages()
     {
-        $moPics = $this->configHelper->getGxDbConfigValue('MO_PICS');
+        $moPics = $this->configHelper->getDbConfigValue('MO_PICS');
 
         static::$checks['additionalImages']['info'] = sprintf(static::$checks['additionalImages']['info'], $this->shopConfig['shop']['fullUrl']);
 
@@ -265,7 +265,7 @@ class Check extends Module
 
     private function groups()
     {
-        $groupCheck = $this->configHelper->getGxDbConfigValue('GROUP_CHECK');
+        $groupCheck = $this->configHelper->getDbConfigValue('GROUP_CHECK');
 
         static::$checks['groups']['info'] = sprintf(static::$checks['groups']['info'], $this->shopConfig['shop']['fullUrl']);
 
