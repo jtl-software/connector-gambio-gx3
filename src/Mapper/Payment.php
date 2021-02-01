@@ -96,13 +96,11 @@ class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
             $additional[] = $this->generateModel($payment);
         }
 
-        $result = array_merge(
+        return array_merge(
             $this->paypal(),
             $this->hubPayments(),
             $additional
         );
-
-        return $result;
     }
 
     /**
@@ -134,7 +132,7 @@ class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
         $rows = $this->db->query(sprintf($sql, implode(',', $orderStatusIds)));
 
         return array_map(function(array $row) {
-            (new PaymentModel())
+            return (new PaymentModel())
                 ->setCreationDate(new \DateTime($row['date_purchased']))
                 ->setCustomerOrderId($this->identity($row['orders_id']))
                 ->setId($this->identity($row['orders_id']))

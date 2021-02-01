@@ -269,7 +269,7 @@ class Check extends Module
 
         static::$checks['groups']['info'] = sprintf(static::$checks['groups']['info'], $this->shopConfig['shop']['fullUrl']);
 
-        return [$groupCheck == 'true'];
+        return [$groupCheck === 1];
     }
 
     public function save()
