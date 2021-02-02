@@ -56,7 +56,7 @@ class Gambio extends BaseConnector
         }
 
         if (!isset($session->shopConfig['settings'])) {
-            $session->shopConfig['settings'] = $configHelper->getDbConfig();
+            $session->shopConfig['settings'] = $configHelper->getDefaultDbConfig();
         }
 
         $this->update($db);

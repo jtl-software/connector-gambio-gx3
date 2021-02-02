@@ -79,7 +79,7 @@ class ConfigHelper
      * @return array[]
      * @throws \Exception
      */
-    public function getDbConfig(): array
+    public function getDefaultDbConfig(): array
     {
         $table = 'configuration';
         $key = 'configuration_key';
