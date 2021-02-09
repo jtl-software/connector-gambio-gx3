@@ -1,4 +1,8 @@
-2.13.0
+2.14.0
+------
+- Fixed problems with payment import
+
+2.13.1
 ------
 - Fixed problem with wrong default value type for product shipping time
 
