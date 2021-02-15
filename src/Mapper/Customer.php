@@ -33,7 +33,7 @@ class Customer extends BaseMapper
             "extraAddressLine"          => "entry_additional_info",
             "zipCode"                   => "entry_postcode",
             "city"                      => "entry_city",
-            "countryIso"                => null,
+            "countryIso"                => "countries_iso_code_2",
             "languageISO"               => null,
             "phone"                     => "customers_telephone",
             "fax"                       => "customers_fax",
@@ -116,12 +116,7 @@ class Customer extends BaseMapper
             return $this->fullLocale(strtolower($data['countries_iso_code_2']));
         }
     }
-    
-    protected function countryIso($data)
-    {
-        return strtolower($data['countries_iso_code_2']);
-    }
-    
+
     protected function hasNewsletterSubscription($data)
     {
         return (is_null($data['customers_newsletter']) || $data['customers_newsletter'] == 0) ? false : true;

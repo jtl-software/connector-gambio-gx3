@@ -20,7 +20,7 @@ class CustomerOrderShippingAddress extends BaseMapper
             "zipCode" => "delivery_postcode",
             "city" => "delivery_city",
             "state" => "delivery_state",
-            "countryIso" => null,
+            "countryIso" => "delivery_country_iso_code_2",
             "eMail" => "customers_email_address",
             "phone" => "customers_telephone",
             "salutation" => null
@@ -46,11 +46,6 @@ class CustomerOrderShippingAddress extends BaseMapper
         } else {
             return $data["delivery_street_address"];
         }
-    }
-    
-    protected function countryIso($data)
-    {
-        return strtolower($data['delivery_country_iso_code_2']);
     }
 
     protected function salutation($data)
