@@ -50,7 +50,7 @@ class CustomerOrderShippingAddress extends BaseMapper
     
     protected function countryIso($data)
     {
-        return Country::map(strtolower($data['delivery_country_iso_code_2']));
+        return strtolower($data['delivery_country_iso_code_2']);
     }
 
     protected function salutation($data)
