@@ -224,6 +224,7 @@ class ProductVariation extends Product
                         }
 
                         // VariationValues
+                        $newVariationValues = [];
                         foreach ($variation->getValues() as $value) {
                             // get value name in default language
                             foreach ($value->getI18ns() as $i18n) {
@@ -256,6 +257,7 @@ class ProductVariation extends Product
                                 $valueId = $this->db->insertRow($newVal, 'properties_values');
                                 $valueId = $valueId->getKey();
                             }
+                            $newVariationValues[] = $valueId;
 
                             // insert/update values
                             foreach ($value->getI18ns() as $i18n) {
@@ -270,6 +272,44 @@ class ProductVariation extends Product
                                     ['properties_values_id', 'language_id'],
                                     [$valueId, $valueObj->language_id]
                                 );
+                            }
+                        }
+                    }
+
+                    if (!empty($productId) && !empty($newVariationValues)) {
+                        $unusedProductPropertiesValuesSql = sprintf('
+                            SELECT ppcv.* FROM products_properties_combis_values AS ppcv
+                            LEFT JOIN products_properties_combis AS ppc ON ppc.products_properties_combis_id = ppcv.products_properties_combis_id
+                            LEFT JOIN properties_values AS pv ON pv.properties_values_id = ppcv.properties_values_id
+                            WHERE pv.properties_values_id NOT IN (%s) AND ppc.products_id = %s', join(',', $newVariationValues), $productId);
+
+                        $unusedProductPropertiesValues = $this->db->query($unusedProductPropertiesValuesSql);
+                        $productPropertiesCombisValuesId = array_column($unusedProductPropertiesValues, 'products_properties_combis_values_id');
+                        $propertiesValuesId = array_column($unusedProductPropertiesValues, 'properties_values_id');
+
+                        if (!empty($productPropertiesCombisValuesId)) {
+
+                            $this->db->query(sprintf('DELETE FROM products_properties_combis_values WHERE products_properties_combis_values_id IN (%s)', join(',', $productPropertiesCombisValuesId)));
+
+                            $propertyValue = null;
+                            foreach($propertiesValuesId as $propertyValueId){
+                                $sharedPropertiesValues = $this->db->query(sprintf('SELECT * FROM products_properties_combis_values WHERE properties_values_id IN (%s)', $propertyValueId));
+
+                                $propertyValue = $this->db->query(
+                                    sprintf('SELECT * FROM properties_values WHERE properties_id IN (SELECT properties_id FROM properties_values WHERE properties_values_id IN (%s))',$propertyValueId)
+                                );
+
+                                if (empty($sharedPropertiesValues)) {
+                                    $this->db->query(
+                                        sprintf('DELETE properties_values, properties_values_description FROM properties_values 
+                                         LEFT JOIN properties_values_description ON properties_values_description.properties_values_id = properties_values.properties_values_id                                
+                                         WHERE properties_values.properties_values_id IN (%s)', $propertyValueId)
+                                    );
+                                }
+                            }
+
+                            if (is_array($propertyValue) && count($propertyValue) === 1) {
+                                $this->db->query(sprintf('DELETE FROM properties WHERE properties_id IN (%s)', join(',', array_column($propertyValue, 'properties_id'))));
                             }
                         }
                     }
