@@ -67,7 +67,7 @@ class ProductPrice extends BaseMapper
             if (strpos($productId, '_') == false) {
                 $customerGrp = $parent->getCustomerGroupId()->getEndpoint();
 
-                if (!is_null($customerGrp) && $customerGrp != '') {
+                if (!is_null($customerGrp) && $customerGrp != '' && !empty($productId)) {
                     $this->db->query('DELETE FROM personal_offers_by_customers_status_'.$customerGrp.' WHERE products_id='.$productId);
                 }
             }
