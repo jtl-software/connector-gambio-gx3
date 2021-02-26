@@ -270,7 +270,7 @@ class Check extends Module
 
         $backendUrl = 'configuration.php?gID=17';
         if (ShopVersion::isGreaterOrEqual('4.3')) {
-            $backendUrl = 'configurations';
+            $backendUrl = 'configurations#category-customers';
         }
 
         static::$checks['groups']['info'] = sprintf(static::$checks['groups']['info'], $this->shopConfig['shop']['fullUrl'], $backendUrl);
