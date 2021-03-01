@@ -5,6 +5,7 @@ namespace jtl\Connector\Gambio;
 use \jtl\Connector\Core\Rpc\RequestPacket;
 use \jtl\Connector\Core\Utilities\RpcMethod;
 use \jtl\Connector\Core\Database\Mysql;
+use jtl\Connector\Gambio\Gambio\Application;
 use jtl\Connector\Gambio\Util\ConfigHelper;
 use jtl\Connector\Gambio\Util\ShopVersion;
 use jtl\Connector\Model\DeliveryNote;
@@ -20,13 +21,19 @@ use \jtl\Connector\Result\Action;
 use \jtl\Connector\Gambio\Auth\TokenLoader;
 use \jtl\Connector\Gambio\Checksum\ChecksumLoader;
 
-class Gambio extends BaseConnector
+class Connector extends BaseConnector
 {
     protected $controller;
     protected $action;
 
     public function initialize()
     {
+        $application = new Application();
+        $application->run();
+
+        /** @var \GiftVouchersOrderWriteService $service */
+        //$service = \StaticGXCoreLoader::getService('OrderWrite');
+
         $db = Mysql::getInstance();
         $configHelper = new ConfigHelper($db);
         $session = new SessionHelper("gambio");
