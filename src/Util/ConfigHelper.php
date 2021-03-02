@@ -44,9 +44,9 @@ class ConfigHelper
             throw new \Exception(sprintf('Gambio version file not found in "%s"', $gxVersionFile));
         }
 
-        $gx_version = '';
-        require_once($gxConfigFile);
-        require_once($gxVersionFile);
+        $gx_version = 'v4.1.0.0';
+        require($gxConfigFile);
+        require($gxVersionFile);
 
         $version = ltrim($gx_version, 'v');
         ShopVersion::setShopVersion($version);

@@ -2,9 +2,11 @@
 
 namespace jtl\Connector\Gambio;
 
+use jtl\Connector\Core\Exception\DatabaseException;
 use \jtl\Connector\Core\Rpc\RequestPacket;
 use \jtl\Connector\Core\Utilities\RpcMethod;
 use \jtl\Connector\Core\Database\Mysql;
+use jtl\Connector\Gambio\Controller\BaseController;
 use jtl\Connector\Gambio\Gambio\Application;
 use jtl\Connector\Gambio\Util\ConfigHelper;
 use jtl\Connector\Gambio\Util\ShopVersion;
@@ -23,17 +25,26 @@ use \jtl\Connector\Gambio\Checksum\ChecksumLoader;
 
 class Connector extends BaseConnector
 {
+    /**
+     * @var Application
+     */
+    protected static $gxApplication;
+
+    /**
+     * @var BaseController
+     */
     protected $controller;
+
+    /**
+     * @var string
+     */
     protected $action;
 
+    /**
+     * @throws DatabaseException
+     */
     public function initialize()
     {
-        $application = new Application();
-        $application->run();
-
-        /** @var \GiftVouchersOrderWriteService $service */
-        //$service = \StaticGXCoreLoader::getService('OrderWrite');
-
         $db = Mysql::getInstance();
         $configHelper = new ConfigHelper($db);
         $session = new SessionHelper("gambio");
@@ -159,6 +170,19 @@ class Connector extends BaseConnector
             return $action;
         } else {
             return $this->controller->{$this->action}($requestpacket->getParams());
+        }
+    }
+
+    /**
+     * @return void
+     */
+    public static function initGxApplication(): void
+    {
+        if(is_null(self::$gxApplication)) {
+            self::$gxApplication = new Application();
+            self::$gxApplication->run();
+            /** @var \OrderWriteService $service */
+            //$service = \StaticGXCoreLoader::getService('OrderWrite');
         }
     }
 }

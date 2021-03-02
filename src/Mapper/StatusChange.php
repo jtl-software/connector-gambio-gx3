@@ -2,6 +2,7 @@
 
 namespace jtl\Connector\Gambio\Mapper;
 
+use jtl\Connector\Gambio\Connector;
 use jtl\Connector\Model\StatusChange as StatusChangeModel;
 use jtl\Connector\Model\CustomerOrder;
 
@@ -21,6 +22,7 @@ class StatusChange extends BaseMapper
             $newStatus = $mapping[$this->getStatus($status)] ?? null;
 
             if (!is_null($newStatus)) {
+                Connector::initGxApplication();
                 /** @var \OrderWriteService $service */
                 $service = \StaticGXCoreLoader::getService('OrderWrite');
                 $service->updateOrderStatus(new \IdType($customerOrderId), new \IntType($newStatus), new \StringType(''), new \BoolType(false));
