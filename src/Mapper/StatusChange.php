@@ -22,9 +22,8 @@ class StatusChange extends BaseMapper
             $newStatus = $mapping[$this->getStatus($status)] ?? null;
 
             if (!is_null($newStatus)) {
-                Connector::initGxApplication();
                 /** @var \OrderWriteService $service */
-                $service = \StaticGXCoreLoader::getService('OrderWrite');
+                $service = Connector::getGxService('OrderWrite');
                 $service->updateOrderStatus(new \IdType($customerOrderId), new \IntType($newStatus), new \StringType(''), new \BoolType(false));
                 $service->addOrderStatusHistoryEntry(new \IdType($customerOrderId), new \StringType(''), new \IdType(0));
             }

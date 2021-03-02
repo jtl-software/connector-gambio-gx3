@@ -176,13 +176,23 @@ class Connector extends BaseConnector
     /**
      * @return void
      */
-    public static function initGxApplication(): void
+    protected static function initGxApplication(): void
     {
         if(is_null(self::$gxApplication)) {
             self::$gxApplication = new Application();
             self::$gxApplication->run();
-            /** @var \OrderWriteService $service */
-            //$service = \StaticGXCoreLoader::getService('OrderWrite');
         }
+    }
+
+    /**
+     * @param string $serviceName
+     * @return object
+     */
+    public static function getGxService(string $serviceName)
+    {
+        self::initGxApplication();
+        /** @var \OrderWriteService $service */
+        //$service = \StaticGXCoreLoader::getService('OrderWrite');
+        return \StaticGXCoreLoader::getService($serviceName);
     }
 }
