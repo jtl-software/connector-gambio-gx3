@@ -7,6 +7,10 @@ use jtl\Connector\Model\CustomerOrder;
 
 class StatusChange extends BaseMapper
 {
+    /**
+     * @param StatusChangeModel $status
+     * @return StatusChangeModel
+     */
     public function push(StatusChangeModel $status)
     {
         $customerOrderId = (int) $status->getCustomerOrderId()->getEndpoint();
@@ -14,24 +18,24 @@ class StatusChange extends BaseMapper
         if ($customerOrderId > 0) {
             $mapping = (array) $this->connectorConfig->mapping;
             
-            $newStatus = $mapping[$this->getStatus($status)];
+            $newStatus = $mapping[$this->getStatus($status)] ?? null;
 
             if (!is_null($newStatus)) {
-                $this->db->query('UPDATE orders SET orders_status='.$newStatus.' WHERE orders_id='.$customerOrderId);
-
-                $orderHistory = new \stdClass();
-                $orderHistory->orders_id = $customerOrderId;
-                $orderHistory->orders_status_id = $newStatus;
-                $orderHistory->date_added = date('Y-m-d H:i:s');
-
-                $this->db->insertRow($orderHistory, 'orders_status_history');
+                /** @var \OrderWriteService $service */
+                $service = \StaticGXCoreLoader::getService('OrderWrite');
+                $service->updateOrderStatus(new \IdType($customerOrderId), new \IntType($newStatus), new \StringType(''), new \BoolType(false));
+                $service->addOrderStatusHistoryEntry(new \IdType($customerOrderId), new \StringType(''), new \IdType(0));
             }
         }
 
         return $status;
     }
 
-    private function getStatus(StatusChangeModel $status)
+    /**
+     * @param StatusChangeModel $status
+     * @return string|null
+     */
+    private function getStatus(StatusChangeModel $status): ?string
     {
         if ($status->getOrderStatus() == CustomerOrder::STATUS_CANCELLED) {
             return 'canceled';
@@ -46,5 +50,7 @@ class StatusChange extends BaseMapper
                 }
             }
         }
+
+        return null;
     }
 }
