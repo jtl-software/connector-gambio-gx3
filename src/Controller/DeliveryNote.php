@@ -30,20 +30,29 @@ class DeliveryNote extends Controller
         $orderId = $data->getCustomerOrderId()->getEndpoint();
 
         if (!empty($orderId)) {
-            $carriers = $this->db->query('SELECT * FROM parcel_services');
 
-            foreach ($data->getTrackingLists() as $list) {
-                foreach ($carriers as $carrier) {
-                    if ($list->getName() == $carrier['name']) {
-                        $this->db->query('INSERT INTO orders_parcel_tracking_codes SET
-                          order_id="'.$orderId.'",
-                          tracking_code="'.implode(', ', $list->getCodes()).'",
-                          parcel_service_id='.$carrier['parcel_service_id'].',
-                          parcel_service_name="'.$carrier['name'].'",
-                          comment=""
-                        ');
+            $order = $this->db->query(sprintf('SELECT l.languages_id FROM orders AS o LEFT JOIN languages AS l ON o.language = l.directory WHERE orders_id = %s', $orderId));
+            if(isset($order[0])) {
+                $languageId = $order[0]['languages_id'] ?? 0;
+                $carriers = $this->db->query('SELECT * FROM parcel_services');
 
-                        break;
+                foreach ($data->getTrackingLists() as $list) {
+                    foreach ($carriers as $carrier) {
+                        if ($list->getName() == $carrier['name']) {
+                            $trackingUrlTemplate = $this->getTrackingUrlTemplate((int)$languageId, (int)$carrier['parcel_service_id']);
+                            foreach ($list->getCodes() as $code) {
+                                $trackingUrl = str_replace('{TRACKING_NUMBER}', $code, $trackingUrlTemplate);
+                                $this->db->query('INSERT INTO orders_parcel_tracking_codes SET
+                              order_id="' . $orderId . '",
+                              tracking_code="' . $code . '",
+                              parcel_service_id=' . $carrier['parcel_service_id'] . ',
+                              parcel_service_name="' . $carrier['name'] . '",
+                              language_id="' . $languageId . '",
+                              url="' . $trackingUrl . '",
+                              comment=""
+                            ');
+                            }
+                        }
                     }
                 }
             }
@@ -58,5 +67,18 @@ class DeliveryNote extends Controller
 
     public function delete(DataModel $model)
     {
+    }
+
+    /**
+     * @param int $languageId
+     * @param int $parcelServiceId
+     * @return string|null
+     */
+    protected function getTrackingUrlTemplate(int $languageId, int $parcelServiceId): ?string
+    {
+        $parcelServiceDescription = $this->db->query(
+            sprintf('SELECT psd.url FROM parcel_services_description AS psd WHERE psd.language_id = %s AND psd.parcel_service_id = %s', $languageId, $parcelServiceId)
+        );
+        return $parcelServiceDescription[0]['url'] ?? '{TRACKING_NUMBER}';
     }
 }
