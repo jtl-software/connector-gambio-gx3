@@ -37,19 +37,18 @@ class DeliveryNote extends Controller
                 $carriers = $this->db->query('SELECT * FROM parcel_services');
 
                 foreach ($data->getTrackingLists() as $list) {
-                    foreach ($carriers as $carrier) {
-                        if ($list->getName() == $carrier['name']) {
-                            $trackingUrlTemplate = $this->getTrackingUrlTemplate((int)$languageId, (int)$carrier['parcel_service_id']);
-                            foreach ($list->getCodes() as $code) {
-                                $trackingUrl = str_replace('{TRACKING_NUMBER}', $code, $trackingUrlTemplate);
-                                $this->db->query(
-                                    sprintf('
-                                        INSERT INTO orders_parcel_tracking_codes SET
-                                        order_id="%s", tracking_code="%s", parcel_service_id=%s, parcel_service_name="%s", language_id="%s", url="%s", comment=""',
-                                        $orderId, $code, $carrier['parcel_service_id'], $carrier['name'], $languageId, $trackingUrl
-                                    )
-                                );
-                            }
+                    $carrier = $this->matchCarrierCompany($list->getName(), $carriers);
+                    if ($carrier !== null) {
+                        $trackingUrlTemplate = $this->getTrackingUrlTemplate((int)$languageId, (int)$carrier['parcel_service_id']);
+                        foreach ($list->getCodes() as $code) {
+                            $trackingUrl = str_replace('{TRACKING_NUMBER}', $code, $trackingUrlTemplate);
+                            $this->db->query(
+                                sprintf('
+                                    INSERT INTO orders_parcel_tracking_codes SET
+                                    order_id="%s", tracking_code="%s", parcel_service_id=%s, parcel_service_name="%s", language_id="%s", url="%s", comment=""',
+                                    $orderId, $code, $carrier['parcel_service_id'], $carrier['name'], $languageId, $trackingUrl
+                                )
+                            );
                         }
                     }
                 }
@@ -65,6 +64,39 @@ class DeliveryNote extends Controller
 
     public function delete(DataModel $model)
     {
+    }
+
+    /**
+     * @param string $deliveryCompanyName
+     * @param array $carriers
+     * @return array|null
+     */
+    protected function matchCarrierCompany(string $deliveryCompanyName, array $carriers): ?array
+    {
+        $searchResultLength = 0;
+        $searchResult = null;
+        $sameSearchResultQuantity = 0;
+
+        foreach ($carriers as $carrier) {
+            $carrierNameLength = strlen($carrier['name']);
+
+            $companyStartsWithProviderName = strpos($deliveryCompanyName, $carrier['name']) !== false;
+            $newResultIsMoreSimilarThanPrevious = $carrierNameLength > $searchResultLength;
+            $newResultHasSameLengthAsPrevious = $carrierNameLength === $searchResultLength;
+
+            if ($companyStartsWithProviderName) {
+                if ($newResultIsMoreSimilarThanPrevious) {
+                    $searchResult = $carrier;
+                    $searchResultLength = $carrierNameLength;
+                    $sameSearchResultQuantity = 0;
+                } elseif ($newResultHasSameLengthAsPrevious) {
+                    $sameSearchResultQuantity++;
+                    $searchResult = null;
+                }
+            }
+        }
+
+        return $searchResult;
     }
 
     /**
