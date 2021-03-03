@@ -42,15 +42,13 @@ class DeliveryNote extends Controller
                             $trackingUrlTemplate = $this->getTrackingUrlTemplate((int)$languageId, (int)$carrier['parcel_service_id']);
                             foreach ($list->getCodes() as $code) {
                                 $trackingUrl = str_replace('{TRACKING_NUMBER}', $code, $trackingUrlTemplate);
-                                $this->db->query('INSERT INTO orders_parcel_tracking_codes SET
-                              order_id="' . $orderId . '",
-                              tracking_code="' . $code . '",
-                              parcel_service_id=' . $carrier['parcel_service_id'] . ',
-                              parcel_service_name="' . $carrier['name'] . '",
-                              language_id="' . $languageId . '",
-                              url="' . $trackingUrl . '",
-                              comment=""
-                            ');
+                                $this->db->query(
+                                    sprintf('
+                                        INSERT INTO orders_parcel_tracking_codes SET
+                                        order_id="%s", tracking_code="%s", parcel_service_id=%s, parcel_service_name="%s", language_id="%s", url="%s", comment=""',
+                                        $orderId, $code, $carrier['parcel_service_id'], $carrier['name'], $languageId, $trackingUrl
+                                    )
+                                );
                             }
                         }
                     }
