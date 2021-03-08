@@ -37,7 +37,7 @@ class DeliveryNote extends Controller
                 $carriers = $this->db->query('SELECT * FROM parcel_services');
 
                 foreach ($data->getTrackingLists() as $list) {
-                    $carrier = $this->matchCarrierCompany($list->getName(), $carriers);
+                    $carrier = $this->findCarrierCompany($list->getName(), $carriers);
                     if ($carrier !== null) {
                         $trackingUrlTemplate = $this->getTrackingUrlTemplate((int)$languageId, (int)$carrier['parcel_service_id']);
                         foreach ($list->getCodes() as $code) {
@@ -71,7 +71,7 @@ class DeliveryNote extends Controller
      * @param array $carriers
      * @return array|null
      */
-    protected function matchCarrierCompany(string $deliveryCompanyName, array $carriers): ?array
+    protected function findCarrierCompany(string $deliveryCompanyName, array $carriers): ?array
     {
         $searchResultLength = 0;
         $searchResult = null;
@@ -109,6 +109,6 @@ class DeliveryNote extends Controller
         $parcelServiceDescription = $this->db->query(
             sprintf('SELECT psd.url FROM parcel_services_description AS psd WHERE psd.language_id = %s AND psd.parcel_service_id = %s', $languageId, $parcelServiceId)
         );
-        return $parcelServiceDescription[0]['url'] ?? '{TRACKING_NUMBER}';
+        return $parcelServiceDescription[0]['url'] ?? '';
     }
 }
