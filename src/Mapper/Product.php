@@ -100,7 +100,6 @@ class Product extends BaseMapper
             "products_shippingtime" => null,
             "gm_min_order" => null,
             "gm_graduated_qty" => null,
-            "gm_show_date_added" => null,
             "use_properties_combis_shipping_time" => null
         ],
     ];
@@ -110,6 +109,7 @@ class Product extends BaseMapper
         'gm_price_status' => 'Preis-Status',
         'gm_show_qty_info' => 'Lagerbestand anzeigen',
         'gm_show_weight' => 'Gewicht anzeigen',
+        'gm_show_date_added' => 'Veröffentlichungsdatum anzeigen',
         'products_fsk18' => 'FSK 18',
         'product_template' => 'Produkt Vorlage',
         'options_template' => 'Optionen Vorlage',
@@ -576,12 +576,6 @@ class Product extends BaseMapper
         }
 
         return $data->getCreationDate();
-    }
-
-
-    protected function gm_show_date_added($data)
-    {
-        return $data->getAvailableFrom() > new \DateTime() ? 1 : 0;
     }
 
     protected function gm_min_order($data)
