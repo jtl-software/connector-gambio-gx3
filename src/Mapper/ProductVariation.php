@@ -290,36 +290,12 @@ class ProductVariation extends Product
                             $unusedProductPropertiesValues = $this->db->query(sprintf($sql, join(',', $newVariationValues), $productId));
 
                             $productPropertiesCombisValuesId = array_column($unusedProductPropertiesValues, 'products_properties_combis_values_id');
-                            $propertiesValuesId = array_unique(array_column($unusedProductPropertiesValues, 'properties_values_id'));
 
                             if (!empty($productPropertiesCombisValuesId)) {
                                 $sql = 'DELETE FROM products_properties_combis_values WHERE products_properties_combis_values_id IN (%s)';
                                 $this->db->query(sprintf($sql, join(',', $productPropertiesCombisValuesId)));
-
-                                $propertyValue = null;
-                                foreach ($propertiesValuesId as $propertyValueId) {
-                                    $sql = 'SELECT * FROM products_properties_combis_values WHERE properties_values_id = %s';
-                                    $sharedPropertiesValues = $this->db->query(sprintf($sql, $propertyValueId));
-
-                                    if (empty($sharedPropertiesValues)) {
-                                        $sql = 'SELECT * FROM properties_values WHERE properties_id IN (SELECT properties_id FROM properties_values WHERE properties_values_id = %s)';
-                                        $propertyValue = $this->db->query(sprintf($sql, $propertyValueId));
-
-                                        $sql =
-                                            'DELETE properties_values, properties_values_description' . "\n" .
-                                            'FROM properties_values' . "\n" .
-                                            'LEFT JOIN properties_values_description ON properties_values_description.properties_values_id = properties_values.properties_values_id' . "\n" .
-                                            'WHERE properties_values.properties_values_id = %s';
-
-                                        $this->db->query(sprintf($sql, $propertyValueId));
-
-                                        if (is_array($propertyValue) && count($propertyValue) === 1) {
-                                            $sql = 'DELETE FROM properties WHERE properties_id IN (%s)';
-                                            $this->db->query(sprintf($sql, join(',', array_column($propertyValue, 'properties_id'))));
-                                        }
-                                    }
-                                }
                             }
+
                             $this->db->commit();
                         } catch (\Exception $e) {
                             Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'controller');
