@@ -1,3 +1,9 @@
+2.15.0
+------
+- CO-1389 - Gambio 4.3 compatibility
+- CO-1369 - Fixed invalid country code in customer order
+- CO-1358 - Added gm_show_date_added to special attributes
+
 2.14.0
 ------
 - Fixed problems with payment import
