@@ -6,6 +6,7 @@ use jtl\Connector\Gambio\Installer\Config;
 use jtl\Connector\Core\Database\Mysql;
 use jtl\Connector\Gambio\Installer\Module;
 use jtl\Connector\Gambio\Util\ConfigHelper;
+use jtl\Connector\Gambio\Util\ShopVersion;
 
 class Check extends Module
 {
@@ -77,7 +78,7 @@ class Check extends Module
         ],
         'groups' => [
             'title' => 'Kundengruppen-Sichtbarkeiten',
-            'info' => 'Das Zusatz-Modul "Kundengruppencheck" muss in der <a href="%sadmin/configuration.php?gID=17">gambio Konfiguration</a> eingestellt sein.',
+            'info' => 'Das Zusatz-Modul "Kundengruppencheck" muss in der <a href="%sadmin/%s">gambio Konfiguration</a> eingestellt sein.',
             'ok' => 'Modul aktiviert',
             'fault' => 'Modul deaktiviert',
         ]
@@ -267,7 +268,12 @@ class Check extends Module
     {
         $groupCheck = $this->configHelper->getDbConfigValue('GROUP_CHECK');
 
-        static::$checks['groups']['info'] = sprintf(static::$checks['groups']['info'], $this->shopConfig['shop']['fullUrl']);
+        $backendUrl = 'configuration.php?gID=17';
+        if (ShopVersion::isGreaterOrEqual('4.3')) {
+            $backendUrl = 'configurations#category-customers';
+        }
+
+        static::$checks['groups']['info'] = sprintf(static::$checks['groups']['info'], $this->shopConfig['shop']['fullUrl'], $backendUrl);
 
         return [$groupCheck === 1];
     }
