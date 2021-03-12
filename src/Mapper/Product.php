@@ -393,20 +393,6 @@ class Product extends BaseMapper
             static::$idCache[$product->getId()->getHost()] = $product->getId()->getEndpoint();
         }
 
-        if($product->getMasterProductId()->getEndpoint() !== '') {
-            $sql = 'DELETE FROM properties_values WHERE properties_values_id NOT IN (SELECT properties_values_id FROM products_properties_combis_values);';
-            $this->db->query($sql);
-
-            $sql = 'DELETE pvd FROM properties_values_description pvd WHERE pvd.properties_values_id NOT IN (SELECT properties_values_id FROM properties_values);';
-            $this->db->query($sql);
-
-            $sql = 'DELETE p FROM properties p WHERE p.properties_id NOT IN (SELECT properties_id FROM properties_values);';
-            $this->db->query($sql);
-
-            $sql = 'DELETE pd FROM properties_description pd WHERE pd.properties_id NOT IN (SELECT properties_id FROM properties);';
-            $this->db->query($sql);
-        }
-
         $productsId = $product->getId()->getEndpoint();
         if (empty($productsId) || $product->getMasterProductId()->getHost() !== 0) {
             return;

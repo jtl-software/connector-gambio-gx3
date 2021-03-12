@@ -3,6 +3,7 @@
 namespace jtl\Connector\Gambio\Mapper;
 
 use jtl\Connector\Formatter\ExceptionFormatter;
+use jtl\Connector\Gambio\Connector;
 use \jtl\Connector\Gambio\Mapper\BaseMapper;
 use \jtl\Connector\Linker\ChecksumLinker;
 use \jtl\Connector\Core\Logger\Logger;
@@ -184,6 +185,7 @@ class ProductVariation extends Product
                 $checksum = ChecksumLinker::find($parent, 1);
 
                 if ($checksum === null || $checksum->hasChanged() === true) {
+                    $_SESSION[Connector::FINISH_TASK_CLEANUP_PRODUCT_PROPERTIES] = true;
                     $this->db->query('DELETE FROM products_attributes WHERE products_id=' . $productId);
                     $this->db->query('DELETE FROM products_properties_admin_select WHERE products_id=' . $productId);
 

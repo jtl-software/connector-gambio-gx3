@@ -11,10 +11,10 @@ if (file_exists(__DIR__ . '/vendor/autoload.php')) {
 $loader->add('', CONNECTOR_DIR . '/plugins');
 
 use \jtl\Connector\Application\Application;
-use \jtl\Connector\Gambio\Gambio;
+use \jtl\Connector\Gambio\Connector;
 
 if (!strpos($_SERVER['REQUEST_URI'], 'jtlconnector/install')) {
-    $connector = Gambio::getInstance();
+    $connector = Connector::getInstance();
     $application = Application::getInstance();
     $application->register($connector);
     $application->run();
