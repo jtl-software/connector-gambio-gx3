@@ -123,7 +123,7 @@ class Product extends BaseMapper
         'product_type' => 'Artikeltyp',
     ];
 
-    public function pull($data = null, $limit = null)
+    public function pull($productData = null, $limit = null)
     {
         $this->mapperConfig['query'] =
             'SELECT j.* , qud.unit_name, pv.products_vpe_name vpe_name, c.code_isbn, c.code_mpn, c.code_upc, c.google_export_condition, c.google_export_availability_id, g.google_category ' . "\n" .
@@ -142,17 +142,18 @@ class Product extends BaseMapper
             'LEFT JOIN quantity_unit_description qud ON pqu.quantity_unit_id = qud.quantity_unit_id AND qud.language_id = la.languages_id ' . "\n" .
             'LEFT JOIN products_vpe pv ON pv.products_vpe_id = j.products_vpe AND pv.language_id = la.languages_id';
 
-        $dbResult = $this->executeQuery($data, $limit);
+        $dbResult = $this->executeQuery($productData, $limit);
 
         $return = [];
-        foreach ($dbResult as $data) {
+        foreach ($dbResult as $productData) {
             /** @var \jtl\Connector\Model\Product $product */
-            $product = $this->generateModel($data);
-            $this->setMeasurementsData($product, $data);
+            $product = $this->generateModel($productData);
+            $this->setMeasurementsData($product, $productData);
             $return[] = $product;
         }
 
         if (count($return) < $limit) {
+            $productsData = [];
             $limitQuery = isset($limit) ? ' LIMIT ' . $limit : '';
 
             $sql =
@@ -172,6 +173,22 @@ class Product extends BaseMapper
             $combis = $this->db->query($sql);
 
             foreach ($combis as $combiData) {
+                $productId = $combiData['products_id'];
+
+                if (!isset($productsData[$productId])) {
+                    $sql = sprintf('SELECT * FROM products_description WHERE products_id=%d', $combiData['products_id']);
+                    foreach ($this->db->query($sql) as $row) {
+                        $productsData[$productId][$this->id2locale($row['language_id'])] = $row;
+                    }
+                }
+
+                $productI18ns = [];
+                foreach($productsData[$productId] as $languageIso => $productData) {
+                    $productI18ns[$languageIso] = (new ProductI18nModel())
+                        ->setLanguageISO($languageIso)
+                        ->setName($productData['products_name']);
+                }
+
                 $varcombi = (new ProductModel())
                     ->setMasterProductId($this->identity($combiData['products_id']))
                     ->setId($this->identity($combiData['products_id'] . '_' . $combiData['products_properties_combis_id']))
@@ -189,12 +206,16 @@ class Product extends BaseMapper
                 $i18nStatus = $this->db->query('SELECT * FROM shipping_status WHERE shipping_status_id=' . $combiData['combi_shipping_status_id']);
 
                 foreach ($i18nStatus as $status) {
-                    $i18n = new ProductI18nModel();
-                    $i18n->setProductId($varcombi->getId());
-                    $i18n->setDeliveryStatus($status['shipping_status_name']);
-                    $i18n->setLanguageISO($this->id2locale($status['language_id']));
-                    $varcombi->addI18n($i18n);
+                    $languageIso = $this->id2locale($status['language_id']);
+                    if(!isset($productI18ns[$languageIso])) {
+                        $productI18ns[$languageIso] = (new ProductI18nModel())->setLanguageISO($languageIso);
+                    }
+
+                    $productI18ns[$languageIso]
+                        ->setProductId($varcombi->getId())
+                        ->setDeliveryStatus($status['shipping_status_name']);
                 }
+
                 $stockLevel = new ProductStockLevelModel();
                 $stockLevel->setProductId($varcombi->getId());
                 $stockLevel->setStockLevel(floatval($combiData['combi_quantity']));
@@ -219,8 +240,13 @@ class Product extends BaseMapper
                 $variations = [];
 
                 foreach ($variationQuery as $variation) {
+                    $languageIso = $this->id2locale($variation['language_id']);
                     if (!isset($variations[$variation['properties_id']])) {
                         $variations[$variation['properties_id']] = $variation;
+                    }
+
+                    if(isset($productI18ns[$languageIso])) {
+                        $productI18ns[$languageIso]->setName(sprintf('%s / %s', $productI18ns[$languageIso]->getName(), $variation['values_name']));
                     }
 
                     $variations[$variation['properties_id']]['i18ns'][$variation['language_id']] = [$variation['properties_name'], $variation['values_name']];
@@ -265,7 +291,9 @@ class Product extends BaseMapper
                     $variationsArray[] = $varModel;
                 }
 
-                $varcombi->setVariations($variationsArray);
+                $varcombi
+                    ->setVariations($variationsArray)
+                    ->setI18ns($productI18ns);
 
                 $return[] = $varcombi;
             }
