@@ -233,6 +233,7 @@ class CustomerOrder extends BaseMapper
                     $model->setTotalSum((float)($total['value']));
                     break;
                 case 'ot_shipping':
+                case 'ot_gambioultra':
                     $this->addShipping($total, $data, $vat, $model);
                     break;
                 case 'ot_cod_fee':

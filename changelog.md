@@ -2,6 +2,7 @@
 ------
 - CO-1385 - Added variation values to names of product variation children during import
 - CO-1387 - Fixed old variations are were not getting removed after renaming
+- CO-1412 - Added support for older versions of gambioultra module
 
 2.15.0
 ------
