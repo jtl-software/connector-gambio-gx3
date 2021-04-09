@@ -176,7 +176,7 @@ class Product extends BaseMapper
                 $productId = $combiData['products_id'];
 
                 if (!isset($productsData[$productId])) {
-                    $sql = sprintf('SELECT * FROM products_description WHERE products_id=%d', $combiData['products_id']);
+                    $sql = sprintf('SELECT * FROM products_description WHERE products_id = %d', $productId);
                     foreach ($this->db->query($sql) as $row) {
                         $productsData[$productId][$this->id2locale($row['language_id'])] = $row;
                     }
@@ -203,8 +203,7 @@ class Product extends BaseMapper
 
                 $this->setMeasurementsData($varcombi, $combiData, true);
 
-                $i18nStatus = $this->db->query('SELECT * FROM shipping_status WHERE shipping_status_id=' . $combiData['combi_shipping_status_id']);
-
+                $i18nStatus = $this->db->query(sprintf('SELECT * FROM shipping_status WHERE shipping_status_id = %d', $combiData['combi_shipping_status_id']));
                 foreach ($i18nStatus as $status) {
                     $languageIso = $this->id2locale($status['language_id']);
                     if(!isset($productI18ns[$languageIso])) {
@@ -235,7 +234,7 @@ class Product extends BaseMapper
 
                 $varcombi->setprices([$default]);
 
-                $variationQuery = $this->db->query('SELECT * FROM products_properties_index WHERE products_properties_combis_id=' . $combiData['products_properties_combis_id']);
+                $variationQuery = $this->db->query(sprintf('SELECT * FROM products_properties_index WHERE products_properties_combis_id = %d', $combiData['products_properties_combis_id']));
 
                 $variations = [];
 
