@@ -123,7 +123,7 @@ class Product extends BaseMapper
         'product_type' => 'Artikeltyp',
     ];
 
-    public function pull($productData = null, $limit = null)
+    public function pull($data = null, $limit = null)
     {
         $this->mapperConfig['query'] =
             'SELECT j.* , qud.unit_name, pv.products_vpe_name vpe_name, c.code_isbn, c.code_mpn, c.code_upc, c.google_export_condition, c.google_export_availability_id, g.google_category ' . "\n" .
@@ -142,10 +142,10 @@ class Product extends BaseMapper
             'LEFT JOIN quantity_unit_description qud ON pqu.quantity_unit_id = qud.quantity_unit_id AND qud.language_id = la.languages_id ' . "\n" .
             'LEFT JOIN products_vpe pv ON pv.products_vpe_id = j.products_vpe AND pv.language_id = la.languages_id';
 
-        $dbResult = $this->executeQuery($productData, $limit);
+        $productsData = $this->executeQuery($data, $limit);
 
         $return = [];
-        foreach ($dbResult as $productData) {
+        foreach ($productsData as $productData) {
             /** @var \jtl\Connector\Model\Product $product */
             $product = $this->generateModel($productData);
             $this->setMeasurementsData($product, $productData);
@@ -170,10 +170,10 @@ class Product extends BaseMapper
                 'LEFT JOIN quantity_unit_description qud ON pqu.quantity_unit_id = qud.quantity_unit_id AND qud.language_id = la.languages_id ' . "\n" .
                 'LEFT JOIN products_vpe pv ON pv.products_vpe_id = j.products_vpe_id AND pv.language_id = la.languages_id';
 
-            $combis = $this->db->query($sql);
+            $gxCombisData = $this->db->query($sql);
 
-            foreach ($combis as $combiData) {
-                $productId = $combiData['products_id'];
+            foreach ($gxCombisData as $gxCombiData) {
+                $productId = $gxCombiData['products_id'];
 
                 if (!isset($productsData[$productId])) {
                     $sql = sprintf('SELECT * FROM products_description WHERE products_id = %d', $productId);
@@ -189,21 +189,21 @@ class Product extends BaseMapper
                         ->setName($productData['products_name']);
                 }
 
-                $varcombi = (new ProductModel())
-                    ->setMasterProductId($this->identity($combiData['products_id']))
-                    ->setId($this->identity($combiData['products_id'] . '_' . $combiData['products_properties_combis_id']))
-                    ->setSku($combiData['combi_model'])
-                    ->setEan($combiData['combi_ean'])
-                    ->setProductWeight(floatval($combiData['combi_weight']))
-                    ->setSort(intval($combiData['sort_order']))
+                $jtlProduct = (new ProductModel())
+                    ->setMasterProductId($this->identity($gxCombiData['products_id']))
+                    ->setId($this->identity($gxCombiData['products_id'] . '_' . $gxCombiData['products_properties_combis_id']))
+                    ->setSku($gxCombiData['combi_model'])
+                    ->setEan($gxCombiData['combi_ean'])
+                    ->setProductWeight(floatval($gxCombiData['combi_weight']))
+                    ->setSort(intval($gxCombiData['sort_order']))
                     ->setConsiderStock(true)
                     ->setConsiderVariationStock(true)
                     ->setIsActive(true)
-                    ->setVat($this->vat($combiData));
+                    ->setVat($this->vat($gxCombiData));
 
-                $this->setMeasurementsData($varcombi, $combiData, true);
+                $this->setMeasurementsData($jtlProduct, $gxCombiData, true);
 
-                $i18nStatus = $this->db->query(sprintf('SELECT * FROM shipping_status WHERE shipping_status_id = %d', $combiData['combi_shipping_status_id']));
+                $i18nStatus = $this->db->query(sprintf('SELECT * FROM shipping_status WHERE shipping_status_id = %d', $gxCombiData['combi_shipping_status_id']));
                 foreach ($i18nStatus as $status) {
                     $languageIso = $this->id2locale($status['language_id']);
                     if(!isset($productI18ns[$languageIso])) {
@@ -211,90 +211,84 @@ class Product extends BaseMapper
                     }
 
                     $productI18ns[$languageIso]
-                        ->setProductId($varcombi->getId())
+                        ->setProductId($jtlProduct->getId())
                         ->setDeliveryStatus($status['shipping_status_name']);
                 }
 
-                $stockLevel = new ProductStockLevelModel();
-                $stockLevel->setProductId($varcombi->getId());
-                $stockLevel->setStockLevel(floatval($combiData['combi_quantity']));
+                $jtlStockLevel = (new ProductStockLevelModel())
+                    ->setProductId($jtlProduct->getId())
+                    ->setStockLevel(floatval($gxCombiData['combi_quantity']));
+                $jtlProduct->setStockLevel($jtlStockLevel);
 
-                $varcombi->setStockLevel($stockLevel);
-                $default = new ProductPriceModel();
-                $default->setId($this->identity($varcombi->getId()->getEndpoint() . '_default'));
-                $default->setProductId($varcombi->getId());
-                $default->setCustomerGroupId($this->identity(null));
+                $jtlDefaultPrice = (new ProductPriceModel())
+                    ->setId($this->identity($jtlProduct->getId()->getEndpoint() . '_default'))
+                    ->setProductId($jtlProduct->getId())
+                    ->setCustomerGroupId($this->identity(null));
 
-                $defaultItem = new ProductPriceItemModel();
-                $defaultItem->setProductPriceId($default->getId());
-                $price = floatval($combiData['products_price']) + floatval($combiData['combi_price']);
-                $defaultItem->setNetPrice($price);
+                $jtlDefaultPriceItem = (new ProductPriceItemModel())
+                    ->setProductPriceId($jtlDefaultPrice->getId())
+                    ->setNetPrice(floatval($gxCombiData['products_price']) + floatval($gxCombiData['combi_price']));
 
-                $default->addItem($defaultItem);
+                $jtlDefaultPrice->addItem($jtlDefaultPriceItem);
 
-                $varcombi->setprices([$default]);
+                $jtlProduct->setprices([$jtlDefaultPrice]);
 
-                $variationQuery = $this->db->query(sprintf('SELECT * FROM products_properties_index WHERE products_properties_combis_id = %d', $combiData['products_properties_combis_id']));
+                $gxVariationsData = $this->db->query(sprintf('SELECT * FROM products_properties_index WHERE products_properties_combis_id = %d', $gxCombiData['products_properties_combis_id']));
 
-                $variations = [];
-
-                foreach ($variationQuery as $variation) {
-                    $languageIso = $this->id2locale($variation['language_id']);
-                    if (!isset($variations[$variation['properties_id']])) {
-                        $variations[$variation['properties_id']] = $variation;
+                $gxVariations = [];
+                foreach ($gxVariationsData as $gxVariationData) {
+                    $languageIso = $this->id2locale($gxVariationData['language_id']);
+                    if (!isset($gxVariations[$gxVariationData['properties_id']])) {
+                        $gxVariations[$gxVariationData['properties_id']] = $gxVariationData;
                     }
 
                     if(isset($productI18ns[$languageIso])) {
-                        $productI18ns[$languageIso]->setName(sprintf('%s / %s', $productI18ns[$languageIso]->getName(), $variation['values_name']));
+                        $productI18ns[$languageIso]->setName(sprintf('%s / %s', $productI18ns[$languageIso]->getName(), $gxVariationData['values_name']));
                     }
 
-                    $variations[$variation['properties_id']]['i18ns'][$variation['language_id']] = [$variation['properties_name'], $variation['values_name']];
+                    $gxVariations[$gxVariationData['properties_id']]['i18ns'][$gxVariationData['language_id']] = [$gxVariationData['properties_name'], $gxVariationData['values_name']];
                 }
 
-                $variationsArray = [];
+                $jtlVariations = [];
+                foreach ($gxVariations as $gxVariation) {
+                    $jtlVariation = (new ProductVariationModel())
+                        ->setId($this->identity($gxVariation['properties_id']))
+                        ->setProductId($jtlProduct->getId())
+                        ->setSort(intval($gxVariation['properties_sort_order']));
 
-                foreach ($variations as $variation) {
-                    $varModel = new ProductVariationModel();
-                    $varModel->setId($this->identity($variation['properties_id']));
-                    $varModel->setProductId($varcombi->getId());
-                    $varModel->setSort(intval($variation['properties_sort_order']));
-
-                    $varValueModel = new ProductVariationValueModel();
-                    $varValueModel->setId($this->identity($variation['properties_values_id']));
-                    $varValueModel->setProductVariationId($varModel->getId());
-                    $varValueModel->setSort(intval($variation['value_sort_order']));
+                    $jtlValue = (new ProductVariationValueModel())
+                        ->setId($this->identity($gxVariation['properties_values_id']))
+                        ->setProductVariationId($jtlVariation->getId())
+                        ->setSort(intval($gxVariation['value_sort_order']));
 
                     $variationI18ns = [];
                     $variationValueI18ns = [];
+                    foreach ($gxVariation['i18ns'] as $language => $names) {
+                        $variationI18n = (new ProductVariationI18nModel())
+                            ->setProductvariationId($jtlVariation->getId())
+                            ->setLanguageISO($this->id2locale($language))
+                            ->setName($names[0]);
 
-                    foreach ($variation['i18ns'] as $language => $names) {
-                        $variationI18n = new ProductVariationI18nModel();
-                        $variationI18n->setProductvariationId($varModel->getId());
-                        $variationI18n->setLanguageISO($this->id2locale($language));
-                        $variationI18n->setName($names[0]);
-
-                        $variationValueI18n = new ProductVariationValueI18nModel();
-                        $variationValueI18n->setProductvariationValueId($varValueModel->getId());
-                        $variationValueI18n->setLanguageISO($variationI18n->getLanguageISO());
-                        $variationValueI18n->setName($names[1]);
+                        $variationValueI18n = (new ProductVariationValueI18nModel())
+                            ->setProductvariationValueId($jtlValue->getId())
+                            ->setLanguageISO($variationI18n->getLanguageISO())
+                            ->setName($names[1]);
 
                         $variationI18ns[] = $variationI18n;
                         $variationValueI18ns[] = $variationValueI18n;
                     }
 
-                    $varModel->setI18ns($variationI18ns);
-                    $varValueModel->setI18ns($variationValueI18ns);
-
-                    $varModel->setValues([$varValueModel]);
-
-                    $variationsArray[] = $varModel;
+                    $jtlVariation->setI18ns($variationI18ns);
+                    $jtlValue->setI18ns($variationValueI18ns);
+                    $jtlVariation->setValues([$jtlValue]);
+                    $jtlVariations[] = $jtlVariation;
                 }
 
-                $varcombi
-                    ->setVariations($variationsArray)
+                $jtlProduct
+                    ->setVariations($jtlVariations)
                     ->setI18ns($productI18ns);
 
-                $return[] = $varcombi;
+                $return[] = $jtlProduct;
             }
         }
 

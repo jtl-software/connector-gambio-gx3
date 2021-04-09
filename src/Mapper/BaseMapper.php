@@ -323,6 +323,11 @@ class BaseMapper
         return $return;
     }
 
+    /**
+     * @param null $parentData
+     * @param null $limit
+     * @return array|bool|\jtl\Connector\Core\Database\multitype|number|null
+     */
     protected function executeQuery($parentData = null, $limit = null)
     {
         $limitQuery = isset($limit) ? ' LIMIT '.$limit : '';
