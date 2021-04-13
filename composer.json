@@ -19,7 +19,7 @@
         }
     },
     "require": {
-        "jtl/connector": "^2.4",
+        "jtl/connector": "^3.2",
         "phing/phing": "^2.16",
         "ext-json": "*"
     },

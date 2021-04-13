@@ -1,3 +1,8 @@
+2.15.1
+------
+- CO-1385 - Added variation values to names of product variation children during import
+- CO-1387 - Fixed old variations are were not getting removed after renaming
+
 2.15.0
 ------
 - CO-1389 - Gambio 4.3 compatibility
