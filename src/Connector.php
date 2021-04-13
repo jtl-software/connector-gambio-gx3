@@ -5,6 +5,8 @@ namespace jtl\Connector\Gambio;
 use \jtl\Connector\Core\Rpc\RequestPacket;
 use \jtl\Connector\Core\Utilities\RpcMethod;
 use \jtl\Connector\Core\Database\Mysql;
+use jtl\Connector\Event\Connector\ConnectorAfterFinishEvent;
+use jtl\Connector\Gambio\Controller\BaseController;
 use jtl\Connector\Gambio\Util\ConfigHelper;
 use jtl\Connector\Gambio\Util\ShopVersion;
 use jtl\Connector\Model\DeliveryNote;
@@ -20,9 +22,19 @@ use \jtl\Connector\Result\Action;
 use \jtl\Connector\Gambio\Auth\TokenLoader;
 use \jtl\Connector\Gambio\Checksum\ChecksumLoader;
 
-class Gambio extends BaseConnector
+class Connector extends BaseConnector
 {
+    public const
+        FINISH_TASK_CLEANUP_PRODUCT_PROPERTIES = 'cleanup_product_properties';
+
+    /**
+     * @var BaseController
+     */
     protected $controller;
+
+    /**
+     * @var string
+     */
     protected $action;
 
     public function initialize()
@@ -64,6 +76,23 @@ class Gambio extends BaseConnector
         $this->setPrimaryKeyMapper(new PrimaryKeyMapper());
         $this->setTokenLoader(new TokenLoader());
         $this->setChecksumLoader(new ChecksumLoader());
+
+        $this->getEventDispatcher()->addListener(ConnectorAfterFinishEvent::EVENT_NAME, function(ConnectorAfterFinishEvent $event) use($db) {
+            if(isset($_SESSION[self::FINISH_TASK_CLEANUP_PRODUCT_PROPERTIES]) && $_SESSION[self::FINISH_TASK_CLEANUP_PRODUCT_PROPERTIES] === true) {
+                $queries = [
+                    'DELETE pv FROM properties_values pv WHERE pv.properties_values_id NOT IN (SELECT properties_values_id FROM products_properties_combis_values);',
+                    'DELETE pvd FROM properties_values_description pvd WHERE pvd.properties_values_id NOT IN (SELECT properties_values_id FROM properties_values);',
+                    'DELETE p FROM properties p WHERE p.properties_id NOT IN (SELECT properties_id FROM properties_values);',
+                    'DELETE pd FROM properties_description pd WHERE pd.properties_id NOT IN (SELECT properties_id FROM properties);'
+                ];
+
+                foreach($queries as $sql) {
+                    $db->query($sql);
+                }
+
+                $_SESSION[self::FINISH_TASK_CLEANUP_PRODUCT_PROPERTIES] = false;
+            }
+        });
     }
 
     private function update($db)

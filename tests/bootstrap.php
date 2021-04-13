@@ -1,7 +1,7 @@
 <?php
 
 use jtl\Connector\Core\Database\Mysql;
-use jtl\Connector\Gambio\Gambio;
+use jtl\Connector\Gambio\Connector;
 use jtl\Connector\Gambio\Mapper\PrimaryKeyMapper;
 use jtl\Connector\Session\SessionHelper;
 

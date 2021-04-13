@@ -2,6 +2,8 @@
 
 namespace jtl\Connector\Gambio\Mapper;
 
+use jtl\Connector\Formatter\ExceptionFormatter;
+use jtl\Connector\Gambio\Connector;
 use \jtl\Connector\Gambio\Mapper\BaseMapper;
 use \jtl\Connector\Linker\ChecksumLinker;
 use \jtl\Connector\Core\Logger\Logger;
@@ -183,6 +185,7 @@ class ProductVariation extends Product
                 $checksum = ChecksumLinker::find($parent, 1);
 
                 if ($checksum === null || $checksum->hasChanged() === true) {
+                    $_SESSION[Connector::FINISH_TASK_CLEANUP_PRODUCT_PROPERTIES] = true;
                     $this->db->query('DELETE FROM products_attributes WHERE products_id=' . $productId);
                     $this->db->query('DELETE FROM products_properties_admin_select WHERE products_id=' . $productId);
 
@@ -224,6 +227,7 @@ class ProductVariation extends Product
                         }
 
                         // VariationValues
+                        $newVariationValues = [];
                         foreach ($variation->getValues() as $value) {
                             // get value name in default language
                             foreach ($value->getI18ns() as $i18n) {
@@ -256,6 +260,7 @@ class ProductVariation extends Product
                                 $valueId = $this->db->insertRow($newVal, 'properties_values');
                                 $valueId = $valueId->getKey();
                             }
+                            $newVariationValues[] = $valueId;
 
                             // insert/update values
                             foreach ($value->getI18ns() as $i18n) {
@@ -271,6 +276,32 @@ class ProductVariation extends Product
                                     [$valueId, $valueObj->language_id]
                                 );
                             }
+                        }
+                    }
+
+                    if (!empty($productId) && !empty($newVariationValues)) {
+                        try {
+                            $this->db->DB()->begin_transaction();
+                            $sql =
+                                'SELECT ppcv.*' . "\n" .
+                                'FROM products_properties_combis_values AS ppcv' . "\n" .
+                                'LEFT JOIN products_properties_combis AS ppc ON ppc.products_properties_combis_id = ppcv.products_properties_combis_id' . "\n" .
+                                'LEFT JOIN properties_values AS pv ON pv.properties_values_id = ppcv.properties_values_id' . "\n" .
+                                'WHERE pv.properties_values_id NOT IN (%s) AND ppc.products_id = %s';
+
+                            $unusedProductPropertiesValues = $this->db->query(sprintf($sql, join(',', $newVariationValues), $productId));
+
+                            $productPropertiesCombisValuesId = array_column($unusedProductPropertiesValues, 'products_properties_combis_values_id');
+
+                            if (!empty($productPropertiesCombisValuesId)) {
+                                $sql = 'DELETE FROM products_properties_combis_values WHERE products_properties_combis_values_id IN (%s)';
+                                $this->db->query(sprintf($sql, join(',', $productPropertiesCombisValuesId)));
+                            }
+
+                            $this->db->commit();
+                        } catch (\Exception $e) {
+                            Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'controller');
+                            $this->db->rollback();
                         }
                     }
 
