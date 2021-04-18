@@ -48,6 +48,7 @@
             <fileset dir="./">
                 <include name="index.php" />
                 <include name="version" />
+                <include name="bootstrap.php" />
             </fileset>
         </copy>
 
