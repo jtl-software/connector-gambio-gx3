@@ -396,6 +396,8 @@ class Product extends BaseMapper
                         WHERE products_id="%s" AND products_attributes_id NOT IN (
                             SELECT products_attributes_id FROM products_attributes_download
                         )', $id));
+
+            $this->db->query(sprintf('UPDATE products SET products_date_available = NULL WHERE products_id = %s', $id));
         }
 
         return parent::push($product, $dbObj);
