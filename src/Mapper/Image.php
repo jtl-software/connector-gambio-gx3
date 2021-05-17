@@ -120,7 +120,7 @@ class Image extends BaseMapper
     {
         if (get_class($data) === 'jtl\Connector\Model\Image') {
 
-            $imgId = self::extractImageId($data->getId()->getEndpoint());
+            $imageId = self::extractImageId($data->getId()->getEndpoint());
 
             switch ($data->getRelationType()) {
                 case ImageRelationType::TYPE_CATEGORY:
@@ -134,7 +134,7 @@ class Image extends BaseMapper
                     $subject = $indexMappings[$data->getRelationType()];
 
                     $oldImage = null;
-                    $oldImageResult = $this->db->query(sprintf('SELECT %s_image FROM %s WHERE %s_id = %d', $subject, $subject, $subject, $imgId));
+                    $oldImageResult = $this->db->query(sprintf('SELECT %s_image FROM %s WHERE %s_id = %d', $subject, $subject, $subject, $imageId));
 
                     $imageIndex = sprintf('%s_image', $subject);
                     if (isset($oldImageResult[0][$imageIndex]) && $oldImageResult[0][$imageIndex] !== '') {
@@ -159,9 +159,9 @@ class Image extends BaseMapper
                         $relatedObject->{$imageIndex} = sprintf('%s/%s', $subject, $imgFileName);
                     }
 
-                    $this->db->updateRow($relatedObject, $subject, sprintf('%s_id', $subject), $imgId);
+                    $this->db->updateRow($relatedObject, $subject, sprintf('%s_id', $subject), $imageId);
 
-                    $endpoint = sprintf('%sID_%d', $subject[0], $imgId);
+                    $endpoint = sprintf('%sID_%d', $subject[0], $imageId);
                     $data->getId()->setEndpoint($endpoint);
 
                     break;
@@ -245,17 +245,17 @@ class Image extends BaseMapper
                         }
                     } else {
 
-                        if (!empty($imgId)) {
-                            $prevImgQuery = $this->db->query(sprintf('SELECT image_name FROM products_images WHERE image_id = "%s"', $imgId));
+                        if (!empty($imageId)) {
+                            $prevImgQuery = $this->db->query(sprintf('SELECT image_name FROM products_images WHERE image_id = "%s"', $imageId));
                             if (count($prevImgQuery) > 0) {
                                 $prevImage = $prevImgQuery[0]['image_name'];
                             }
 
                             $this->removeProductImageAndThumbnails($prevImage);
 
-                            $this->db->query(sprintf('DELETE FROM products_images WHERE image_id="%s"', $imgId));
+                            $this->db->query(sprintf('DELETE FROM products_images WHERE image_id="%s"', $imageId));
                             if ($data->getSort() > 1) {
-                                $this->db->query(sprintf('DELETE FROM gm_prd_img_alt WHERE image_id="%s"', $imgId));
+                                $this->db->query(sprintf('DELETE FROM gm_prd_img_alt WHERE image_id="%s"', $imageId));
                             }
                         }
 
@@ -364,7 +364,7 @@ class Image extends BaseMapper
     {
         if (get_class($data) === 'jtl\Connector\Model\Image') {
 
-            $imgId = self::extractImageId($data->getId()->getEndpoint());
+            $imageId = self::extractImageId($data->getId()->getEndpoint());
 
             switch ($data->getRelationType()) {
                 case ImageRelationType::TYPE_CATEGORY:
@@ -408,13 +408,13 @@ class Image extends BaseMapper
                                                 LEFT JOIN product_image_list_image pli ON plc.product_image_list_id = pli.product_image_list_id
                                                 WHERE products_properties_combis_id = %s', $combiId));
                                 $oldCImage = $oldCImage[0]['combi_image'] ?? null;
-                                $imageId = $oldCImage[0]['image_id'] ?? null;
+                                $oldImageId = $oldCImage[0]['image_id'] ?? null;
 
                                 if (!is_null($oldCImage)) {
                                     $combisObj = new \stdClass();
-                                    $this->db->deleteRow($combisObj, 'product_image_list_image', 'product_image_list_image_id', $imageId);
+                                    $this->db->deleteRow($combisObj, 'product_image_list_image', 'product_image_list_image_id', $oldImageId);
                                     $this->db->deleteRow($combisObj, 'product_image_list_combi', 'products_properties_combis_id', $combiId);
-                                    $this->db->deleteRow($combisObj, 'product_image_list_image_text', 'product_image_list_image_id', $imageId);
+                                    $this->db->deleteRow($combisObj, 'product_image_list_image_text', 'product_image_list_image_id', $oldImageId);
 
                                     @unlink($this->shopConfig['shop']['path'] . $oldCImage);
                                     $path = explode('/', $oldCImage);
@@ -439,22 +439,22 @@ class Image extends BaseMapper
                             }
                         }
                     } else {
-                        if (!empty($imgId)) {
+                        if (!empty($imageId)) {
 
-                            $prevImgQuery = $this->db->query(sprintf('SELECT image_name FROM products_images WHERE image_id = "%s"', $imgId));
+                            $prevImgQuery = $this->db->query(sprintf('SELECT image_name FROM products_images WHERE image_id = "%s"', $imageId));
                             if (count($prevImgQuery) > 0) {
                                 $prevImage = $prevImgQuery[0]['image_name'];
                             }
 
                             $this->removeProductImageAndThumbnails($prevImage);
-                            $this->db->query(sprintf('DELETE FROM products_images WHERE image_id="%s"', $imgId));
+                            $this->db->query(sprintf('DELETE FROM products_images WHERE image_id="%s"', $imageId));
 
                             if ($data->getSort() === 1) {
                                 $productsObj = new \stdClass();
                                 $productsObj->products_image = null;
                                 $this->db->updateRow($productsObj, 'products', 'products_id', $data->getForeignKey()->getEndpoint());
                             } else {
-                                $this->db->query(sprintf('DELETE FROM gm_prd_img_alt WHERE image_id="%s"', $imgId));
+                                $this->db->query(sprintf('DELETE FROM gm_prd_img_alt WHERE image_id="%s"', $imageId));
                                 $this->db->query('DELETE FROM products_images WHERE image_id="' . $data->getId()->getEndpoint() . '"');
                             }
                         }
