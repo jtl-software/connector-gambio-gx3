@@ -119,11 +119,12 @@ class Image extends BaseMapper
     public function push($data, $dbObj = null)
     {
         if (get_class($data) === 'jtl\Connector\Model\Image') {
+
+            $imgId = self::extractImageId($data->getId()->getEndpoint());
+
             switch ($data->getRelationType()) {
                 case ImageRelationType::TYPE_CATEGORY:
                 case ImageRelationType::TYPE_MANUFACTURER:
-
-                    $endpointId = $data->getForeignKey()->getEndpoint();
 
                     $indexMappings = [
                         ImageRelationType::TYPE_CATEGORY => 'categories',
@@ -133,7 +134,7 @@ class Image extends BaseMapper
                     $subject = $indexMappings[$data->getRelationType()];
 
                     $oldImage = null;
-                    $oldImageResult = $this->db->query(sprintf('SELECT %s_image FROM %s WHERE %s_id = %d', $subject, $subject, $subject, $endpointId));
+                    $oldImageResult = $this->db->query(sprintf('SELECT %s_image FROM %s WHERE %s_id = %d', $subject, $subject, $subject, $imgId));
 
                     $imageIndex = sprintf('%s_image', $subject);
                     if (isset($oldImageResult[0][$imageIndex]) && $oldImageResult[0][$imageIndex] !== '') {
@@ -158,9 +159,9 @@ class Image extends BaseMapper
                         $relatedObject->{$imageIndex} = sprintf('%s/%s', $subject, $imgFileName);
                     }
 
-                    $this->db->updateRow($relatedObject, $subject, sprintf('%s_id', $subject), $endpointId);
+                    $this->db->updateRow($relatedObject, $subject, sprintf('%s_id', $subject), $imgId);
 
-                    $endpoint = sprintf('%sID_%d', $subject[0], $endpointId);
+                    $endpoint = sprintf('%sID_%d', $subject[0], $imgId);
                     $data->getId()->setEndpoint($endpoint);
 
                     break;
@@ -168,7 +169,6 @@ class Image extends BaseMapper
                 case ImageRelationType::TYPE_PRODUCT:
 
                     $productId = $data->getForeignKey()->getEndpoint();
-                    $imgId = $data->getId()->getEndpoint();
 
                     if ($data->getSort() == 1 && Product::isVariationChild($productId)) {
                         $this->delete($data);
@@ -363,6 +363,9 @@ class Image extends BaseMapper
     public function delete($data)
     {
         if (get_class($data) === 'jtl\Connector\Model\Image') {
+
+            $imgId = self::extractImageId($data->getId()->getEndpoint());
+
             switch ($data->getRelationType()) {
                 case ImageRelationType::TYPE_CATEGORY:
                 case ImageRelationType::TYPE_MANUFACTURER:
@@ -415,7 +418,6 @@ class Image extends BaseMapper
 
                                     @unlink($this->shopConfig['shop']['path'] . $oldCImage);
                                     $path = explode('/', $oldCImage);
-                                    $oldImage = end($path);
                                 }
                             } else {
                                 $oldCImage = $this->db->query('SELECT combi_image FROM products_properties_combis WHERE products_properties_combis_id = "' . $combiId . '"');
@@ -437,7 +439,7 @@ class Image extends BaseMapper
                             }
                         }
                     } else {
-                        if ($imgId = $data->getId()->getEndpoint() != '') {
+                        if (!empty($imgId)) {
 
                             $prevImgQuery = $this->db->query(sprintf('SELECT image_name FROM products_images WHERE image_id = "%s"', $imgId));
                             if (count($prevImgQuery) > 0) {
@@ -467,6 +469,16 @@ class Image extends BaseMapper
         } else {
             throw new \Exception('Pushed data is not an image object');
         }
+    }
+
+    /**
+     * @param string $endpointId
+     * @return string
+     */
+    public static function extractImageId(string $endpointId): string
+    {
+        $id = explode('_', $endpointId);
+        return count($id) === 1 ? $id[0] : $id[1];
     }
 
     public function statistic()
