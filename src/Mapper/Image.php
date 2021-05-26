@@ -659,6 +659,7 @@ class Image extends BaseMapper
      * @param string $imageName
      * @param string $relationType
      * @return string
+     * @throws \Exception
      */
     protected function createImageFilePath(string $imageName, string $relationType): string
     {
@@ -673,10 +674,8 @@ class Image extends BaseMapper
         }
 
         $directoryName = sprintf('%s/%s', rtrim($this->shopConfig['shop']['path'], '/'), trim($imagesPath, '/'));
-        if (!file_exists($directoryName)) {
-            if (mkdir($directoryName, 0777, true) === false) {
-                throw new \Exception(sprintf('Cannot create directory %s', $directoryName));
-            }
+        if (!file_exists($directoryName) && !mkdir($directoryName, 0755, true)) {
+            throw new \Exception(sprintf('Cannot create directory %s', $directoryName));
         }
 
         return sprintf('%s/%s', $directoryName, $imageName);
