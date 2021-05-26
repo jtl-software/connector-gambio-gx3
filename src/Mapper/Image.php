@@ -672,7 +672,14 @@ class Image extends BaseMapper
                 break;
         }
 
-        return sprintf('%s/%s/%s', rtrim($this->shopConfig['shop']['path'], '/'), trim($imagesPath, '/'), $imageName);
+        $directoryName = sprintf('%s/%s', rtrim($this->shopConfig['shop']['path'], '/'), trim($imagesPath, '/'));
+        if (!file_exists($directoryName)) {
+            if (mkdir($directoryName, 0777, true) === false) {
+                throw new \Exception(sprintf('Cannot create directory %s', $directoryName));
+            }
+        }
+
+        return sprintf('%s/%s', $directoryName, $imageName);
     }
 
     /**
