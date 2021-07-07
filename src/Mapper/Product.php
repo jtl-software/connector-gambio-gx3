@@ -592,7 +592,7 @@ class Product extends BaseMapper
 
     protected function products_date_added($data)
     {
-        if ($data->getisNewProduct()) {
+        if ($data->getisNewProduct() && !is_null($data->getNewReleaseDate())) {
             return $data->getNewReleaseDate();
         }
 

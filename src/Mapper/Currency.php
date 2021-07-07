@@ -29,7 +29,7 @@ class Currency extends BaseMapper
             "thousands_point" => "delimiterThousand",
             "code" => null,
             "decimal_places" => null,
-            "symbol_right" => "name"
+            "symbol_right" => 'iso'
         ]
     ];
 
