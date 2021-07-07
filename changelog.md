@@ -1,3 +1,12 @@
+2.16.0
+------
+- CO-1521 - Fixed image deletion when product is removed
+- CO-1520 - Fixed image is uploaded without extension 
+- CO-1501 - Feature do not overwrite features.json on connector update
+- CO-1361 - Fixed saving tracking url
+- CO-905 - Fixed product new release date 
+- CO-490 - Fixed invalid property for customer note
+
 2.15.1
 ------
 - CO-1385 - Added variation values to names of product variation children during import
