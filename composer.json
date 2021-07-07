@@ -21,6 +21,7 @@
     "require": {
         "jtl/connector": "^3.2",
         "phing/phing": "^2.16",
+        "nette/utils": "^3.1",
         "ext-json": "*"
     },
     "require-dev": {

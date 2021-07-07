@@ -863,4 +863,14 @@ class Product extends BaseMapper
 
         return '';
     }
+
+    /**
+     * @param string $endpoint
+     * @return bool
+     */
+    public static function isVariationChild(string $endpoint): bool
+    {
+        $data = explode('_', $endpoint);
+        return isset($data[1]);
+    }
 }
