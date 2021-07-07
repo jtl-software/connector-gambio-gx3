@@ -30,20 +30,26 @@ class DeliveryNote extends Controller
         $orderId = $data->getCustomerOrderId()->getEndpoint();
 
         if (!empty($orderId)) {
-            $carriers = $this->db->query('SELECT * FROM parcel_services');
 
-            foreach ($data->getTrackingLists() as $list) {
-                foreach ($carriers as $carrier) {
-                    if ($list->getName() == $carrier['name']) {
-                        $this->db->query('INSERT INTO orders_parcel_tracking_codes SET
-                          order_id="'.$orderId.'",
-                          tracking_code="'.implode(', ', $list->getCodes()).'",
-                          parcel_service_id='.$carrier['parcel_service_id'].',
-                          parcel_service_name="'.$carrier['name'].'",
-                          comment=""
-                        ');
+            $order = $this->db->query(sprintf('SELECT l.languages_id FROM orders AS o LEFT JOIN languages AS l ON o.language = l.directory WHERE orders_id = %s', $orderId));
+            if(isset($order[0])) {
+                $languageId = $order[0]['languages_id'] ?? 0;
+                $carriers = $this->db->query('SELECT * FROM parcel_services');
 
-                        break;
+                foreach ($data->getTrackingLists() as $list) {
+                    $carrier = $this->findCarrierCompany($list->getName(), $carriers);
+                    if ($carrier !== null) {
+                        $trackingUrlTemplate = $this->getTrackingUrlTemplate((int)$languageId, (int)$carrier['parcel_service_id']);
+                        foreach ($list->getCodes() as $code) {
+                            $trackingUrl = str_replace('{TRACKING_NUMBER}', $code, $trackingUrlTemplate);
+                            $this->db->query(
+                                sprintf('
+                                    INSERT INTO orders_parcel_tracking_codes SET
+                                    order_id="%s", tracking_code="%s", parcel_service_id=%s, parcel_service_name="%s", language_id="%s", url="%s", comment=""',
+                                    $orderId, $code, $carrier['parcel_service_id'], $carrier['name'], $languageId, $trackingUrl
+                                )
+                            );
+                        }
                     }
                 }
             }
@@ -58,5 +64,51 @@ class DeliveryNote extends Controller
 
     public function delete(DataModel $model)
     {
+    }
+
+    /**
+     * @param string $deliveryCompanyName
+     * @param array $carriers
+     * @return array|null
+     */
+    protected function findCarrierCompany(string $deliveryCompanyName, array $carriers): ?array
+    {
+        $searchResultLength = 0;
+        $searchResult = null;
+        $sameSearchResultQuantity = 0;
+
+        foreach ($carriers as $carrier) {
+            $carrierNameLength = strlen($carrier['name']);
+
+            $companyStartsWithProviderName = strpos($deliveryCompanyName, $carrier['name']) !== false;
+            $newResultIsMoreSimilarThanPrevious = $carrierNameLength > $searchResultLength;
+            $newResultHasSameLengthAsPrevious = $carrierNameLength === $searchResultLength;
+
+            if ($companyStartsWithProviderName) {
+                if ($newResultIsMoreSimilarThanPrevious) {
+                    $searchResult = $carrier;
+                    $searchResultLength = $carrierNameLength;
+                    $sameSearchResultQuantity = 0;
+                } elseif ($newResultHasSameLengthAsPrevious) {
+                    $sameSearchResultQuantity++;
+                    $searchResult = null;
+                }
+            }
+        }
+
+        return $searchResult;
+    }
+
+    /**
+     * @param int $languageId
+     * @param int $parcelServiceId
+     * @return string|null
+     */
+    protected function getTrackingUrlTemplate(int $languageId, int $parcelServiceId): ?string
+    {
+        $parcelServiceDescription = $this->db->query(
+            sprintf('SELECT psd.url FROM parcel_services_description AS psd WHERE psd.language_id = %s AND psd.parcel_service_id = %s', $languageId, $parcelServiceId)
+        );
+        return $parcelServiceDescription[0]['url'] ?? '';
     }
 }
