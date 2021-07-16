@@ -180,10 +180,8 @@ class Image extends BaseMapper
                             $imgFileName = $this->generateImageName($data);
 
                             if (ShopVersion::isGreaterOrEqual('4.1')) {
-                                $imagePath = $this->shopConfig['img']['original'] . $imgFileName;
-
-                                $fullPath = $this->createImageFilePath($imagePath, ImageRelationType::TYPE_PRODUCT);
-                                if (!rename($data->getFilename(), $fullPath)) {
+                                $imagePath = $this->createImageFilePath($imgFileName, ImageRelationType::TYPE_PRODUCT);
+                                if (!rename($data->getFilename(), $imagePath)) {
                                     throw new \Exception('Cannot move uploaded image file');
                                 }
 
