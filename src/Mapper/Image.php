@@ -7,6 +7,7 @@ use jtl\Connector\Drawing\ImageRelationType;
 use jtl\Connector\Gambio\Util\ShopVersion;
 use jtl\Connector\Model\Image as ImageModel;
 use Nette\Utils\Strings;
+use stdClass;
 
 class Image extends BaseMapper
 {
@@ -116,9 +117,15 @@ class Image extends BaseMapper
         return $combisQuery;
     }
 
+    /**
+     * @param object $data
+     * @param stdClass|null $dbObj
+     * @return object
+     * @throws \Exception
+     */
     public function push($data, $dbObj = null)
     {
-        if (get_class($data) === 'jtl\Connector\Model\Image') {
+        if (get_class($data) === ImageModel::class && $data->getForeignKey()->getEndpoint() !== '') {
 
             $imageId = self::extractImageId($data->getId()->getEndpoint());
 
@@ -320,10 +327,9 @@ class Image extends BaseMapper
                     break;
             }
 
-            return $data;
-        } else {
-            throw new \Exception('Pushed data is not an image object');
         }
+
+        return $data;
     }
 
     public function removeProductImageAndThumbnails($prevImage)
@@ -358,9 +364,14 @@ class Image extends BaseMapper
         $this->db->insertRow($obj, 'product_image_list_image_text');
     }
 
+    /**
+     * @param object $data
+     * @return object
+     * @throws \Exception
+     */
     public function delete($data)
     {
-        if (get_class($data) === 'jtl\Connector\Model\Image') {
+        if (get_class($data) === ImageModel::class && $data->getForeignKey()->getEndpoint() !== '') {
 
             $imageId = self::extractImageId($data->getId()->getEndpoint());
 
@@ -462,11 +473,9 @@ class Image extends BaseMapper
             }
 
             $this->db->query('DELETE FROM jtl_connector_link_image WHERE endpoint_id="'.$data->getId()->getEndpoint().'"');
-
-            return $data;
-        } else {
-            throw new \Exception('Pushed data is not an image object');
         }
+
+        return $data;
     }
 
     /**
@@ -682,8 +691,9 @@ class Image extends BaseMapper
     /**
      * @param ImageModel $jtlImage
      * @return string
+     * @throws \Exception
      */
-    protected function generateImageName(ImageModel $jtlImage)
+    protected function generateImageName(ImageModel $jtlImage): string
     {
         $suffix = '';
         $i = 1;
