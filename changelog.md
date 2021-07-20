@@ -1,3 +1,8 @@
+2.16.1
+------
+- Fixed product image push
+- Added foreign key check on image push/delete
+
 2.16.0
 ------
 - CO-1521 - Fixed image deletion when product is removed
