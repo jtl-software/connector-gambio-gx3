@@ -2,7 +2,7 @@
 
 namespace jtl\Connector\Gambio\Mapper;
 
-class ImageI18n extends \jtl\Connector\Gambio\Mapper\BaseMapper
+class ImageI18n extends \jtl\Connector\Gambio\Mapper\AbstractMapper
 {
     protected $mapperConfig = [
         "getMethod" => "getI18ns",
@@ -21,7 +21,7 @@ class ImageI18n extends \jtl\Connector\Gambio\Mapper\BaseMapper
         */
     ];
 
-    public function pull($data = null, $limit = null)
+    public function pull($data = null, $limit = null): array
     {
         if (isset($data['type'])) {
             switch ($data['type']) {

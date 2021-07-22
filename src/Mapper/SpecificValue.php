@@ -2,7 +2,7 @@
 
 namespace jtl\Connector\Gambio\Mapper;
 
-class SpecificValue extends \jtl\Connector\Gambio\Mapper\BaseMapper
+class SpecificValue extends \jtl\Connector\Gambio\Mapper\AbstractMapper
 {
     protected $mapperConfig = [
         "table" => "feature_value",

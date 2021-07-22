@@ -2,6 +2,7 @@
 
 namespace jtl\Connector\Gambio\Mapper;
 
+use jtl\Connector\Core\Database\IDatabase;
 use jtl\Connector\Core\Result\Mysql;
 use jtl\Connector\Drawing\ImageRelationType;
 use jtl\Connector\Gambio\Util\ShopVersion;
@@ -9,7 +10,7 @@ use jtl\Connector\Model\Image as ImageModel;
 use Nette\Utils\Strings;
 use stdClass;
 
-class Image extends BaseMapper
+class Image extends AbstractMapper
 {
     protected $mapperConfig = [
         "table" => "products_images",
@@ -27,12 +28,9 @@ class Image extends BaseMapper
 
     private $thumbConfig;
 
-    public function __construct()
+    public function __construct(IDatabase $db, array $shopConfig, \stdClass $connectorConfig)
     {
-        parent::__construct();
-
-
-
+        parent::__construct($db, $shopConfig, $connectorConfig);
         $this->thumbConfig = [
             'info' => [
                 $this->shopConfig['settings']['PRODUCT_IMAGE_INFO_WIDTH'],
@@ -53,7 +51,7 @@ class Image extends BaseMapper
         ];
     }
 
-    public function pull($data = null, $limit = null)
+    public function pull($data = null, $limit = null): array
     {
         $result = [];
 
@@ -488,7 +486,7 @@ class Image extends BaseMapper
         return count($id) === 1 ? $id[0] : $id[1];
     }
 
-    public function statistic()
+    public function statistic(): int
     {
         $totalImages = 0;
 

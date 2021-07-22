@@ -5,7 +5,7 @@ namespace jtl\Connector\Gambio\Mapper;
 use jtl\Connector\Model\StatusChange as StatusChangeModel;
 use jtl\Connector\Model\CustomerOrder;
 
-class StatusChange extends BaseMapper
+class StatusChange extends AbstractMapper
 {
     public function push(StatusChangeModel $status)
     {

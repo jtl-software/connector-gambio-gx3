@@ -7,6 +7,7 @@ use \jtl\Connector\Core\Utilities\RpcMethod;
 use \jtl\Connector\Core\Database\Mysql;
 use jtl\Connector\Event\Connector\ConnectorAfterFinishEvent;
 use jtl\Connector\Gambio\Controller\BaseController;
+use jtl\Connector\Gambio\Controller\SharedController;
 use jtl\Connector\Gambio\Util\ConfigHelper;
 use jtl\Connector\Gambio\Util\ShopVersion;
 use jtl\Connector\Model\DeliveryNote;
@@ -37,6 +38,16 @@ class Connector extends BaseConnector
      */
     protected $action;
 
+    /**
+     * @var
+     */
+    protected $shopConfig;
+
+    /**
+     * @var
+     */
+    protected $connectorConfig;
+
     public function initialize()
     {
         $db = Mysql::getInstance();
@@ -52,6 +63,9 @@ class Connector extends BaseConnector
         if (!isset($session->connectorConfig)) {
             $session->connectorConfig = json_decode(@file_get_contents(CONNECTOR_DIR.'/config/config.json'));
         }
+
+        $this->shopConfig = $session->shopConfig;
+        $this->connectorConfig = $session->connectorConfig;
 
         if (!$db->isConnected()) {
             $db->connect([
@@ -117,13 +131,34 @@ class Connector extends BaseConnector
 
     public function canHandle()
     {
-        $controller = RpcMethod::buildController($this->getMethod()->getController());
-        $class = "\\jtl\\Connector\\Gambio\\Controller\\{$controller}";
+        $controllers = [
+            'Category',
+            'CrossSelling',
+            'Customer',
+            'CustomerOrder',
+            'GlobalData',
+            'Image',
+            'Manufacturer',
+            'Payment',
+            'Product',
+            'ProductPrice',
+            'ProductStockLevel',
+            'StatusChange',
+        ];
 
-        if (class_exists($class)) {
-            $this->controller = $class::getInstance();
+        $controllerName = RpcMethod::buildController($this->getMethod()->getController());
+        $db = Mysql::getInstance();
+
+        $controllerClass = sprintf('jtl\\Connector\\Gambio\\Controller\\%s', $controllerName);
+
+        if (class_exists($controllerClass)) {
+            $this->controller = new $controllerClass($db, $this->shopConfig, $this->connectorConfig);
+        } elseif (in_array($controllerName, $controllers, true)) {
+            $this->controller = new SharedController($db, $this->shopConfig, $this->connectorConfig, $controllerName);
+        }
+
+        if (!is_null($this->controller)) {
             $this->action = RpcMethod::buildAction($this->getMethod()->getAction());
-
             return is_callable([$this->controller, $this->action]);
         }
 

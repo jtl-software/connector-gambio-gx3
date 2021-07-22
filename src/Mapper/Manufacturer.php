@@ -3,10 +3,10 @@
 namespace jtl\Connector\Gambio\Mapper;
 
 use jtl\Connector\Gambio\Controller\BaseController;
-use jtl\Connector\Gambio\Mapper\BaseMapper;
+use jtl\Connector\Gambio\Mapper\AbstractMapper;
 use jtl\Connector\Model\ManufacturerI18n;
 
-class Manufacturer extends BaseMapper
+class Manufacturer extends AbstractMapper
 {
     protected $mapperConfig = [
         "table"    => "manufacturers",
@@ -89,7 +89,7 @@ class Manufacturer extends BaseMapper
      * @param null $limit
      * @return array
      */
-    public function pull($parentData = null, $limit = null)
+    public function pull($parentData = null, $limit = null): array
     {
         $return = parent::pull($parentData, $limit);
         

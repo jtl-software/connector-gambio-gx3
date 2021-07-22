@@ -2,9 +2,9 @@
 
 namespace jtl\Connector\Gambio\Mapper;
 
-use jtl\Connector\Gambio\Mapper\BaseMapper;
+use jtl\Connector\Gambio\Mapper\AbstractMapper;
 
-class MeasurementUnitI18n extends BaseMapper
+class MeasurementUnitI18n extends AbstractMapper
 {
     protected $mapperConfig = [
         "query" => "SELECT quantity_unit_description.*,languages.code FROM quantity_unit_description LEFT JOIN languages ON languages.languages_id=quantity_unit_description.language_id WHERE quantity_unit_id=[[quantity_unit_id]]",

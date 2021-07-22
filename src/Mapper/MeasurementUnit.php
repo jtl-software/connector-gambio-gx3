@@ -2,7 +2,7 @@
 
 namespace jtl\Connector\Gambio\Mapper;
 
-class MeasurementUnit extends BaseMapper
+class MeasurementUnit extends AbstractMapper
 {
     protected $mapperConfig = [
         "query" => "SELECT quantity_unit_id FROM quantity_unit",

@@ -11,72 +11,26 @@ use jtl\Connector\Core\Model\QueryFilter;
 use jtl\Connector\Model\ConnectorIdentification;
 use jtl\Connector\Session\SessionHelper;
 
-class Connector extends BaseController
+/**
+ * Class Connector
+ * @package jtl\Connector\Gambio\Controller
+ */
+class Connector extends AbstractController
 {
-    public function finish()
+    /**
+     * @return Action
+     */
+    public function finish(): Action
     {
         return (new Action())
             ->setHandled(true)
             ->setResult(true);
     }
 
-    public function statistic(QueryFilter $filter)
-    {
-        $action = new Action();
-        $action->setHandled(true);
-
-        $return = [];
-
-        $mainControllers = [
-            'Category',
-            'Customer',
-            'CustomerOrder',
-            'Image',
-            'Product',
-            'Manufacturer',
-            'CrossSelling'
-        ];
-
-        foreach ($mainControllers as $controller) {
-            $class = "\\jtl\\Connector\\Gambio\\Mapper\\{$controller}";
-
-            if (class_exists($class)) {
-                try {
-                    $mapper = new $class();
-
-                    $statModel = new Statistic();
-
-                    $statModel->setAvailable($mapper->statistic());
-                    $statModel->setControllerName(lcfirst($controller));
-
-                    $return[] = $statModel;
-                } catch (\Exception $exc) {
-                    $err = new Error();
-                    $err->setCode($exc->getCode());
-                    $err->setMessage($exc->getMessage());
-                    $action->setError($err);
-                }
-            }
-        }
-
-        $action->setResult($return);
-
-        return $action;
-    }
-
-    public function pull(QueryFilter $queryfilter)
-    {
-    }
-
-    public function push(DataModel $model)
-    {
-    }
-
-    public function delete(DataModel $model)
-    {
-    }
-
-    public function identify()
+    /**
+     * @return Action
+     */
+    public function identify(): Action
     {
         $action = new Action();
         $action->setHandled(true);

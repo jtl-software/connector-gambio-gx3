@@ -3,11 +3,11 @@
 namespace jtl\Connector\Gambio\Mapper;
 
 use jtl\Connector\Core\Logger\Logger;
-use jtl\Connector\Gambio\Mapper\BaseMapper;
+use jtl\Connector\Gambio\Mapper\AbstractMapper;
 use jtl\Connector\Core\Utilities\Language;
 use jtl\Connector\Core\Utilities\Country;
 
-class Customer extends BaseMapper
+class Customer extends AbstractMapper
 {
     protected $mapperConfig = [
         "table"    => "customers",
@@ -216,7 +216,7 @@ class Customer extends BaseMapper
         return $data;
     }
     
-    public function statistic()
+    public function statistic(): int
     {
         $count = 0;
         

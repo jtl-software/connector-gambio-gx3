@@ -2,37 +2,27 @@
 
 namespace jtl\Connector\Gambio\Controller;
 
-use jtl\Connector\Core\Controller\Controller;
-use jtl\Connector\Core\Model\QueryFilter;
 use jtl\Connector\Core\Model\DataModel;
 use jtl\Connector\Result\Action;
-use jtl\Connector\Core\Database\Mysql;
 
-class DeliveryNote extends Controller
+/**
+ * Class DeliveryNote
+ * @package jtl\Connector\Gambio\Controller
+ */
+class DeliveryNote extends AbstractController
 {
-    protected $db;
-
-    public function __construct()
-    {
-        $this->db = Mysql::getInstance();
-    }
-
-    public function statistic(QueryFilter $filter)
-    {
-    }
-
-    public function pull(QueryFilter $queryfilter)
-    {
-    }
-
-    public function push(DataModel $data)
+    /**
+     * @param DataModel $data
+     * @return Action
+     */
+    public function push(DataModel $data): Action
     {
         $orderId = $data->getCustomerOrderId()->getEndpoint();
 
         if (!empty($orderId)) {
 
             $order = $this->db->query(sprintf('SELECT l.languages_id FROM orders AS o LEFT JOIN languages AS l ON o.language = l.directory WHERE orders_id = %s', $orderId));
-            if(isset($order[0])) {
+            if (isset($order[0])) {
                 $languageId = $order[0]['languages_id'] ?? 0;
                 $carriers = $this->db->query('SELECT * FROM parcel_services');
 
@@ -60,10 +50,6 @@ class DeliveryNote extends Controller
         $action->setResult($data);
 
         return $action;
-    }
-
-    public function delete(DataModel $model)
-    {
     }
 
     /**

@@ -2,9 +2,9 @@
 
 namespace jtl\Connector\Gambio\Mapper;
 
-use jtl\Connector\Gambio\Mapper\BaseMapper;
+use jtl\Connector\Gambio\Mapper\AbstractMapper;
 
-class ProductVariationValueI18n extends BaseMapper
+class ProductVariationValueI18n extends AbstractMapper
 {
     protected $mapperConfig = [
         "table" => "properties_values_description",
@@ -17,7 +17,7 @@ class ProductVariationValueI18n extends BaseMapper
         ]
     ];
 
-    public function pull($data = null, $limit = null)
+    public function pull($data = null, $limit = null): array
     {
         if (isset($data['options_values_id'])) {
             $this->mapperConfig = [

@@ -2,9 +2,9 @@
 
 namespace jtl\Connector\Gambio\Mapper;
 
-use jtl\Connector\Gambio\Mapper\BaseMapper;
+use jtl\Connector\Gambio\Mapper\AbstractMapper;
 
-class CustomerOrderItem extends BaseMapper
+class CustomerOrderItem extends AbstractMapper
 {
     protected $mapperConfig = [
         "table" => "orders_products",

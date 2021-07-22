@@ -2,9 +2,9 @@
 
 namespace jtl\Connector\Gambio\Mapper;
 
-use jtl\Connector\Gambio\Mapper\BaseMapper;
+use jtl\Connector\Gambio\Mapper\AbstractMapper;
 
-class CrossSellingGroupI18n extends BaseMapper
+class CrossSellingGroupI18n extends AbstractMapper
 {
     protected $mapperConfig = [
         "table" => "products_xsell_grp_name",

@@ -2,7 +2,7 @@
 
 namespace jtl\Connector\Gambio\Mapper;
 
-class ProductI18n extends BaseMapper
+class ProductI18n extends AbstractMapper
 {
     protected $mapperConfig = [
         "table" => "products_description",

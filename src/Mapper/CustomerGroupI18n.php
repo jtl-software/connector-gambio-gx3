@@ -2,9 +2,9 @@
 
 namespace jtl\Connector\Gambio\Mapper;
 
-use jtl\Connector\Gambio\Mapper\BaseMapper;
+use jtl\Connector\Gambio\Mapper\AbstractMapper;
 
-class CustomerGroupI18n extends BaseMapper
+class CustomerGroupI18n extends AbstractMapper
 {
     protected $mapperConfig = [
         "table" => "customers_status",

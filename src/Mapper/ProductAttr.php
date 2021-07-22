@@ -8,7 +8,7 @@ use jtl\Connector\Model\Product as ProductModel;
 use jtl\Connector\Model\ProductAttr as ProductAttrModel;
 use jtl\Connector\Model\ProductAttrI18n as ProductAttrI18nModel;
 
-class ProductAttr extends BaseMapper
+class ProductAttr extends AbstractMapper
 {
     protected $ignoreAttributes = [
         'Wesentliche Produktmerkmale',
@@ -23,7 +23,7 @@ class ProductAttr extends BaseMapper
         'products_keywords'           => 'products_keywords',
     ];
     
-    public function pull($data = null, $limit = null)
+    public function pull($data = null, $limit = null): array
     {
         $attrs = [];
         

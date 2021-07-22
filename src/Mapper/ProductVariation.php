@@ -4,7 +4,7 @@ namespace jtl\Connector\Gambio\Mapper;
 
 use jtl\Connector\Formatter\ExceptionFormatter;
 use jtl\Connector\Gambio\Connector;
-use \jtl\Connector\Gambio\Mapper\BaseMapper;
+use \jtl\Connector\Gambio\Mapper\AbstractMapper;
 use \jtl\Connector\Linker\ChecksumLinker;
 use \jtl\Connector\Core\Logger\Logger;
 
@@ -28,7 +28,7 @@ class ProductVariation extends Product
         ],
     ];
 
-    public function pull($data = null, $limit = null)
+    public function pull($data = null, $limit = null): array
     {
         $checkCombi = $this->db->query('SELECT products_properties_combis_id FROM products_properties_index WHERE products_id=' . $data['products_id']);
 
@@ -48,7 +48,7 @@ class ProductVariation extends Product
             ];
         }
 
-        return BaseMapper::pull($data, $limit);
+        return AbstractMapper::pull($data, $limit);
     }
 
     /**

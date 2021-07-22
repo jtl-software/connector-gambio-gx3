@@ -2,11 +2,11 @@
 
 namespace jtl\Connector\Gambio\Mapper;
 
-use jtl\Connector\Gambio\Mapper\BaseMapper;
+use jtl\Connector\Gambio\Mapper\AbstractMapper;
 use jtl\Connector\Model\ProductPrice as ProductPriceModel;
 use jtl\Connector\Model\ProductPriceItem as ProductPriceItemModel;
 
-class ProductPrice extends BaseMapper
+class ProductPrice extends AbstractMapper
 {
     protected $mapperConfig = [
         "getMethod" => "getPrices",
@@ -21,7 +21,7 @@ class ProductPrice extends BaseMapper
         ]
     ];
 
-    public function pull($data = null, $limit = null)
+    public function pull($data = null, $limit = null): array
     {
         $customerGroups = $this->getCustomerGroups();
 
@@ -40,7 +40,7 @@ class ProductPrice extends BaseMapper
         $default = new ProductPriceModel();
         $default->setId($this->identity($data['products_id'].'_default'));
         $default->setProductId($this->identity($data['products_id']));
-        $default->setCustomerGroupId($this->identity(null));
+        $default->setCustomerGroupId($this->identity(''));
 
         $defaultItem = new ProductPriceItemModel();
         $defaultItem->setProductPriceId($default->getId());

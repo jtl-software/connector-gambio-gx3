@@ -5,7 +5,7 @@ namespace jtl\Connector\Gambio\Mapper;
 use jtl\Connector\Gambio\Controller\BaseController;
 use jtl\Connector\Gambio\Util\CategoryIndexHelper;
 
-class Category extends \jtl\Connector\Gambio\Mapper\BaseMapper
+class Category extends \jtl\Connector\Gambio\Mapper\AbstractMapper
 {
     protected $mapperConfig = [
         "table"    => "categories",
@@ -70,7 +70,7 @@ class Category extends \jtl\Connector\Gambio\Mapper\BaseMapper
         return '';
     }
     
-    public function pull($parent = null, $limit = null)
+    public function pull($parent = null, $limit = null): array
     {
         $this->tree = [];
         
@@ -88,6 +88,7 @@ class Category extends \jtl\Connector\Gambio\Mapper\BaseMapper
         }
         
         $resultCount = 0;
+        $result = [];
         
         foreach ($this->tree as $category) {
             if ($resultCount >= $limit) {
@@ -111,11 +112,9 @@ class Category extends \jtl\Connector\Gambio\Mapper\BaseMapper
         }
     
         $dbObj = new \stdClass();
-    
-        //(new CategoryAttr())->push($data, $dbObj);
-        $result = parent::push($data, $dbObj, null, true);
-        //$result = $this->generateDbObj($data, $dbObj, null, true);
-        (new CategoryI18n())->push($data, null);
+        $result = parent::push($data, $dbObj);
+
+        (new CategoryI18n($this->db, $this->shopConfig, $this->connectorConfig))->push($data, new \stdClass());
         return $result;
     }
     
