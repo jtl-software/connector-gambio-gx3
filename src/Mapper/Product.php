@@ -802,7 +802,7 @@ class Product extends BaseMapper
             }
             if (count($product->getTaxRates()) > 0 && !is_null($product->getTaxClassId())) {
                 $taxClassId = $this->findTaxClassId(...$product->getTaxRates()) ?? $taxClassId[0]['tax_class_id'];
-                $product->getTaxClassId()->setEndpoint($taxClassId);
+                //$product->getTaxClassId()->setEndpoint($taxClassId);
             }
         }
 
