@@ -1,3 +1,7 @@
+2.16.2
+------
+- Hotfix variation images
+
 2.16.1
 ------
 - Fixed product image push
