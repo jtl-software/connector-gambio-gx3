@@ -177,76 +177,78 @@ class Image extends BaseMapper
 
                     $productId = $data->getForeignKey()->getEndpoint();
 
-                    if ($data->getSort() == 1 && Product::isVariationChild($productId)) {
-                        $this->delete($data);
+                    if (Product::isVariationChild($productId)) {
+                        if($data->getSort() == 1) {
+                            $this->delete($data);
 
-                        $combiId = explode('_', $productId);
-                        $combiId = $combiId[1];
+                            $combiId = explode('_', $productId);
+                            $combiId = $combiId[1];
 
-                        if (!empty($combiId)) {
-                            $imgFileName = $this->generateImageName($data);
+                            if (!empty($combiId)) {
+                                $imgFileName = $this->generateImageName($data);
 
-                            if (ShopVersion::isGreaterOrEqual('4.1')) {
-                                $imagePath = $this->createImageFilePath($imgFileName, ImageRelationType::TYPE_PRODUCT);
-                                if (!rename($data->getFilename(), $imagePath)) {
-                                    throw new \Exception('Cannot move uploaded image file');
-                                }
+                                if (ShopVersion::isGreaterOrEqual('4.1')) {
+                                    $imagePath = $this->createImageFilePath($imgFileName, ImageRelationType::TYPE_PRODUCT);
+                                    if (!rename($data->getFilename(), $imagePath)) {
+                                        throw new \Exception('Cannot move uploaded image file');
+                                    }
 
-                                $listName = 'combination-list-' . $combiId;
-                                $imageList = $this->db->query(
-                                    sprintf('SELECT product_image_list_id 
+                                    $listName = 'combination-list-' . $combiId;
+                                    $imageList = $this->db->query(
+                                        sprintf('SELECT product_image_list_id 
                                             FROM product_image_list 
                                             WHERE product_image_list_name = "%s"', $listName)
-                                );
-                                $imageListId = $imageList[0]['product_image_list_id'] ?? null;
-                                if ($imageListId === null) {
-                                    $obj = new \stdClass();
-                                    $obj->product_image_list_name = $listName;
-                                    $imageList = $this->db->insertRow($obj, 'product_image_list');
+                                    );
+                                    $imageListId = $imageList[0]['product_image_list_id'] ?? null;
+                                    if ($imageListId === null) {
+                                        $obj = new \stdClass();
+                                        $obj->product_image_list_name = $listName;
+                                        $imageList = $this->db->insertRow($obj, 'product_image_list');
 
-                                    if ($imageList instanceof Mysql && $imageList->getErrno() === 0) {
-                                        $imageListId = $imageList->getKey();
-                                    }
-                                }
-
-                                if (!is_null($imageListId)) {
-                                    $obj = new \stdClass();
-                                    $obj->product_image_list_id = $imageListId;
-                                    $obj->product_image_list_image_local_path = $imagePath;
-                                    $listImage = $this->db->deleteInsertRow($obj, 'product_image_list_image', 'product_image_list_id', $imageListId);
-                                    $imageListImageId = $listImage->getKey();
-
-                                    $obj = new \stdClass();
-                                    $obj->products_properties_combis_id = $combiId;
-                                    $obj->product_image_list_id = $imageListId;
-                                    $this->db->deleteInsertRow($obj, 'product_image_list_combi', 'products_properties_combis_id', $combiId);
-
-                                    $i18ns = $data->getI18ns();
-                                    if (empty($i18ns)) {
-                                        $defaultLanguageId = $this->configHelper->getDefaultLanguage();
-                                        $this->saveCombiI18n($imageListImageId, 'title', $imgFileName, $defaultLanguageId);
-                                        $this->saveCombiI18n($imageListImageId, 'alt_title', '', $defaultLanguageId);
-                                    } else {
-                                        foreach ($i18ns as $imageI18n) {
-                                            $languageId = $this->locale2id($imageI18n->getLanguageISO());
-                                            $this->saveCombiI18n($imageListImageId, 'title', $imgFileName, $languageId);
-                                            $this->saveCombiI18n($imageListImageId, 'alt_title', $imageI18n->getAltText(), $languageId);
+                                        if ($imageList instanceof Mysql && $imageList->getErrno() === 0) {
+                                            $imageListId = $imageList->getKey();
                                         }
                                     }
 
-                                    $this->generateThumbs($imgFileName);
-                                }
-                            } else {
-                                if (!rename($data->getFilename(), $this->shopConfig['shop']['path'] . 'images/product_images/properties_combis_images/' . $imgFileName)) {
-                                    throw new \Exception('Cannot move uploaded image file');
+                                    if (!is_null($imageListId)) {
+                                        $obj = new \stdClass();
+                                        $obj->product_image_list_id = $imageListId;
+                                        $obj->product_image_list_image_local_path = $imagePath;
+                                        $listImage = $this->db->deleteInsertRow($obj, 'product_image_list_image', 'product_image_list_id', $imageListId);
+                                        $imageListImageId = $listImage->getKey();
+
+                                        $obj = new \stdClass();
+                                        $obj->products_properties_combis_id = $combiId;
+                                        $obj->product_image_list_id = $imageListId;
+                                        $this->db->deleteInsertRow($obj, 'product_image_list_combi', 'products_properties_combis_id', $combiId);
+
+                                        $i18ns = $data->getI18ns();
+                                        if (empty($i18ns)) {
+                                            $defaultLanguageId = $this->configHelper->getDefaultLanguage();
+                                            $this->saveCombiI18n($imageListImageId, 'title', $imgFileName, $defaultLanguageId);
+                                            $this->saveCombiI18n($imageListImageId, 'alt_title', '', $defaultLanguageId);
+                                        } else {
+                                            foreach ($i18ns as $imageI18n) {
+                                                $languageId = $this->locale2id($imageI18n->getLanguageISO());
+                                                $this->saveCombiI18n($imageListImageId, 'title', $imgFileName, $languageId);
+                                                $this->saveCombiI18n($imageListImageId, 'alt_title', $imageI18n->getAltText(), $languageId);
+                                            }
+                                        }
+
+                                        $this->generateThumbs($imgFileName);
+                                    }
+                                } else {
+                                    if (!rename($data->getFilename(), $this->shopConfig['shop']['path'] . 'images/product_images/properties_combis_images/' . $imgFileName)) {
+                                        throw new \Exception('Cannot move uploaded image file');
+                                    }
+
+                                    $combisObj = new \stdClass();
+                                    $combisObj->combi_image = $imgFileName;
+                                    $this->db->updateRow($combisObj, 'products_properties_combis', 'products_properties_combis_id', $combiId);
                                 }
 
-                                $combisObj = new \stdClass();
-                                $combisObj->combi_image = $imgFileName;
-                                $this->db->updateRow($combisObj, 'products_properties_combis', 'products_properties_combis_id', $combiId);
+                                $this->db->query(sprintf('INSERT INTO jtl_connector_link_image SET host_id="%s", endpoint_id="vID_%s"', $data->getId()->getHost(), $combiId));
                             }
-
-                            $this->db->query(sprintf('INSERT INTO jtl_connector_link_image SET host_id="%s", endpoint_id="vID_%s"', $data->getId()->getHost(), $combiId));
                         }
                     } else {
 
