@@ -180,6 +180,7 @@ class Image extends BaseMapper
 
                         $combiId = explode('_', $productId);
                         $combiId = $combiId[1];
+                        $endpoint = null;
 
                         if (!empty($combiId)) {
                             $imgFileName = $this->generateImageName($data);
@@ -188,18 +189,22 @@ class Image extends BaseMapper
                                 $imageListImageId = $this->saveCombiImage($data, $combiId, $imgFileName);
                                 $endpoint = sprintf('vID_%s_%s', $combiId, $imageListImageId);
                             } else {
-                                if (!rename($data->getFilename(), $this->shopConfig['shop']['path'] . 'images/product_images/properties_combis_images/' . $imgFileName)) {
-                                    throw new \Exception('Cannot move uploaded image file');
+                                if($data->getSort() == 1) {
+                                    if (!rename($data->getFilename(), $this->shopConfig['shop']['path'] . 'images/product_images/properties_combis_images/' . $imgFileName)) {
+                                        throw new \Exception('Cannot move uploaded image file');
+                                    }
+
+                                    $combisObj = new \stdClass();
+                                    $combisObj->combi_image = $imgFileName;
+                                    $this->db->updateRow($combisObj, 'products_properties_combis', 'products_properties_combis_id', $combiId);
+
+                                    $endpoint = sprintf('vID_%s', $combiId);
                                 }
-
-                                $combisObj = new \stdClass();
-                                $combisObj->combi_image = $imgFileName;
-                                $this->db->updateRow($combisObj, 'products_properties_combis', 'products_properties_combis_id', $combiId);
-
-                                $endpoint = sprintf('vID_%s',$combiId);
                             }
 
-                            $this->db->query(sprintf('INSERT INTO jtl_connector_link_image SET host_id="%s", endpoint_id="%s"', $data->getId()->getHost(), $endpoint));
+                            if(!is_null($endpoint)) {
+                                $this->db->query(sprintf('INSERT INTO jtl_connector_link_image SET host_id="%s", endpoint_id="%s"', $data->getId()->getHost(), $endpoint));
+                            }
                         }
                     } else {
 
@@ -292,7 +297,7 @@ class Image extends BaseMapper
      * @return int
      * @throws \Exception
      */
-    protected function saveCombiImage($data, $combiId, $imgFileName): int
+    protected function saveCombiImage(ImageModel $data, $combiId, $imgFileName): int
     {
         $imagePath = $this->createImageFilePath($imgFileName, ImageRelationType::TYPE_PRODUCT);
         if (!rename($data->getFilename(), $imagePath)) {
@@ -321,6 +326,7 @@ class Image extends BaseMapper
             $obj = new \stdClass();
             $obj->product_image_list_id = $imageListId;
             $obj->product_image_list_image_local_path = $imagePath;
+            $obj->product_image_list_image_sort_order = $data->getSort();
 
             $column = 'product_image_list_image_id';
             $id = $imageListImageId;
