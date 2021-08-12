@@ -592,7 +592,7 @@ class Product extends BaseMapper
 
     protected function products_date_added($data)
     {
-        if ($data->getisNewProduct()) {
+        if ($data->getisNewProduct() && !is_null($data->getNewReleaseDate())) {
             return $data->getNewReleaseDate();
         }
 
@@ -891,5 +891,15 @@ class Product extends BaseMapper
         }
 
         return '';
+    }
+
+    /**
+     * @param string $endpoint
+     * @return bool
+     */
+    public static function isVariationChild(string $endpoint): bool
+    {
+        $data = explode('_', $endpoint);
+        return isset($data[1]);
     }
 }

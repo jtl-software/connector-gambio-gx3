@@ -51,10 +51,10 @@ class ProductSpecialPrice extends BaseMapper
     public function push($parent, $dbObj = null)
     {
         $id = $parent->getId()->getEndpoint();
-    
-        $this->db->query('DELETE FROM `specials` WHERE `products_id` = ' . $id);
+        $q='DELETE FROM `specials` WHERE `products_id` = ' . $id;
+        $this->db->query($q);
 
-        if (!is_null($parent->getSpecialPrices())) {
+        if (!is_null($parent->getSpecialPrices()) && count($parent->getSpecialPrices()) === 1) {
             foreach ($parent->getSpecialPrices() as $special) {
                 $special->setProductId($parent->getId());
             }
