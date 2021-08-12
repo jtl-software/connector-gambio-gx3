@@ -1,5 +1,5 @@
 <?php
-$db->query('CREATE TABLE IF NOT EXISTS jtl_connector_tax_class (
+$db->query('CREATE TABLE IF NOT EXISTS jtl_connector_link_tax_class (
   endpoint_id INT NOT NULL,
   host_id INT NOT NULL,
   PRIMARY KEY (endpoint_id),

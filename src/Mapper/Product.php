@@ -3,22 +3,19 @@
 namespace jtl\Connector\Gambio\Mapper;
 
 use jtl\Connector\Gambio\Installer\Config;
-use \jtl\Connector\Gambio\Mapper\BaseMapper;
 use jtl\Connector\Gambio\Util\CategoryIndexHelper;
 use jtl\Connector\Model\Identity;
-use jtl\Connector\Model\ProductAttr as ProductAttrModel;
-use jtl\Connector\Model\ProductAttrI18n as ProductAttrI18nModel;
-use \jtl\Connector\Model\ProductStockLevel;
-use \jtl\Connector\Model\Product as ProductModel;
-use \jtl\Connector\Model\ProductStockLevel as ProductStockLevelModel;
-use \jtl\Connector\Type\ProductStockLevel as ProductStockLevelType;
-use \jtl\Connector\Model\ProductPrice as ProductPriceModel;
-use \jtl\Connector\Model\ProductPriceItem as ProductPriceItemModel;
-use \jtl\Connector\Model\ProductVariation as ProductVariationModel;
-use \jtl\Connector\Model\ProductVariationI18n as ProductVariationI18nModel;
-use \jtl\Connector\Model\ProductVariationValue as ProductVariationValueModel;
-use \jtl\Connector\Model\ProductVariationValueI18n as ProductVariationValueI18nModel;
-use \jtl\Connector\Model\ProductI18n as ProductI18nModel;
+use jtl\Connector\Model\ProductStockLevel;
+use jtl\Connector\Model\Product as ProductModel;
+use jtl\Connector\Model\ProductStockLevel as ProductStockLevelModel;
+use jtl\Connector\Model\ProductPrice as ProductPriceModel;
+use jtl\Connector\Model\ProductPriceItem as ProductPriceItemModel;
+use jtl\Connector\Model\ProductVariation as ProductVariationModel;
+use jtl\Connector\Model\ProductVariationI18n as ProductVariationI18nModel;
+use jtl\Connector\Model\ProductVariationValue as ProductVariationValueModel;
+use jtl\Connector\Model\ProductVariationValueI18n as ProductVariationValueI18nModel;
+use jtl\Connector\Model\ProductI18n as ProductI18nModel;
+use jtl\Connector\Model\TaxRate;
 use jtl\Connector\Gambio\Util\MeasurementUnitHelper;
 
 class Product extends BaseMapper
@@ -791,17 +788,23 @@ class Product extends BaseMapper
         return floatval($sql[0]['tax_rate']);
     }
 
+    /**
+     * @param ProductModel $product
+     * @return mixed|string
+     */
     protected function products_tax_class_id(ProductModel $product)
     {
         if (!is_null($product->getTaxClassId()) && !empty($product->getTaxClassId()->getEndpoint())) {
             $taxClassId = $product->getTaxClassId()->getEndpoint();
         } else {
-            $taxClassId = $this->db->query('SELECT r.tax_class_id FROM zones_to_geo_zones z LEFT JOIN tax_rates r ON z.geo_zone_id=r.tax_zone_id WHERE z.zone_country_id = ' . $this->shopConfig['settings']['STORE_COUNTRY'] . ' && r.tax_rate=' . $product->getVat());
-            if (empty($taxClassId)) {
-                $taxClassId = $this->db->query('SELECT tax_class_id FROM tax_rates WHERE tax_rates_id=' . $this->connectorConfig->tax_rate);
+            $taxClasses = $this->db->query('SELECT r.tax_class_id FROM zones_to_geo_zones z LEFT JOIN tax_rates r ON z.geo_zone_id=r.tax_zone_id WHERE z.zone_country_id = ' . $this->shopConfig['settings']['STORE_COUNTRY'] . ' && r.tax_rate=' . $product->getVat());
+            if (empty($taxClasses)) {
+                $taxClasses = $this->db->query('SELECT tax_class_id FROM tax_rates WHERE tax_rates_id=' . $this->connectorConfig->tax_rate);
             }
+
+            $taxClassId = $taxClasses[0]['tax_class_id'] ?? '1';
             if (count($product->getTaxRates()) > 0 && !is_null($product->getTaxClassId())) {
-                $taxClassId = $this->findTaxClassId(...$product->getTaxRates()) ?? $taxClassId[0]['tax_class_id'];
+                $taxClassId = $this->findTaxClassId(...$product->getTaxRates()) ?? $taxClassId;
                 //$product->getTaxClassId()->setEndpoint($taxClassId);
             }
         }
@@ -810,17 +813,17 @@ class Product extends BaseMapper
     }
 
     /**
-     * @param \jtl\Connector\Model\TaxRate ...$taxRates
+     * @param TaxRate ...$taxRates
      * @return string|null
      */
-    protected function findTaxClassId(\jtl\Connector\Model\TaxRate ...$taxRates): ?string
+    protected function findTaxClassId(TaxRate ...$taxRates): ?string
     {
         $conditions = [];
         foreach($taxRates as $taxRate){
             $conditions[] = sprintf("(c.countries_iso_code_2 = '%s' AND tr.tax_rate='%s')", $taxRate->getCountryIso(), number_format($taxRate->getRate(), 4));
         }
 
-        $taxClassId = $this->db->query(sprintf('SELECT tax_class_id, COUNT(tax_class_id) as hits
+        $taxClasses = $this->db->query(sprintf('SELECT tax_class_id, COUNT(tax_class_id) as hits
                 FROM tax_rates tr
                 LEFT JOIN zones_to_geo_zones ztgz ON tr.tax_zone_id = ztgz.geo_zone_id
                 LEFT JOIN countries c ON ztgz.zone_country_id = c.countries_id
@@ -828,7 +831,7 @@ class Product extends BaseMapper
                 GROUP BY tax_class_id
                 ORDER BY hits DESC',join(' OR ',$conditions)));
 
-        return $taxClassId[0]['tax_class_id'] ?? null;
+        return $taxClasses[0]['tax_class_id'] ?? null;
     }
 
     protected function products_quantity($data)

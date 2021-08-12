@@ -7,6 +7,6 @@ logs/**
 build/**
 plugins/rpcview
 dist/**
-db/connector.s3db
+db/connector.s3db*
 .idea/**
 /db/version

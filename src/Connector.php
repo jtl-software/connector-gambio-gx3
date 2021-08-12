@@ -95,7 +95,10 @@ class Connector extends BaseConnector
         });
     }
 
-    private function update($db)
+    /**
+     * @param Mysql $db
+     */
+    protected function update(Mysql $db): void
     {
         if (version_compare(file_get_contents(CONNECTOR_DIR.'/db/version'), CONNECTOR_VERSION) == -1) {
             $versions = [];
