@@ -105,11 +105,12 @@ class Connector extends BaseConnector
                 }
             }
 
-            sort($versions);
+            usort($versions, 'version_compare');
 
             foreach ($versions as $version) {
                 if (version_compare(file_get_contents(CONNECTOR_DIR.'/db/version'), $version) == -1) {
                     include(CONNECTOR_DIR.'/db/updates/' . $version . '.php');
+                    file_put_contents(CONNECTOR_DIR.'/db/version', $version);
                 }
             }
         }
