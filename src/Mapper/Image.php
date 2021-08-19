@@ -31,8 +31,6 @@ class Image extends BaseMapper
     {
         parent::__construct();
 
-
-
         $this->thumbConfig = [
             'info' => [
                 $this->shopConfig['settings']['PRODUCT_IMAGE_INFO_WIDTH'],
@@ -127,11 +125,11 @@ class Image extends BaseMapper
     {
         if (get_class($data) === ImageModel::class && $data->getForeignKey()->getEndpoint() !== '') {
 
-            $imageId = self::extractImageId($data->getId()->getEndpoint());
-
             switch ($data->getRelationType()) {
                 case ImageRelationType::TYPE_CATEGORY:
                 case ImageRelationType::TYPE_MANUFACTURER:
+
+                    $imageId = self::extractImageId($data->getForeignKey()->getEndpoint());
 
                     $indexMappings = [
                         ImageRelationType::TYPE_CATEGORY => 'categories',
@@ -141,7 +139,8 @@ class Image extends BaseMapper
                     $subject = $indexMappings[$data->getRelationType()];
 
                     $oldImage = null;
-                    $oldImageResult = $this->db->query(sprintf('SELECT %s_image FROM %s WHERE %s_id = %d', $subject, $subject, $subject, $imageId));
+                    $sql = sprintf('SELECT %s_image FROM %s WHERE %s_id = %d', $subject, $subject, $subject, $imageId);
+                    $oldImageResult = $this->db->query($sql);
 
                     $imageIndex = sprintf('%s_image', $subject);
                     if (isset($oldImageResult[0][$imageIndex]) && $oldImageResult[0][$imageIndex] !== '') {
@@ -175,10 +174,12 @@ class Image extends BaseMapper
 
                 case ImageRelationType::TYPE_PRODUCT:
 
+                    $imageId = self::extractImageId($data->getId()->getEndpoint());
+
                     $productId = $data->getForeignKey()->getEndpoint();
 
                     if (Product::isVariationChild($productId)) {
-                        if($data->getSort() == 1) {
+                        if ($data->getSort() == 1) {
                             $this->delete($data);
 
                             $combiId = explode('_', $productId);
@@ -474,7 +475,7 @@ class Image extends BaseMapper
                     break;
             }
 
-            $this->db->query('DELETE FROM jtl_connector_link_image WHERE endpoint_id="'.$data->getId()->getEndpoint().'"');
+            $this->db->query('DELETE FROM jtl_connector_link_image WHERE endpoint_id="' . $data->getId()->getEndpoint() . '"');
         }
 
         return $data;
@@ -565,9 +566,9 @@ class Image extends BaseMapper
     protected function remoteUrl($data)
     {
         if ($data['type'] == ImageRelationType::TYPE_CATEGORY) {
-            return $this->shopConfig['shop']['fullUrl'].'images/categories/'.$data['image_name'];
+            return $this->shopConfig['shop']['fullUrl'] . 'images/categories/' . $data['image_name'];
         } elseif ($data['type'] == ImageRelationType::TYPE_MANUFACTURER) {
-            return $this->shopConfig['shop']['fullUrl'].'images/'.$data['image_name'];
+            return $this->shopConfig['shop']['fullUrl'] . 'images/' . $data['image_name'];
         } else {
             if (strpos($data['image_id'], 'vID_') !== false) {
                 if (ShopVersion::isGreaterOrEqual('4.1')) {
@@ -583,17 +584,17 @@ class Image extends BaseMapper
 
     private function generateThumbs($fileName, $oldImage = null)
     {
-        $imgInfo = getimagesize($this->shopConfig['shop']['path'].$this->shopConfig['img']['original'].$fileName);
+        $imgInfo = getimagesize($this->shopConfig['shop']['path'] . $this->shopConfig['img']['original'] . $fileName);
 
         switch ($imgInfo[2]) {
             case 1:
-                $image = imagecreatefromgif($this->shopConfig['shop']['path'].$this->shopConfig['img']['original'].$fileName);
+                $image = imagecreatefromgif($this->shopConfig['shop']['path'] . $this->shopConfig['img']['original'] . $fileName);
                 break;
             case 2:
-                $image = imagecreatefromjpeg($this->shopConfig['shop']['path'].$this->shopConfig['img']['original'].$fileName);
+                $image = imagecreatefromjpeg($this->shopConfig['shop']['path'] . $this->shopConfig['img']['original'] . $fileName);
                 break;
             case 3:
-                $image = imagecreatefrompng($this->shopConfig['shop']['path'].$this->shopConfig['img']['original'].$fileName);
+                $image = imagecreatefrompng($this->shopConfig['shop']['path'] . $this->shopConfig['img']['original'] . $fileName);
                 break;
         }
 
@@ -603,16 +604,16 @@ class Image extends BaseMapper
 
         foreach ($this->thumbConfig as $folder => $sizes) {
             if (!empty($oldImage)) {
-                unlink($this->shopConfig['shop']['path'].$this->shopConfig['img'][$folder].$oldImage);
+                unlink($this->shopConfig['shop']['path'] . $this->shopConfig['img'][$folder] . $oldImage);
             }
 
             $thumb_width = $sizes[0];
             $thumb_height = $sizes[1];
 
             $new_width = $thumb_width;
-            $new_height = round($new_width*($height/$width));
+            $new_height = round($new_width * ($height / $width));
             $new_x = 0;
-            $new_y = round(($thumb_height-$new_height)/2);
+            $new_y = round(($thumb_height - $new_height) / 2);
 
             if ($this->connectorConfig->thumbs === 'fill') {
                 $next = $new_height < $thumb_height;
@@ -622,8 +623,8 @@ class Image extends BaseMapper
 
             if ($next) {
                 $new_height = $thumb_height;
-                $new_width = round($new_height*($width/$height));
-                $new_x = round(($thumb_width - $new_width)/2);
+                $new_width = round($new_height * ($width / $height));
+                $new_x = round(($thumb_width - $new_width) / 2);
                 $new_y = 0;
             }
 
@@ -651,13 +652,13 @@ class Image extends BaseMapper
 
             switch ($imgInfo[2]) {
                 case 1:
-                    imagegif($thumb, $this->shopConfig['shop']['path'].$this->shopConfig['img'][$folder].$fileName);
+                    imagegif($thumb, $this->shopConfig['shop']['path'] . $this->shopConfig['img'][$folder] . $fileName);
                     break;
                 case 2:
-                    imagejpeg($thumb, $this->shopConfig['shop']['path'].$this->shopConfig['img'][$folder].$fileName);
+                    imagejpeg($thumb, $this->shopConfig['shop']['path'] . $this->shopConfig['img'][$folder] . $fileName);
                     break;
                 case 3:
-                    imagepng($thumb, $this->shopConfig['shop']['path'].$this->shopConfig['img'][$folder].$fileName);
+                    imagepng($thumb, $this->shopConfig['shop']['path'] . $this->shopConfig['img'][$folder] . $fileName);
                     break;
             }
         }
