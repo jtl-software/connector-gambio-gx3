@@ -1,3 +1,7 @@
+2.16.3
+------
+- Hotfix manufacturer, category image push
+
 2.16.2
 ------
 - Hotfix variation images
