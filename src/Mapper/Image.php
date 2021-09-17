@@ -128,6 +128,7 @@ class Image extends BaseMapper
         if (get_class($data) === ImageModel::class && $data->getForeignKey()->getEndpoint() !== '') {
 
             $imageId = self::extractImageId($data->getId()->getEndpoint());
+            $relatedId = $data->getForeignKey()->getEndpoint();
 
             switch ($data->getRelationType()) {
                 case ImageRelationType::TYPE_CATEGORY:
@@ -141,7 +142,7 @@ class Image extends BaseMapper
                     $subject = $indexMappings[$data->getRelationType()];
 
                     $oldImage = null;
-                    $oldImageResult = $this->db->query(sprintf('SELECT %s_image FROM %s WHERE %s_id = %d', $subject, $subject, $subject, $imageId));
+                    $oldImageResult = $this->db->query(sprintf('SELECT %s_image FROM %s WHERE %s_id = %d', $subject, $subject, $subject, $relatedId));
 
                     $imageIndex = sprintf('%s_image', $subject);
                     if (isset($oldImageResult[0][$imageIndex]) && $oldImageResult[0][$imageIndex] !== '') {
@@ -166,9 +167,9 @@ class Image extends BaseMapper
                         $relatedObject->{$imageIndex} = sprintf('%s/%s', $subject, $imgFileName);
                     }
 
-                    $this->db->updateRow($relatedObject, $subject, sprintf('%s_id', $subject), $imageId);
+                    $this->db->updateRow($relatedObject, $subject, sprintf('%s_id', $subject), $relatedId);
 
-                    $endpoint = sprintf('%sID_%d', $subject[0], $imageId);
+                    $endpoint = sprintf('%sID_%d', $subject[0], $relatedId);
                     $data->getId()->setEndpoint($endpoint);
 
                     break;
@@ -325,7 +326,7 @@ class Image extends BaseMapper
         if (!is_null($imageListId)) {
             $obj = new \stdClass();
             $obj->product_image_list_id = $imageListId;
-            $obj->product_image_list_image_local_path = $imagePath;
+            $obj->product_image_list_image_local_path = sprintf('%s%s', $this->mapImageRelation(ImageRelationType::TYPE_PRODUCT), $imgFileName);
             $obj->product_image_list_image_sort_order = $data->getSort();
 
             $column = 'product_image_list_image_id';
@@ -335,7 +336,11 @@ class Image extends BaseMapper
                 $id = $imageListId;
             }
 
-            $listImage = $this->db->deleteInsertRow($obj, 'product_image_list_image', $column, $id);
+            if (empty($imageListImageId)) {
+                $listImage = $this->db->insertRow($obj, 'product_image_list_image');
+            } else{
+                $listImage = $this->db->deleteInsertRow($obj, 'product_image_list_image', $column, $id);
+            }
             $imageListImageId = $listImage->getKey();
 
             $obj = new \stdClass();
@@ -710,6 +715,22 @@ class Image extends BaseMapper
      */
     protected function createImageFilePath(string $imageName, string $relationType): string
     {
+        $imagesPath = $this->mapImageRelation($relationType);
+
+        $directoryName = sprintf('%s/%s', rtrim($this->shopConfig['shop']['path'], '/'), trim($imagesPath, '/'));
+        if (!file_exists($directoryName) && !mkdir($directoryName, 0755, true)) {
+            throw new \Exception(sprintf('Cannot create directory %s', $directoryName));
+        }
+
+        return sprintf('%s/%s', $directoryName, $imageName);
+    }
+
+    /**
+     * @param string $relationType
+     * @return string
+     */
+    protected function mapImageRelation(string $relationType): string
+    {
         $imagesPath = $this->shopConfig['img']['original'];
         switch ($relationType) {
             case ImageRelationType::TYPE_CATEGORY:
@@ -719,13 +740,7 @@ class Image extends BaseMapper
                 $imagesPath = 'images/manufacturers';
                 break;
         }
-
-        $directoryName = sprintf('%s/%s', rtrim($this->shopConfig['shop']['path'], '/'), trim($imagesPath, '/'));
-        if (!file_exists($directoryName) && !mkdir($directoryName, 0755, true)) {
-            throw new \Exception(sprintf('Cannot create directory %s', $directoryName));
-        }
-
-        return sprintf('%s/%s', $directoryName, $imageName);
+        return $imagesPath;
     }
 
     /**
