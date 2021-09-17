@@ -101,7 +101,7 @@ class Image extends BaseMapper
     private function getCombiQuery()
     {
         if (ShopVersion::isGreaterOrEqual('4.1')) {
-            $combisQuery = 'SELECT CONCAT("vID_",p.products_properties_combis_id) image_id, pli.product_image_list_image_local_path as image_name, CONCAT(p.products_id, "_", p.products_properties_combis_id) foreignKey, 1 image_nr, "product" type
+            $combisQuery = 'SELECT CONCAT("vID_",p.products_properties_combis_id,"_", pli.product_image_list_image_id) image_id, pli.product_image_list_image_local_path as image_name, CONCAT(p.products_id, "_", p.products_properties_combis_id) foreignKey, 1 image_nr, "product" type
                         FROM products_properties_combis p
                         LEFT JOIN product_image_list_combi plc ON p.products_properties_combis_id = plc.products_properties_combis_id
                         LEFT JOIN product_image_list_image pli ON plc.product_image_list_id = pli.product_image_list_id
