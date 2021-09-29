@@ -1,3 +1,8 @@
+2.17.0
+------
+- CO-1462 - Added product tax class guessing on product push
+- CO-1015 - Added extended error info messages
+
 2.16.3
 ------
 - Hotfix manufacturer, category image push
