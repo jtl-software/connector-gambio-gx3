@@ -4,12 +4,23 @@ namespace jtl\Connector\Gambio\Mapper;
 
 use jtl\Connector\Formatter\ExceptionFormatter;
 use jtl\Connector\Gambio\Connector;
-use \jtl\Connector\Gambio\Mapper\BaseMapper;
+use \jtl\Connector\Model\ProductVariation as ProductVariationModel;
 use \jtl\Connector\Linker\ChecksumLinker;
 use \jtl\Connector\Core\Logger\Logger;
 
 class ProductVariation extends Product
 {
+    public const
+        DISPLAY_TYPE_DROPDOWN = 'Dropdown',
+        DISPLAY_TYPE_RADIO = 'Radio',
+        DISPLAY_TYPE_TEXT = 'Text';
+
+    protected static $variationTypeMapping = [
+        ProductVariationModel::TYPE_RADIO => self::DISPLAY_TYPE_RADIO,
+        ProductVariationModel::TYPE_TEXTBOX => self::DISPLAY_TYPE_TEXT,
+        ProductVariationModel::TYPE_SELECT => self::DISPLAY_TYPE_DROPDOWN,
+    ];
+
     private static $variationIds;
     private static $valueIds;
     private static $parentPrices = [];
@@ -23,6 +34,7 @@ class ProductVariation extends Product
             "id" => "properties_id",
             "productId" => "products_id",
             "sort" => "properties_sort_order",
+            "type" => null,
             "i18ns" => "ProductVariationI18n|addI18n",
             "values" => "ProductVariationValue|addValue",
         ],
@@ -52,6 +64,16 @@ class ProductVariation extends Product
     }
 
     /**
+     * @param $data
+     * @return mixed|string
+     */
+    public function type($data)
+    {
+        $type = $this->db->query(sprintf("SELECT display_type FROM properties WHERE properties_id = %s", $data['properties_id']));
+        return self::mapDisplayType($type[0]['display_type'] ?? 'Dropdown');
+    }
+
+    /**
      * @param \jtl\Connector\Model\Product $parent
      * @param object|null $dbObj
      * @return mixed
@@ -73,12 +95,12 @@ class ProductVariation extends Product
                     // get variation name in default language
                     foreach ($variation->getI18ns() as $i18n) {
                         if ($i18n->getLanguageISO() == $this->fullLocale($this->shopConfig['settings']['DEFAULT_LANGUAGE'])) {
-                            $varName = $i18n->getName();
+                            $variationName = $i18n->getName();
                         }
                     }
 
                     // try to find existing variation id
-                    $variationIdQuery = $this->db->query('SELECT products_options_id FROM products_options WHERE products_options_name="' . $varName . '"');
+                    $variationIdQuery = $this->db->query('SELECT products_options_id FROM products_options WHERE products_options_name="' . $variationName . '"');
 
                     // use existing id or generate next available one
                     if (count($variationIdQuery) > 0) {
@@ -193,12 +215,17 @@ class ProductVariation extends Product
                         // get variation name in default language
                         foreach ($variation->getI18ns() as $i18n) {
                             if ($i18n->getLanguageISO() == $this->fullLocale($this->shopConfig['settings']['DEFAULT_LANGUAGE'])) {
-                                $varName = $i18n->getName();
+                                $variationName = $i18n->getName();
+                                break;
                             }
                         }
 
+                        $displayType = ProductVariation::mapVariationType($variation->getType());
+
+                        $propertiesAdminName = $this->createPropertyAdminName($variationName, $displayType);
+
                         // try to find existing variation id
-                        $variationIdQuery = $this->db->query('SELECT properties_id FROM properties_description WHERE properties_name="' . $varName . '"');
+                        $variationIdQuery = $this->db->query(sprintf('SELECT properties_id FROM properties_description WHERE properties_admin_name="%s"', $propertiesAdminName));
 
                         // use existing id or generate next available one
                         if (count($variationIdQuery) > 0) {
@@ -206,10 +233,14 @@ class ProductVariation extends Product
                         } else {
                             $newProp = new \stdClass();
                             $newProp->sort_order = $variation->getSort();
+                            $newProp->display_type = $displayType;
 
                             $variationId = $this->db->insertRow($newProp, 'properties');
                             $variationId = $variationId->getKey();
                         }
+
+                        $propertiesDescription = new \stdClass();
+                        $this->db->deleteRow($propertiesDescription, 'properties_description', 'properties_id', $variationId);
 
                         // insert/update variation
                         foreach ($variation->getI18ns() as $i18n) {
@@ -217,13 +248,9 @@ class ProductVariation extends Product
                             $varObj->properties_id = $variationId;
                             $varObj->language_id = $this->locale2id($i18n->getLanguageISO());
                             $varObj->properties_name = $i18n->getName();
+                            $varObj->properties_admin_name = $propertiesAdminName;
 
-                            $this->db->deleteInsertRow(
-                                $varObj,
-                                'properties_description',
-                                ['properties_id', 'language_id'],
-                                [$variationId, $varObj->language_id]
-                            );
+                            $this->db->insertRow($varObj, 'properties_description');
                         }
 
                         // VariationValues
@@ -239,10 +266,10 @@ class ProductVariation extends Product
                             }
 
                             $sql = 'SELECT v.properties_values_id ' . "\n" .
-                                   'FROM properties_values_description d ' . "\n" .
-                                   'LEFT JOIN properties_values v ON v.properties_values_id=d.properties_values_id ' . "\n" .
-                                   'LEFT JOIN properties p ON p.properties_id=v.properties_id ' . "\n" .
-                                   'WHERE p.properties_id=' . $variationId . ' && d.language_id=' . $langId . ' && d.values_name="' . $valueName . '"';
+                                'FROM properties_values_description d ' . "\n" .
+                                'LEFT JOIN properties_values v ON v.properties_values_id=d.properties_values_id ' . "\n" .
+                                'LEFT JOIN properties p ON p.properties_id=v.properties_id ' . "\n" .
+                                'WHERE p.properties_id=' . $variationId . ' && d.language_id=' . $langId . ' && d.values_name="' . $valueName . '"';
 
                             // try to find existing value id
                             $valueIdQuery = $this->db->query($sql);
@@ -372,15 +399,15 @@ class ProductVariation extends Product
                         $langId = $this->locale2id($varI18n->getLanguageISO());
                         $varI18ns[$langId] = $varI18n->getName();
                     }
-                    
+
                     foreach ($variation->getValues() as $value) {
                         $property = new \stdClass();
                         $property->products_id = $combi->products_id;
                         $property->properties_id = $variation->getId()->getEndpoint();
                         $property->properties_values_id = $this->getValueId($value, $variation);
-                        
+
                         $this->db->insertRow($property, 'products_properties_admin_select');
-                        
+
                         foreach ($value->getI18ns() as $i18n) {
                             $index = new \stdClass();
                             $index->products_id = $combi->products_id;
@@ -433,6 +460,35 @@ class ProductVariation extends Product
         return $parent->getVariations();
     }
 
+    /**
+     * @param string $variationName
+     * @param string $displayType
+     * @return string
+     */
+    protected function createPropertyAdminName(string $variationName, string $displayType): string
+    {
+        return sprintf('%s - %s', $variationName, $displayType);
+    }
+
+    /**
+     * @param string $jtlVariationType
+     * @return string
+     */
+    protected static function mapVariationType(string $jtlVariationType): string
+    {
+        return self::$variationTypeMapping[$jtlVariationType] ?? self::DISPLAY_TYPE_DROPDOWN;
+    }
+
+    /**
+     * @param string $displayType
+     * @return string
+     */
+    protected static function mapDisplayType(string $displayType): string
+    {
+        $key = array_search($displayType, self::$variationTypeMapping);
+        return $key !== false ? $key : ProductVariationModel::TYPE_SELECT;
+    }
+
     private function getVariationId($variation)
     {
         if (isset(static::$variationIds[$variation->getId()->getHost()])) {
@@ -440,11 +496,13 @@ class ProductVariation extends Product
         } else {
             foreach ($variation->getI18ns() as $i18n) {
                 if ($i18n->getLanguageISO() == $this->fullLocale($this->shopConfig['settings']['DEFAULT_LANGUAGE'])) {
-                    $varName = $i18n->getName();
+                    $variationName = $i18n->getName();
                 }
             }
 
-            $variationIdQuery = $this->db->query('SELECT properties_id FROM properties_description WHERE properties_name="' . $varName . '"');
+            $propertyAdminName = $this->createPropertyAdminName($variationName, ProductVariation::mapVariationType($variation->getType()));
+
+            $variationIdQuery = $this->db->query(sprintf('SELECT properties_id FROM properties_description WHERE properties_admin_name="%s"', $propertyAdminName));
 
             if (count($variationIdQuery) > 0) {
                 static::$variationIds[$variation->getId()->getHost()] = $variationIdQuery[0]['properties_id'];
