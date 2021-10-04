@@ -55,5 +55,3 @@ if (count($check) == 1) {
 
     $db->query("ALTER TABLE jtl_connector_product_checksum MODIFY endpoint_id VARCHAR(10)");
 }
-
-file_put_contents(CONNECTOR_DIR . '/db/version', $version);

@@ -13,7 +13,7 @@
 
         <copy todir="./dist/config">
             <fileset dir="./config">
-                <include name="features.json" />
+                <include name="features.json.example" />
                 <include name=".htaccess" />
             </fileset>
         </copy>
@@ -48,6 +48,7 @@
             <fileset dir="./">
                 <include name="index.php" />
                 <include name="version" />
+                <include name="bootstrap.php" />
             </fileset>
         </copy>
 

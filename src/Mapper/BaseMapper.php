@@ -200,12 +200,13 @@ class BaseMapper
                         throw new \Exception("Cannot call get method '".$getMethod."' in entity '".$this->model."'");
                     }
 
-                    if (isset($value)) {
+                    if (!is_null($value)) {
                         if ($this->type->getProperty($host)->isIdentity()) {
                             $model->$setMethod($value);
 
                             $value = $value->getEndpoint();
                         } else {
+
                             $type = $this->type->getProperty($host)->getType();
                             if ($type == "DateTime") {
                                 $value = $value->format('Y-m-d H:i:s');
@@ -213,11 +214,9 @@ class BaseMapper
                                 settype($value, "integer");
                             }
                         }
-
-                        $dbObj->$endpoint = $value;
-                    } else {
-                        //throw new \Exception("There is no property or method to map ".$endpoint);
                     }
+
+                    $dbObj->$endpoint = $value;
                 }
             }
 
@@ -260,6 +259,11 @@ class BaseMapper
                     if (isset($this->mapperConfig['identity'])) {
                         $obj->{$this->mapperConfig['identity']}()->setEndpoint($insertResult->getKey());
                     }
+
+                    if ($insertResult->getErrno() !== 0) {
+                        throw new \Exception($insertResult->getError(), $insertResult->getErrno());
+                    }
+
                 }
             } else {
                 foreach ($dbObj as $key => $value) {
@@ -323,6 +327,11 @@ class BaseMapper
         return $return;
     }
 
+    /**
+     * @param null $parentData
+     * @param null $limit
+     * @return array|bool|\jtl\Connector\Core\Database\multitype|number|null
+     */
     protected function executeQuery($parentData = null, $limit = null)
     {
         $limitQuery = isset($limit) ? ' LIMIT '.$limit : '';

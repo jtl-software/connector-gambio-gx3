@@ -19,7 +19,7 @@ class CustomerOrderBillingAddress extends BaseMapper
             "zipCode" => "billing_postcode",
             "city" => "billing_city",
             "state" => "billing_state",
-            "countryIso" => null,
+            "countryIso" => "billing_country_iso_code_2",
             "eMail" => "customers_email_address",
             "phone" => "customers_telephone",
             "salutation" => null,
@@ -57,11 +57,6 @@ class CustomerOrderBillingAddress extends BaseMapper
         } else {
             return $data["billing_street_address"];
         }
-    }
-    
-    protected function countryIso($data)
-    {
-        return Country::map(strtolower($data['billing_country_iso_code_2']));
     }
 
     protected function salutation($data)

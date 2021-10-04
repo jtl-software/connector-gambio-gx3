@@ -2,10 +2,11 @@ tests/test-config.json
 vendor/**
 composer.lock
 config/config.json
+config/features.json
 logs/**
 build/**
 plugins/rpcview
 dist/**
-db/connector.s3db
+db/connector.s3db*
 .idea/**
 /db/version

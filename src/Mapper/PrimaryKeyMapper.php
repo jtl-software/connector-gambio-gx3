@@ -23,7 +23,8 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
         IdentityLinker::TYPE_SPECIFIC_VALUE => 'specific_value',
         IdentityLinker::TYPE_PAYMENT => 'payment',
         IdentityLinker::TYPE_CROSSSELLING => 'crossselling',
-        IdentityLinker::TYPE_CROSSSELLING_GROUP => 'crossselling_group'
+        IdentityLinker::TYPE_CROSSSELLING_GROUP => 'crossselling_group',
+        IdentityLinker::TYPE_TAX_CLASS => 'tax_class'
     ];
 
     public function __construct()
@@ -36,11 +37,11 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
         if (isset(static::$types[$type])) {
             $dbResult = $this->db->query("SELECT host_id FROM jtl_connector_link_" . static::$types[$type] . " WHERE endpoint_id = '" . $endpointId . "'");
 
-            $host_id = (count($dbResult) > 0) ? $dbResult[0]['host_id'] : null;
+            $hostId = (count($dbResult) > 0) ? $dbResult[0]['host_id'] : null;
 
-            Logger::write(sprintf('Trying to get host_id with endpoint_id (%s) and type (%s) ... host_id: (%s)', $endpointId, $type, $host_id), Logger::DEBUG, 'linker');
+            Logger::write(sprintf('Trying to get host_id with endpoint_id (%s) and type (%s) ... host_id: (%s)', $endpointId, $type, $hostId), Logger::DEBUG, 'linker');
 
-            return $host_id;
+            return $hostId;
         }
     }
 
@@ -49,11 +50,11 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
         if (isset(static::$types[$type])) {
             $dbResult = $this->db->query("SELECT endpoint_id FROM jtl_connector_link_" . static::$types[$type] . " WHERE host_id = " . $hostId);
 
-            $endpoint_id = (count($dbResult) > 0) ? $dbResult[0]['endpoint_id'] : null;
+            $endpointId = (count($dbResult) > 0) ? $dbResult[0]['endpoint_id'] : null;
 
-            Logger::write(sprintf('Trying to get endpoint_id with host_id (%s) and type (%s) ... endpoint_id: (%s)', $hostId, $type, $endpoint_id), Logger::DEBUG, 'linker');
+            Logger::write(sprintf('Trying to get endpoint_id with host_id (%s) and type (%s) ... endpoint_id: (%s)', $hostId, $type, $endpointId), Logger::DEBUG, 'linker');
 
-            return (string)$endpoint_id;
+            return (string)$endpointId;
         }
     }
 

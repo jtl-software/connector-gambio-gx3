@@ -20,7 +20,7 @@ class CustomerOrder extends BaseMapper
             "orderNumber" => "orders_id",
             "customerId" => "customers_id",
             "creationDate" => "date_purchased",
-            "note" => "comments",
+            "customerNote" => "comments",
             "paymentModuleCode" => null,
             "currencyIso" => "currency",
             "billingAddress" => "CustomerOrderBillingAddress|setBillingAddress",
@@ -233,6 +233,7 @@ class CustomerOrder extends BaseMapper
                     $model->setTotalSum((float)($total['value']));
                     break;
                 case 'ot_shipping':
+                case 'ot_gambioultra':
                     $this->addShipping($total, $data, $vat, $model);
                     break;
                 case 'ot_cod_fee':

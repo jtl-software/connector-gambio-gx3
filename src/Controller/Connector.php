@@ -13,6 +13,13 @@ use jtl\Connector\Session\SessionHelper;
 
 class Connector extends BaseController
 {
+    public function finish()
+    {
+        return (new Action())
+            ->setHandled(true)
+            ->setResult(true);
+    }
+
     public function statistic(QueryFilter $filter)
     {
         $action = new Action();

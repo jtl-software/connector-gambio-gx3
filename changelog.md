@@ -1,3 +1,42 @@
+2.17.0
+------
+- CO-1462 - Added product tax class guessing on product push
+- CO-1015 - Added extended error info messages
+
+2.16.3
+------
+- Hotfix manufacturer, category image push
+
+2.16.2
+------
+- Hotfix variation images
+
+2.16.1
+------
+- Fixed product image push
+- Added foreign key check on image push/delete
+
+2.16.0
+------
+- CO-1521 - Fixed image deletion when product is removed
+- CO-1520 - Fixed image is uploaded without extension 
+- CO-1501 - Feature do not overwrite features.json on connector update
+- CO-1361 - Fixed saving tracking url
+- CO-905 - Fixed product new release date 
+- CO-490 - Fixed invalid property for customer note
+
+2.15.1
+------
+- CO-1385 - Added variation values to names of product variation children during import
+- CO-1387 - Fixed old variations are were not getting removed after renaming
+- CO-1412 - Added support for older versions of gambioultra module
+
+2.15.0
+------
+- CO-1389 - Gambio 4.3 compatibility
+- CO-1369 - Fixed invalid country code in customer order
+- CO-1358 - Added gm_show_date_added to special attributes
+
 2.14.0
 ------
 - Fixed problems with payment import
