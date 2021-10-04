@@ -15,7 +15,7 @@ if (file_exists(__DIR__ . '/vendor/autoload.php')) {
 
 $loader->add('', CONNECTOR_DIR . '/plugins');
 
-require_once dirname(__DIR__) . '/GXMainComponents/Application.inc.php';
+require_once dirname(CONNECTOR_DIR) . '/GXMainComponents/Application.inc.php';
 
 if (!strpos($_SERVER['REQUEST_URI'], 'jtlconnector/install')) {
     $connector = Connector::getInstance();

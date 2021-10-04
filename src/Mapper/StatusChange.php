@@ -3,6 +3,7 @@
 namespace jtl\Connector\Gambio\Mapper;
 
 use jtl\Connector\Gambio\Connector;
+use jtl\Connector\Gambio\Gambio\Application;
 use jtl\Connector\Model\StatusChange as StatusChangeModel;
 use jtl\Connector\Model\CustomerOrder;
 
@@ -23,7 +24,7 @@ class StatusChange extends BaseMapper
 
             if (!is_null($newStatus)) {
                 /** @var \OrderWriteService $service */
-                $service = Connector::getGxService('OrderWrite');
+                $service = Connector::getGxService(Application::SERVICE_ORDER_WRITE);
                 $service->updateOrderStatus(new \IdType($customerOrderId), new \IntType($newStatus), new \StringType(''), new \BoolType(false));
                 $service->addOrderStatusHistoryEntry(new \IdType($customerOrderId), new \StringType(''), new \IdType(0));
             }
@@ -38,20 +39,21 @@ class StatusChange extends BaseMapper
      */
     private function getStatus(StatusChangeModel $status): ?string
     {
+        $statusName = null;
         if ($status->getOrderStatus() == CustomerOrder::STATUS_CANCELLED) {
-            return 'canceled';
+            $statusName = 'canceled';
         } else {
             if ($status->getPaymentStatus() == CustomerOrder::PAYMENT_STATUS_COMPLETED && $status->getOrderStatus() == CustomerOrder::STATUS_SHIPPED) {
-                return 'completed';
+                $statusName = 'completed';
             } else {
                 if ($status->getOrderStatus() == CustomerOrder::STATUS_SHIPPED) {
-                    return 'shipped';
+                    $statusName = 'shipped';
                 } elseif ($status->getPaymentStatus() == CustomerOrder::PAYMENT_STATUS_COMPLETED) {
-                    return 'paid';
+                    $statusName = 'paid';
                 }
             }
         }
 
-        return null;
+        return $statusName;
     }
 }

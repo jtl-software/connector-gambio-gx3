@@ -191,8 +191,6 @@ class Connector extends BaseConnector
     public static function getGxService(string $serviceName)
     {
         self::initGxApplication();
-        /** @var \OrderWriteService $service */
-        //$service = \StaticGXCoreLoader::getService('OrderWrite');
         return \StaticGXCoreLoader::getService($serviceName);
     }
 }
