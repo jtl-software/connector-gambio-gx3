@@ -7,8 +7,7 @@ use \jtl\Connector\Core\Rpc\RequestPacket;
 use \jtl\Connector\Core\Utilities\RpcMethod;
 use \jtl\Connector\Core\Database\Mysql;
 use jtl\Connector\Event\Connector\ConnectorAfterFinishEvent;
-use jtl\Connector\Gambio\Controller\BaseController;
-use jtl\Connector\Gambio\Controller\SharedController;
+use jtl\Connector\Gambio\Controller\DefaultController;
 use jtl\Connector\Gambio\Util\ConfigHelper;
 use jtl\Connector\Gambio\Util\ShopVersion;
 use jtl\Connector\Model\DataModel;
@@ -27,7 +26,7 @@ class Connector extends BaseConnector
         FINISH_TASK_CLEANUP_PRODUCT_PROPERTIES = 'cleanup_product_properties';
 
     /**
-     * @var BaseController
+     * @var DefaultController
      */
     protected $controller;
 
@@ -156,7 +155,7 @@ class Connector extends BaseConnector
         if (class_exists($controllerClass)) {
             $this->controller = new $controllerClass($db, $this->shopConfig, $this->connectorConfig);
         } elseif (in_array($controllerName, $controllers, true)) {
-            $this->controller = new SharedController($db, $this->shopConfig, $this->connectorConfig, $controllerName);
+            $this->controller = (new DefaultController($db, $this->shopConfig, $this->connectorConfig))->setControllerName($controllerName);
         }
 
         if (!is_null($this->controller)) {

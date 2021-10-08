@@ -2,8 +2,7 @@
 
 namespace jtl\Connector\Gambio\Mapper;
 
-use jtl\Connector\Gambio\Controller\BaseController;
-use jtl\Connector\Gambio\Mapper\AbstractMapper;
+use jtl\Connector\Gambio\Controller\DefaultController;
 use jtl\Connector\Model\ManufacturerI18n;
 
 class Manufacturer extends AbstractMapper
@@ -67,7 +66,7 @@ class Manufacturer extends AbstractMapper
         $languages = $this->db->query('SELECT languages_id, code FROM languages');
         foreach ($languages as $language) {
             /** @var ManufacturerI18n $i18n */
-            $i18n = BaseController::findI18n($data->getI18ns(), $language['code']);
+            $i18n = DefaultController::findI18n($data->getI18ns(), $language['code']);
             $manufacturersInfoObj->languages_id = $language['languages_id'];
             $manufacturersInfoObj->manufacturers_meta_title = '';
             $manufacturersInfoObj->manufacturers_meta_keywords = '';

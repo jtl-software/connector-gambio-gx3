@@ -15,7 +15,7 @@ use jtl\Connector\Session\SessionHelper;
  * Class Connector
  * @package jtl\Connector\Gambio\Controller
  */
-class Connector extends AbstractController
+class Connector extends DefaultController
 {
     /**
      * @return Action

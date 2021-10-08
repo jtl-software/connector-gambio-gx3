@@ -9,7 +9,7 @@ use jtl\Connector\Result\Action;
  * Class DeliveryNote
  * @package jtl\Connector\Gambio\Controller
  */
-class DeliveryNote extends AbstractController
+class DeliveryNote extends DefaultController
 {
     /**
      * @param DataModel $data

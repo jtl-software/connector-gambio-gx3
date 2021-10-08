@@ -2,7 +2,7 @@
 
 namespace jtl\Connector\Gambio\Mapper;
 
-use jtl\Connector\Gambio\Controller\BaseController;
+use jtl\Connector\Gambio\Controller\DefaultController;
 use jtl\Connector\Gambio\Util\CategoryIndexHelper;
 
 class Category extends \jtl\Connector\Gambio\Mapper\AbstractMapper
@@ -127,7 +127,7 @@ class Category extends \jtl\Connector\Gambio\Mapper\AbstractMapper
             'Y-m-d H:m:i',
             time()
         ) . '" WHERE categories_id=' . $model->getId()->getEndpoint() . ' && date_added IS NULL');
-        BaseController::resetCache();
+        DefaultController::resetCache();
     }
     
     private function getChildren($ids = null, $level = 0, $limit)
@@ -170,7 +170,7 @@ class Category extends \jtl\Connector\Gambio\Mapper\AbstractMapper
             }
         }
         
-        BaseController::resetCache();
+        DefaultController::resetCache();
         
         return $data;
     }
