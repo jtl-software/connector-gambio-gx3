@@ -28,9 +28,16 @@ class Image extends AbstractMapper
 
     private $thumbConfig;
 
+    /**
+     * @param IDatabase $db
+     * @param array $shopConfig
+     * @param stdClass $connectorConfig
+     * @throws \Exception
+     */
     public function __construct(IDatabase $db, array $shopConfig, \stdClass $connectorConfig)
     {
         parent::__construct($db, $shopConfig, $connectorConfig);
+
         $this->thumbConfig = [
             'info' => [
                 $this->shopConfig['settings']['PRODUCT_IMAGE_INFO_WIDTH'],
@@ -51,6 +58,12 @@ class Image extends AbstractMapper
         ];
     }
 
+    /**
+     * @param null $data
+     * @param null $limit
+     * @return array
+     * @throws \Exception
+     */
     public function pull($data = null, $limit = null): array
     {
         $result = [];
@@ -125,11 +138,11 @@ class Image extends AbstractMapper
     {
         if (get_class($data) === ImageModel::class && $data->getForeignKey()->getEndpoint() !== '') {
 
-            $imageId = self::extractImageId($data->getId()->getEndpoint());
-
             switch ($data->getRelationType()) {
                 case ImageRelationType::TYPE_CATEGORY:
                 case ImageRelationType::TYPE_MANUFACTURER:
+
+                    $imageId = self::extractImageId($data->getForeignKey()->getEndpoint());
 
                     $indexMappings = [
                         ImageRelationType::TYPE_CATEGORY => 'categories',
@@ -139,7 +152,8 @@ class Image extends AbstractMapper
                     $subject = $indexMappings[$data->getRelationType()];
 
                     $oldImage = null;
-                    $oldImageResult = $this->db->query(sprintf('SELECT %s_image FROM %s WHERE %s_id = %d', $subject, $subject, $subject, $imageId));
+                    $sql = sprintf('SELECT %s_image FROM %s WHERE %s_id = %d', $subject, $subject, $subject, $imageId);
+                    $oldImageResult = $this->db->query($sql);
 
                     $imageIndex = sprintf('%s_image', $subject);
                     if (isset($oldImageResult[0][$imageIndex]) && $oldImageResult[0][$imageIndex] !== '') {
@@ -173,78 +187,82 @@ class Image extends AbstractMapper
 
                 case ImageRelationType::TYPE_PRODUCT:
 
+                    $imageId = self::extractImageId($data->getId()->getEndpoint());
+
                     $productId = $data->getForeignKey()->getEndpoint();
 
-                    if ($data->getSort() == 1 && Product::isVariationChild($productId)) {
-                        $this->delete($data);
+                    if (Product::isVariationChild($productId)) {
+                        if ($data->getSort() == 1) {
+                            $this->delete($data);
 
-                        $combiId = explode('_', $productId);
-                        $combiId = $combiId[1];
+                            $combiId = explode('_', $productId);
+                            $combiId = $combiId[1];
 
-                        if (!empty($combiId)) {
-                            $imgFileName = $this->generateImageName($data);
+                            if (!empty($combiId)) {
+                                $imgFileName = $this->generateImageName($data);
 
-                            if (ShopVersion::isGreaterOrEqual('4.1')) {
-                                $imagePath = $this->createImageFilePath($imgFileName, ImageRelationType::TYPE_PRODUCT);
-                                if (!rename($data->getFilename(), $imagePath)) {
-                                    throw new \Exception('Cannot move uploaded image file');
-                                }
+                                if (ShopVersion::isGreaterOrEqual('4.1')) {
+                                    $imagePath = $this->createImageFilePath($imgFileName, ImageRelationType::TYPE_PRODUCT);
+                                    if (!rename($data->getFilename(), $imagePath)) {
+                                        throw new \Exception('Cannot move uploaded image file');
+                                    }
 
-                                $listName = 'combination-list-' . $combiId;
-                                $imageList = $this->db->query(
-                                    sprintf('SELECT product_image_list_id 
+                                    $listName = 'combination-list-' . $combiId;
+                                    $imageList = $this->db->query(
+                                        sprintf('SELECT product_image_list_id 
                                             FROM product_image_list 
                                             WHERE product_image_list_name = "%s"', $listName)
-                                );
-                                $imageListId = $imageList[0]['product_image_list_id'] ?? null;
-                                if ($imageListId === null) {
-                                    $obj = new \stdClass();
-                                    $obj->product_image_list_name = $listName;
-                                    $imageList = $this->db->insertRow($obj, 'product_image_list');
+                                    );
+                                    $imageListId = $imageList[0]['product_image_list_id'] ?? null;
+                                    if ($imageListId === null) {
+                                        $obj = new \stdClass();
+                                        $obj->product_image_list_name = $listName;
+                                        $imageList = $this->db->insertRow($obj, 'product_image_list');
 
-                                    if ($imageList instanceof Mysql && $imageList->getErrno() === 0) {
-                                        $imageListId = $imageList->getKey();
-                                    }
-                                }
-
-                                if (!is_null($imageListId)) {
-                                    $obj = new \stdClass();
-                                    $obj->product_image_list_id = $imageListId;
-                                    $obj->product_image_list_image_local_path = $imagePath;
-                                    $listImage = $this->db->deleteInsertRow($obj, 'product_image_list_image', 'product_image_list_id', $imageListId);
-                                    $imageListImageId = $listImage->getKey();
-
-                                    $obj = new \stdClass();
-                                    $obj->products_properties_combis_id = $combiId;
-                                    $obj->product_image_list_id = $imageListId;
-                                    $this->db->deleteInsertRow($obj, 'product_image_list_combi', 'products_properties_combis_id', $combiId);
-
-                                    $i18ns = $data->getI18ns();
-                                    if (empty($i18ns)) {
-                                        $defaultLanguageId = $this->configHelper->getDefaultLanguage();
-                                        $this->saveCombiI18n($imageListImageId, 'title', $imgFileName, $defaultLanguageId);
-                                        $this->saveCombiI18n($imageListImageId, 'alt_title', '', $defaultLanguageId);
-                                    } else {
-                                        foreach ($i18ns as $imageI18n) {
-                                            $languageId = $this->locale2id($imageI18n->getLanguageISO());
-                                            $this->saveCombiI18n($imageListImageId, 'title', $imgFileName, $languageId);
-                                            $this->saveCombiI18n($imageListImageId, 'alt_title', $imageI18n->getAltText(), $languageId);
+                                        if ($imageList instanceof Mysql && $imageList->getErrno() === 0) {
+                                            $imageListId = $imageList->getKey();
                                         }
                                     }
 
-                                    $this->generateThumbs($imgFileName);
-                                }
-                            } else {
-                                if (!rename($data->getFilename(), $this->shopConfig['shop']['path'] . 'images/product_images/properties_combis_images/' . $imgFileName)) {
-                                    throw new \Exception('Cannot move uploaded image file');
+                                    if (!is_null($imageListId)) {
+                                        $obj = new \stdClass();
+                                        $obj->product_image_list_id = $imageListId;
+                                        $obj->product_image_list_image_local_path = $imagePath;
+                                        $listImage = $this->db->deleteInsertRow($obj, 'product_image_list_image', 'product_image_list_id', $imageListId);
+                                        $imageListImageId = $listImage->getKey();
+
+                                        $obj = new \stdClass();
+                                        $obj->products_properties_combis_id = $combiId;
+                                        $obj->product_image_list_id = $imageListId;
+                                        $this->db->deleteInsertRow($obj, 'product_image_list_combi', 'products_properties_combis_id', $combiId);
+
+                                        $i18ns = $data->getI18ns();
+                                        if (empty($i18ns)) {
+                                            $defaultLanguageId = $this->configHelper->getDefaultLanguage();
+                                            $this->saveCombiI18n($imageListImageId, 'title', $imgFileName, $defaultLanguageId);
+                                            $this->saveCombiI18n($imageListImageId, 'alt_title', '', $defaultLanguageId);
+                                        } else {
+                                            foreach ($i18ns as $imageI18n) {
+                                                $languageId = $this->locale2id($imageI18n->getLanguageISO());
+                                                $this->saveCombiI18n($imageListImageId, 'title', $imgFileName, $languageId);
+                                                $this->saveCombiI18n($imageListImageId, 'alt_title', $imageI18n->getAltText(), $languageId);
+                                            }
+                                        }
+
+                                        $this->generateThumbs($imgFileName);
+                                    }
+                                } else {
+                                    if (!rename($data->getFilename(), $this->shopConfig['shop']['path'] . 'images/product_images/properties_combis_images/' . $imgFileName)) {
+                                        throw new \Exception('Cannot move uploaded image file');
+                                    }
+
+                                    $combisObj = new \stdClass();
+                                    $combisObj->combi_image = $imgFileName;
+                                    $this->db->updateRow($combisObj, 'products_properties_combis', 'products_properties_combis_id', $combiId);
                                 }
 
-                                $combisObj = new \stdClass();
-                                $combisObj->combi_image = $imgFileName;
-                                $this->db->updateRow($combisObj, 'products_properties_combis', 'products_properties_combis_id', $combiId);
+                                $this->db->query(sprintf('INSERT INTO jtl_connector_link_image SET host_id="%s", endpoint_id="vID_%s"', $data->getId()->getHost(), $combiId));
                             }
-
-                            $this->db->query(sprintf('INSERT INTO jtl_connector_link_image SET host_id="%s", endpoint_id="vID_%s"', $data->getId()->getHost(), $combiId));
                         }
                     } else {
 
@@ -470,7 +488,7 @@ class Image extends AbstractMapper
                     break;
             }
 
-            $this->db->query('DELETE FROM jtl_connector_link_image WHERE endpoint_id="'.$data->getId()->getEndpoint().'"');
+            $this->db->query('DELETE FROM jtl_connector_link_image WHERE endpoint_id="' . $data->getId()->getEndpoint() . '"');
         }
 
         return $data;
@@ -561,9 +579,9 @@ class Image extends AbstractMapper
     protected function remoteUrl($data)
     {
         if ($data['type'] == ImageRelationType::TYPE_CATEGORY) {
-            return $this->shopConfig['shop']['fullUrl'].'images/categories/'.$data['image_name'];
+            return $this->shopConfig['shop']['fullUrl'] . 'images/categories/' . $data['image_name'];
         } elseif ($data['type'] == ImageRelationType::TYPE_MANUFACTURER) {
-            return $this->shopConfig['shop']['fullUrl'].'images/'.$data['image_name'];
+            return $this->shopConfig['shop']['fullUrl'] . 'images/' . $data['image_name'];
         } else {
             if (strpos($data['image_id'], 'vID_') !== false) {
                 if (ShopVersion::isGreaterOrEqual('4.1')) {
@@ -579,17 +597,17 @@ class Image extends AbstractMapper
 
     private function generateThumbs($fileName, $oldImage = null)
     {
-        $imgInfo = getimagesize($this->shopConfig['shop']['path'].$this->shopConfig['img']['original'].$fileName);
+        $imgInfo = getimagesize($this->shopConfig['shop']['path'] . $this->shopConfig['img']['original'] . $fileName);
 
         switch ($imgInfo[2]) {
             case 1:
-                $image = imagecreatefromgif($this->shopConfig['shop']['path'].$this->shopConfig['img']['original'].$fileName);
+                $image = imagecreatefromgif($this->shopConfig['shop']['path'] . $this->shopConfig['img']['original'] . $fileName);
                 break;
             case 2:
-                $image = imagecreatefromjpeg($this->shopConfig['shop']['path'].$this->shopConfig['img']['original'].$fileName);
+                $image = imagecreatefromjpeg($this->shopConfig['shop']['path'] . $this->shopConfig['img']['original'] . $fileName);
                 break;
             case 3:
-                $image = imagecreatefrompng($this->shopConfig['shop']['path'].$this->shopConfig['img']['original'].$fileName);
+                $image = imagecreatefrompng($this->shopConfig['shop']['path'] . $this->shopConfig['img']['original'] . $fileName);
                 break;
         }
 
@@ -599,16 +617,16 @@ class Image extends AbstractMapper
 
         foreach ($this->thumbConfig as $folder => $sizes) {
             if (!empty($oldImage)) {
-                unlink($this->shopConfig['shop']['path'].$this->shopConfig['img'][$folder].$oldImage);
+                unlink($this->shopConfig['shop']['path'] . $this->shopConfig['img'][$folder] . $oldImage);
             }
 
             $thumb_width = $sizes[0];
             $thumb_height = $sizes[1];
 
             $new_width = $thumb_width;
-            $new_height = round($new_width*($height/$width));
+            $new_height = round($new_width * ($height / $width));
             $new_x = 0;
-            $new_y = round(($thumb_height-$new_height)/2);
+            $new_y = round(($thumb_height - $new_height) / 2);
 
             if ($this->connectorConfig->thumbs === 'fill') {
                 $next = $new_height < $thumb_height;
@@ -618,8 +636,8 @@ class Image extends AbstractMapper
 
             if ($next) {
                 $new_height = $thumb_height;
-                $new_width = round($new_height*($width/$height));
-                $new_x = round(($thumb_width - $new_width)/2);
+                $new_width = round($new_height * ($width / $height));
+                $new_x = round(($thumb_width - $new_width) / 2);
                 $new_y = 0;
             }
 
@@ -647,13 +665,13 @@ class Image extends AbstractMapper
 
             switch ($imgInfo[2]) {
                 case 1:
-                    imagegif($thumb, $this->shopConfig['shop']['path'].$this->shopConfig['img'][$folder].$fileName);
+                    imagegif($thumb, $this->shopConfig['shop']['path'] . $this->shopConfig['img'][$folder] . $fileName);
                     break;
                 case 2:
-                    imagejpeg($thumb, $this->shopConfig['shop']['path'].$this->shopConfig['img'][$folder].$fileName);
+                    imagejpeg($thumb, $this->shopConfig['shop']['path'] . $this->shopConfig['img'][$folder] . $fileName);
                     break;
                 case 3:
-                    imagepng($thumb, $this->shopConfig['shop']['path'].$this->shopConfig['img'][$folder].$fileName);
+                    imagepng($thumb, $this->shopConfig['shop']['path'] . $this->shopConfig['img'][$folder] . $fileName);
                     break;
             }
         }

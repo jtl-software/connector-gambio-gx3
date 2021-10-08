@@ -1,3 +1,21 @@
+2.17.0
+------
+- CO-1462 - Added product tax class guessing on product push
+- CO-1015 - Added extended error info messages
+
+2.16.3
+------
+- Hotfix manufacturer, category image push
+
+2.16.2
+------
+- Hotfix variation images
+
+2.16.1
+------
+- Fixed product image push
+- Added foreign key check on image push/delete
+
 2.16.0
 ------
 - CO-1521 - Fixed image deletion when product is removed
