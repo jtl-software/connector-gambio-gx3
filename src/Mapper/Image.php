@@ -137,7 +137,6 @@ class Image extends AbstractMapper
     public function push($data, $dbObj = null)
     {
         if (get_class($data) === ImageModel::class && $data->getForeignKey()->getEndpoint() !== '') {
-
             switch ($data->getRelationType()) {
                 case ImageRelationType::TYPE_CATEGORY:
                 case ImageRelationType::TYPE_MANUFACTURER:
@@ -265,7 +264,6 @@ class Image extends AbstractMapper
                             }
                         }
                     } else {
-
                         if (!empty($imageId)) {
                             $prevImgQuery = $this->db->query(sprintf('SELECT image_name FROM products_images WHERE image_id = "%s"', $imageId));
                             if (count($prevImgQuery) > 0) {
@@ -311,7 +309,8 @@ class Image extends AbstractMapper
                             $data->getId()->setEndpoint('pID_' . $productId);
 
                             foreach ($data->getI18ns() as $i18n) {
-                                $updateImgAltQuery = sprintf('UPDATE products_description SET gm_alt_text="%s" WHERE products_id="%s" && language_id=%s',
+                                $updateImgAltQuery = sprintf(
+                                    'UPDATE products_description SET gm_alt_text="%s" WHERE products_id="%s" && language_id=%s',
                                     $i18n->getAltText(),
                                     $productId,
                                     $this->locale2id($i18n->getLanguageISO())
@@ -326,7 +325,8 @@ class Image extends AbstractMapper
                             $newIdQuery = $this->db->deleteInsertRow($imgObj, 'products_images', ['image_nr', 'products_id'], [$imgObj->image_nr, $imgObj->products_id]);
                             $data->getId()->setEndpoint($newIdQuery->getKey());
                             foreach ($data->getI18ns() as $i18n) {
-                                $updateImgAltQuery = sprintf('INSERT INTO gm_prd_img_alt SET gm_alt_text="%s", products_id="%s", image_id="%s", language_id=%s',
+                                $updateImgAltQuery = sprintf(
+                                    'INSERT INTO gm_prd_img_alt SET gm_alt_text="%s", products_id="%s", image_id="%s", language_id=%s',
                                     $i18n->getAltText(),
                                     $imgObj->products_id,
                                     $data->getId()->getEndpoint(),
@@ -342,7 +342,6 @@ class Image extends AbstractMapper
 
                     break;
             }
-
         }
 
         return $data;
@@ -388,7 +387,6 @@ class Image extends AbstractMapper
     public function delete($data)
     {
         if (get_class($data) === ImageModel::class && $data->getForeignKey()->getEndpoint() !== '') {
-
             $imageId = self::extractImageId($data->getId()->getEndpoint());
 
             switch ($data->getRelationType()) {
@@ -415,7 +413,6 @@ class Image extends AbstractMapper
                         $relatedObj = new \stdClass();
                         $relatedObj->{sprintf('%s_image', $subject)} = null;
                         $this->db->updateRow($relatedObj, $subject, sprintf('%s_id', $subject), $fkId);
-
                     }
                     break;
                 case ImageRelationType::TYPE_PRODUCT:
@@ -465,7 +462,6 @@ class Image extends AbstractMapper
                         }
                     } else {
                         if (!empty($imageId)) {
-
                             $prevImgQuery = $this->db->query(sprintf('SELECT image_name FROM products_images WHERE image_id = "%s"', $imageId));
                             if (count($prevImgQuery) > 0) {
                                 $prevImage = $prevImgQuery[0]['image_name'];

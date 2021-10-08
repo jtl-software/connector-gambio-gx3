@@ -130,7 +130,7 @@ class Payment extends \jtl\Connector\Gambio\Mapper\AbstractMapper
 
         $rows = $this->db->query(sprintf($sql, implode(',', $orderStatusIds)));
 
-        return array_map(function(array $row) {
+        return array_map(function (array $row) {
             return (new PaymentModel())
                 ->setCreationDate(new \DateTime($row['date_purchased']))
                 ->setCustomerOrderId($this->identity($row['orders_id']))
@@ -156,7 +156,7 @@ class Payment extends \jtl\Connector\Gambio\Mapper\AbstractMapper
 
         $rows = $this->db->query($sql);
 
-        return array_map(function(array $row) {
+        return array_map(function (array $row) {
             return (new PaymentModel())
                 ->setCreationDate(new \DateTime($row['date_purchased']))
                 ->setCustomerOrderId($this->identity($row['orders_id']))

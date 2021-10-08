@@ -8,5 +8,4 @@ namespace jtl\Connector\Gambio\Mapper;
  */
 class Connector extends AbstractMapper
 {
-
 }

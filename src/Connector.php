@@ -88,8 +88,8 @@ class Connector extends BaseConnector
         $this->setTokenLoader(new TokenLoader());
         $this->setChecksumLoader(new ChecksumLoader());
 
-        $this->getEventDispatcher()->addListener(ConnectorAfterFinishEvent::EVENT_NAME, function(ConnectorAfterFinishEvent $event) use($db) {
-            if(isset($_SESSION[self::FINISH_TASK_CLEANUP_PRODUCT_PROPERTIES]) && $_SESSION[self::FINISH_TASK_CLEANUP_PRODUCT_PROPERTIES] === true) {
+        $this->getEventDispatcher()->addListener(ConnectorAfterFinishEvent::EVENT_NAME, function (ConnectorAfterFinishEvent $event) use ($db) {
+            if (isset($_SESSION[self::FINISH_TASK_CLEANUP_PRODUCT_PROPERTIES]) && $_SESSION[self::FINISH_TASK_CLEANUP_PRODUCT_PROPERTIES] === true) {
                 $queries = [
                     'DELETE pv FROM properties_values pv WHERE pv.properties_values_id NOT IN (SELECT properties_values_id FROM products_properties_combis_values);',
                     'DELETE pvd FROM properties_values_description pvd WHERE pvd.properties_values_id NOT IN (SELECT properties_values_id FROM properties_values);',
@@ -97,7 +97,7 @@ class Connector extends BaseConnector
                     'DELETE pd FROM properties_description pd WHERE pd.properties_id NOT IN (SELECT properties_id FROM properties);'
                 ];
 
-                foreach($queries as $sql) {
+                foreach ($queries as $sql) {
                     $db->query($sql);
                 }
 
@@ -188,7 +188,6 @@ class Connector extends BaseConnector
                 $result = $this->controller->{$this->action}($model);
 
                 if ($result->getError()) {
-
                     $link->rollback();
 
                     if ($result->getError()) {

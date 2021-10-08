@@ -20,7 +20,6 @@ class DeliveryNote extends DefaultController
         $orderId = $data->getCustomerOrderId()->getEndpoint();
 
         if (!empty($orderId)) {
-
             $order = $this->db->query(sprintf('SELECT l.languages_id FROM orders AS o LEFT JOIN languages AS l ON o.language = l.directory WHERE orders_id = %s', $orderId));
             if (isset($order[0])) {
                 $languageId = $order[0]['languages_id'] ?? 0;
@@ -33,10 +32,16 @@ class DeliveryNote extends DefaultController
                         foreach ($list->getCodes() as $code) {
                             $trackingUrl = str_replace('{TRACKING_NUMBER}', $code, $trackingUrlTemplate);
                             $this->db->query(
-                                sprintf('
+                                sprintf(
+                                    '
                                     INSERT INTO orders_parcel_tracking_codes SET
                                     order_id="%s", tracking_code="%s", parcel_service_id=%s, parcel_service_name="%s", language_id="%s", url="%s", comment=""',
-                                    $orderId, $code, $carrier['parcel_service_id'], $carrier['name'], $languageId, $trackingUrl
+                                    $orderId,
+                                    $code,
+                                    $carrier['parcel_service_id'],
+                                    $carrier['name'],
+                                    $languageId,
+                                    $trackingUrl
                                 )
                             );
                         }

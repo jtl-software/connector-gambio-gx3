@@ -820,7 +820,7 @@ class Product extends AbstractMapper
     protected function findTaxClassId(TaxRate ...$taxRates): ?string
     {
         $conditions = [];
-        foreach($taxRates as $taxRate){
+        foreach ($taxRates as $taxRate) {
             $conditions[] = sprintf("(c.countries_iso_code_2 = '%s' AND tr.tax_rate='%s')", $taxRate->getCountryIso(), number_format($taxRate->getRate(), 4));
         }
 
@@ -830,7 +830,7 @@ class Product extends AbstractMapper
                 LEFT JOIN countries c ON ztgz.zone_country_id = c.countries_id
                 WHERE %s
                 GROUP BY tax_class_id
-                ORDER BY hits DESC',join(' OR ',$conditions)));
+                ORDER BY hits DESC', join(' OR ', $conditions)));
 
         return $taxClasses[0]['tax_class_id'] ?? null;
     }

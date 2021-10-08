@@ -122,7 +122,8 @@ class CategoryIndexHelper
             $categoriesIndex .= sprintf("-%s-", (int)$categoryId);
         }
 
-        $this->queryValuesPart[] = sprintf('(%s,"%s")',
+        $this->queryValuesPart[] = sprintf(
+            '(%s,"%s")',
             $productId,
             $categoriesIndex
         );
@@ -136,7 +137,8 @@ class CategoryIndexHelper
         if (!empty($this->queryValuesPart)) {
             //save built index
             foreach (array_chunk($this->queryValuesPart, 500) as $part) {
-                $this->db->query(sprintf("REPLACE INTO `categories_index` (`products_id`, `categories_index`) VALUES %s",
+                $this->db->query(sprintf(
+                    "REPLACE INTO `categories_index` (`products_id`, `categories_index`) VALUES %s",
                     implode(',', $part)
                 ));
             }
