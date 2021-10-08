@@ -190,7 +190,7 @@ class Image extends BaseMapper
                                 $imageListImageId = $this->saveCombiImage($data, $combiId, $imgFileName);
                                 $endpoint = sprintf('vID_%s_%s', $combiId, $imageListImageId);
                             } else {
-                                if($data->getSort() == 1) {
+                                if($data->getSort() === 1) {
                                     if (!rename($data->getFilename(), $this->shopConfig['shop']['path'] . 'images/product_images/properties_combis_images/' . $imgFileName)) {
                                         throw new \Exception('Cannot move uploaded image file');
                                     }
@@ -326,7 +326,7 @@ class Image extends BaseMapper
         if (!is_null($imageListId)) {
             $obj = new \stdClass();
             $obj->product_image_list_id = $imageListId;
-            $obj->product_image_list_image_local_path = sprintf('%s%s', $this->mapImageRelation(ImageRelationType::TYPE_PRODUCT), $imgFileName);
+            $obj->product_image_list_image_local_path = sprintf('%s%s', $this->determineRelativeImagePathByRelationType(ImageRelationType::TYPE_PRODUCT), $imgFileName);
             $obj->product_image_list_image_sort_order = $data->getSort();
 
             $column = 'product_image_list_image_id';
@@ -336,11 +336,7 @@ class Image extends BaseMapper
                 $id = $imageListId;
             }
 
-            if (empty($imageListImageId)) {
-                $listImage = $this->db->insertRow($obj, 'product_image_list_image');
-            } else{
-                $listImage = $this->db->deleteInsertRow($obj, 'product_image_list_image', $column, $id);
-            }
+            $listImage = $this->db->deleteInsertRow($obj, 'product_image_list_image', $column, $id);
             $imageListImageId = $listImage->getKey();
 
             $obj = new \stdClass();
@@ -715,7 +711,7 @@ class Image extends BaseMapper
      */
     protected function createImageFilePath(string $imageName, string $relationType): string
     {
-        $imagesPath = $this->mapImageRelation($relationType);
+        $imagesPath = $this->determineRelativeImagePathByRelationType($relationType);
 
         $directoryName = sprintf('%s/%s', rtrim($this->shopConfig['shop']['path'], '/'), trim($imagesPath, '/'));
         if (!file_exists($directoryName) && !mkdir($directoryName, 0755, true)) {
@@ -729,7 +725,7 @@ class Image extends BaseMapper
      * @param string $relationType
      * @return string
      */
-    protected function mapImageRelation(string $relationType): string
+    protected function determineRelativeImagePathByRelationType(string $relationType): string
     {
         $imagesPath = $this->shopConfig['img']['original'];
         switch ($relationType) {
