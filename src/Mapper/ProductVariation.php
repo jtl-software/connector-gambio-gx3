@@ -225,7 +225,7 @@ class ProductVariation extends Product
                         $propertiesAdminName = $this->createPropertyAdminName($variationName, $displayType);
 
                         // try to find existing variation id
-                        $variationIdQuery = $this->db->query(sprintf('SELECT properties_id FROM properties_description WHERE properties_admin_name="%s"', $propertiesAdminName));
+                        $variationIdQuery = $this->db->query(sprintf('SELECT properties_id FROM properties_description WHERE properties_admin_name = "%s"', $propertiesAdminName));
 
                         // use existing id or generate next available one
                         if (count($variationIdQuery) > 0) {
@@ -267,9 +267,9 @@ class ProductVariation extends Product
 
                             $sql = 'SELECT v.properties_values_id ' . "\n" .
                                 'FROM properties_values_description d ' . "\n" .
-                                'LEFT JOIN properties_values v ON v.properties_values_id=d.properties_values_id ' . "\n" .
-                                'LEFT JOIN properties p ON p.properties_id=v.properties_id ' . "\n" .
-                                'WHERE p.properties_id=' . $variationId . ' && d.language_id=' . $langId . ' && d.values_name="' . $valueName . '"';
+                                'LEFT JOIN properties_values v ON v.properties_values_id = d.properties_values_id ' . "\n" .
+                                'LEFT JOIN properties p ON p.properties_id = v.properties_id ' . "\n" .
+                                'WHERE p.properties_id = ' . $variationId . ' AND d.language_id = ' . $langId . ' AND d.values_name = "' . $valueName . '"';
 
                             // try to find existing value id
                             $valueIdQuery = $this->db->query($sql);
@@ -502,7 +502,7 @@ class ProductVariation extends Product
 
             $propertyAdminName = $this->createPropertyAdminName($variationName, ProductVariation::mapVariationType($variation->getType()));
 
-            $variationIdQuery = $this->db->query(sprintf('SELECT properties_id FROM properties_description WHERE properties_admin_name="%s"', $propertyAdminName));
+            $variationIdQuery = $this->db->query(sprintf('SELECT properties_id FROM properties_description WHERE properties_admin_name = "%s"', $propertyAdminName));
 
             if (count($variationIdQuery) > 0) {
                 static::$variationIds[$variation->getId()->getHost()] = $variationIdQuery[0]['properties_id'];
