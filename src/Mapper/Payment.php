@@ -152,9 +152,16 @@ class Payment extends \jtl\Connector\Gambio\Mapper\AbstractMapper
                 LEFT JOIN orders_total t ON o.orders_id = t.orders_id AND t.class = \'ot_total\'
                 LEFT JOIN jtl_connector_link_payment l ON o.orders_id = l.endpoint_id
                 LEFT JOIN jtl_connector_link_customer_order lo ON o.orders_id = lo.endpoint_id
-                WHERE o.payment_method = \'gambio_hub\' AND l.host_id IS NULL AND lo.endpoint_id IS NOT NULL';
+                WHERE 
+                      l.host_id IS NULL AND 
+                      lo.endpoint_id IS NOT NULL AND 
+                      o.payment_method = \'gambio_hub\' AND 
+                      o.orders_status NOT IN (%s) AND
+                      o.gambio_hub_transaction_code != ""';
 
-        $rows = $this->db->query($sql);
+        $forbiddenStatusIds = $this->connectorConfig->custom->payment->pull->ignore_status_list ?? [0, 1];
+
+        $rows = $this->db->query(sprintf($sql, [join(',', $forbiddenStatusIds)]));
 
         return array_map(function (array $row) {
             return (new PaymentModel())
