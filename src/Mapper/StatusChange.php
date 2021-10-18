@@ -4,23 +4,26 @@ namespace jtl\Connector\Gambio\Mapper;
 
 use jtl\Connector\Gambio\Connector;
 use jtl\Connector\Gambio\Gambio\Application;
+use jtl\Connector\Model\DataModel;
 use jtl\Connector\Model\StatusChange as StatusChangeModel;
 use jtl\Connector\Model\CustomerOrder;
 
 class StatusChange extends AbstractMapper
 {
     /**
-     * @param StatusChangeModel $status
-     * @return StatusChangeModel
+     * @param DataModel $model
+     * @param \stdClass|null $dbObj
+     * @return DataModel
      */
-    public function push(StatusChangeModel $status)
+    public function push(DataModel $model, \stdClass $dbObj = null)
     {
-        $customerOrderId = (int) $status->getCustomerOrderId()->getEndpoint();
+        /** @var StatusChangeModel $model */
+        $customerOrderId = (int) $model->getCustomerOrderId()->getEndpoint();
 
         if ($customerOrderId > 0) {
             $mapping = (array) $this->connectorConfig->mapping;
             
-            $newStatus = $mapping[$this->getStatus($status)] ?? null;
+            $newStatus = $mapping[$this->getStatus($model)] ?? null;
 
             if (!is_null($newStatus)) {
                 /** @var \OrderWriteService $service */
@@ -30,7 +33,7 @@ class StatusChange extends AbstractMapper
             }
         }
 
-        return $status;
+        return $model;
     }
 
     /**
