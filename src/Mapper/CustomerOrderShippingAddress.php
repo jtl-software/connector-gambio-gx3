@@ -4,7 +4,7 @@ namespace jtl\Connector\Gambio\Mapper;
 
 use jtl\Connector\Core\Utilities\Country;
 
-class CustomerOrderShippingAddress extends BaseMapper
+class CustomerOrderShippingAddress extends AbstractMapper
 {
     protected $mapperConfig = [
         "table" => "customer_orders",
@@ -57,7 +57,7 @@ class CustomerOrderShippingAddress extends BaseMapper
         }
     }
 
-    public function pull($data = null, $limit = null)
+    public function pull($data = null, $limit = null): array
     {
         return [$this->generateModel($data)];
     }

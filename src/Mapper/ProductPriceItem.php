@@ -2,7 +2,7 @@
 
 namespace jtl\Connector\Gambio\Mapper;
 
-class ProductPriceItem extends BaseMapper
+class ProductPriceItem extends AbstractMapper
 {
     private static $parentPrice = null;
 
@@ -15,7 +15,7 @@ class ProductPriceItem extends BaseMapper
         ]
     ];
 
-    public function pull($data = null, $limit = null)
+    public function pull($data = null, $limit = null): array
     {
         $return = [];
 

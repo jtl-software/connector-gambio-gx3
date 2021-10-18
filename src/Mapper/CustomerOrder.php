@@ -2,11 +2,12 @@
 
 namespace jtl\Connector\Gambio\Mapper;
 
+use jtl\Connector\Core\Database\IDatabase;
 use jtl\Connector\Model\CustomerOrder as CustomerOrderModel;
 use jtl\Connector\Payment\PaymentTypes;
 use jtl\Connector\Model\CustomerOrderItem;
 
-class CustomerOrder extends BaseMapper
+class CustomerOrder extends AbstractMapper
 {
     protected $mapperConfig = [
         "table" => "orders",
@@ -50,16 +51,15 @@ class CustomerOrder extends BaseMapper
         ],
     ];
 
-    public function __construct()
+    public function __construct(IDatabase $db, array $shopConfig, \stdClass $connectorConfig)
     {
-        parent::__construct();
-
+        parent::__construct($db, $shopConfig, $connectorConfig);
         if (!empty($this->connectorConfig->from_date)) {
             $this->mapperConfig['query'] .= ' && date_purchased >= "' . $this->connectorConfig->from_date . '"';
         }
     }
 
-    public function pull($data = null, $limit = null)
+    public function pull($data = null, $limit = null): array
     {
         return parent::pull(null, $limit);
     }

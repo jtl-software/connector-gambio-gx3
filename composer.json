@@ -22,11 +22,12 @@
         "jtl/connector": "^3.2",
         "phing/phing": "^2.16",
         "nette/utils": "^3.1",
-        "ext-json": "*"
+        "ext-json": "*",
+        "jtl/connector-components-xtc": "^0.1.0"
     },
     "require-dev": {
         "jtl/connector-integration-tests": "dev-develop",
-        "friendsofphp/php-cs-fixer": "^2.16"
+        "friendsofphp/php-cs-fixer": "^3.2"
     },
     "autoload": {
         "psr-4": {

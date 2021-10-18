@@ -2,12 +2,12 @@
 
 namespace jtl\Connector\Gambio\Mapper;
 
-use jtl\Connector\Gambio\Mapper\BaseMapper;
+use jtl\Connector\Gambio\Mapper\AbstractMapper;
 use jtl\Connector\Model\CrossSellingItem as CrossSellingItemModel;
 
-class CrossSellingItem extends BaseMapper
+class CrossSellingItem extends AbstractMapper
 {
-    public function pull($data, $limit = null)
+    public function pull($data, $limit = null): array
     {
         $query = 'SELECT x.* FROM products_xsell x WHERE x.products_id = "'.$data['products_id'].'"';
         $results = $this->db->query($query);

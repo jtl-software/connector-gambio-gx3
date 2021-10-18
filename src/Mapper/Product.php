@@ -3,6 +3,7 @@
 namespace jtl\Connector\Gambio\Mapper;
 
 use jtl\Connector\Gambio\Installer\Config;
+use \jtl\Connector\Gambio\Mapper\AbstractMapper;
 use jtl\Connector\Gambio\Util\CategoryIndexHelper;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\ProductStockLevel;
@@ -18,7 +19,7 @@ use jtl\Connector\Model\ProductI18n as ProductI18nModel;
 use jtl\Connector\Model\TaxRate;
 use jtl\Connector\Gambio\Util\MeasurementUnitHelper;
 
-class Product extends BaseMapper
+class Product extends AbstractMapper
 {
     private static $idCache = [];
 
@@ -120,7 +121,7 @@ class Product extends BaseMapper
         'product_type' => 'Artikeltyp',
     ];
 
-    public function pull($data = null, $limit = null)
+    public function pull($data = null, $limit = null): array
     {
         $this->mapperConfig['query'] =
             'SELECT j.* , qud.unit_name, pv.products_vpe_name vpe_name, c.code_isbn, c.code_mpn, c.code_upc, c.google_export_condition, c.google_export_availability_id, g.google_category ' . "\n" .
@@ -220,7 +221,7 @@ class Product extends BaseMapper
                 $jtlDefaultPrice = (new ProductPriceModel())
                     ->setId($this->identity($jtlProduct->getId()->getEndpoint() . '_default'))
                     ->setProductId($jtlProduct->getId())
-                    ->setCustomerGroupId($this->identity(null));
+                    ->setCustomerGroupId($this->identity(''));
 
                 $jtlDefaultPriceItem = (new ProductPriceItemModel())
                     ->setProductPriceId($jtlDefaultPrice->getId())
@@ -399,11 +400,11 @@ class Product extends BaseMapper
     }
 
     /**
-     * @param $returnModel
+     * @param $product
      * @param $dbObj
-     * @param ProductModel $product
+     * @throws \jtl\Connector\Core\Exception\LanguageException
      */
-    protected function pushDone($returnModel, $dbObj, $product)
+    protected function pushDone($product, $dbObj)
     {
         (new CategoryIndexHelper())->rebuildProductCategoryCache();
 
@@ -465,7 +466,7 @@ class Product extends BaseMapper
         }
 
         $this->db->updateRow($dbObj, 'products', 'products_id', $productsId);
-        $attributes = (new ProductAttr())->push($product);
+        $attributes = (new ProductAttr($this->db, $this->shopConfig, $this->connectorConfig))->push($product, new \stdClass());
 
         if (count($checkCodes) > 0) {
             $this->db->updateRow($codes, 'products_item_codes', 'products_id', $productsId);
@@ -819,7 +820,7 @@ class Product extends BaseMapper
     protected function findTaxClassId(TaxRate ...$taxRates): ?string
     {
         $conditions = [];
-        foreach($taxRates as $taxRate){
+        foreach ($taxRates as $taxRate) {
             $conditions[] = sprintf("(c.countries_iso_code_2 = '%s' AND tr.tax_rate='%s')", $taxRate->getCountryIso(), number_format($taxRate->getRate(), 4));
         }
 
@@ -829,7 +830,7 @@ class Product extends BaseMapper
                 LEFT JOIN countries c ON ztgz.zone_country_id = c.countries_id
                 WHERE %s
                 GROUP BY tax_class_id
-                ORDER BY hits DESC',join(' OR ',$conditions)));
+                ORDER BY hits DESC', join(' OR ', $conditions)));
 
         return $taxClasses[0]['tax_class_id'] ?? null;
     }
@@ -839,7 +840,7 @@ class Product extends BaseMapper
         return round($data->getStockLevel()->getStockLevel());
     }
 
-    public function statistic()
+    public function statistic(): int
     {
         $count = 0;
 

@@ -2,9 +2,9 @@
 
 namespace jtl\Connector\Gambio\Mapper;
 
-use jtl\Connector\Gambio\Mapper\BaseMapper;
+use jtl\Connector\Gambio\Mapper\AbstractMapper;
 
-class Product2Category extends BaseMapper
+class Product2Category extends AbstractMapper
 {
     protected $mapperConfig = [
         "table" => "products_to_categories",

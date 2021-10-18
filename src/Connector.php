@@ -10,6 +10,7 @@ use \jtl\Connector\Core\Database\Mysql;
 use jtl\Connector\Gambio\Controller\BaseController;
 use jtl\Connector\Gambio\Gambio\Application;
 use jtl\Connector\Event\Connector\ConnectorAfterFinishEvent;
+use jtl\Connector\Gambio\Controller\DefaultController;
 use jtl\Connector\Gambio\Util\ConfigHelper;
 use jtl\Connector\Gambio\Util\ShopVersion;
 use jtl\Connector\Model\DataModel;
@@ -24,9 +25,6 @@ use \jtl\Connector\Gambio\Checksum\ChecksumLoader;
 
 class Connector extends BaseConnector
 {
-    /**
-     * @var BaseController
-     */
     public const
         FINISH_TASK_CLEANUP_PRODUCT_PROPERTIES = 'cleanup_product_properties';
 
@@ -36,7 +34,7 @@ class Connector extends BaseConnector
     protected static $gxApplication;
 
     /**
-     * @var BaseController
+     * @var DefaultController
      */
     protected $controller;
 
@@ -46,8 +44,15 @@ class Connector extends BaseConnector
     protected $action;
 
     /**
-     * @throws DatabaseException
+     * @var
      */
+    protected $shopConfig;
+
+    /**
+     * @var
+     */
+    protected $connectorConfig;
+
     public function initialize()
     {
         $db = Mysql::getInstance();
@@ -63,6 +68,9 @@ class Connector extends BaseConnector
         if (!isset($session->connectorConfig)) {
             $session->connectorConfig = json_decode(@file_get_contents(CONNECTOR_DIR.'/config/config.json'));
         }
+
+        $this->shopConfig = $session->shopConfig;
+        $this->connectorConfig = $session->connectorConfig;
 
         if (!$db->isConnected()) {
             $db->connect([
@@ -88,8 +96,8 @@ class Connector extends BaseConnector
         $this->setTokenLoader(new TokenLoader());
         $this->setChecksumLoader(new ChecksumLoader());
 
-        $this->getEventDispatcher()->addListener(ConnectorAfterFinishEvent::EVENT_NAME, function(ConnectorAfterFinishEvent $event) use($db) {
-            if(isset($_SESSION[self::FINISH_TASK_CLEANUP_PRODUCT_PROPERTIES]) && $_SESSION[self::FINISH_TASK_CLEANUP_PRODUCT_PROPERTIES] === true) {
+        $this->getEventDispatcher()->addListener(ConnectorAfterFinishEvent::EVENT_NAME, function (ConnectorAfterFinishEvent $event) use ($db) {
+            if (isset($_SESSION[self::FINISH_TASK_CLEANUP_PRODUCT_PROPERTIES]) && $_SESSION[self::FINISH_TASK_CLEANUP_PRODUCT_PROPERTIES] === true) {
                 $queries = [
                     'DELETE pv FROM properties_values pv WHERE pv.properties_values_id NOT IN (SELECT properties_values_id FROM products_properties_combis_values);',
                     'DELETE pvd FROM properties_values_description pvd WHERE pvd.properties_values_id NOT IN (SELECT properties_values_id FROM properties_values);',
@@ -97,7 +105,7 @@ class Connector extends BaseConnector
                     'DELETE pd FROM properties_description pd WHERE pd.properties_id NOT IN (SELECT properties_id FROM properties);'
                 ];
 
-                foreach($queries as $sql) {
+                foreach ($queries as $sql) {
                     $db->query($sql);
                 }
 
@@ -132,13 +140,34 @@ class Connector extends BaseConnector
 
     public function canHandle()
     {
-        $controller = RpcMethod::buildController($this->getMethod()->getController());
-        $class = "\\jtl\\Connector\\Gambio\\Controller\\{$controller}";
+        $controllers = [
+            'Category',
+            'CrossSelling',
+            'Customer',
+            'CustomerOrder',
+            'GlobalData',
+            'Image',
+            'Manufacturer',
+            'Payment',
+            'Product',
+            'ProductPrice',
+            'ProductStockLevel',
+            'StatusChange',
+        ];
 
-        if (class_exists($class)) {
-            $this->controller = $class::getInstance();
+        $controllerName = RpcMethod::buildController($this->getMethod()->getController());
+        $db = Mysql::getInstance();
+
+        $controllerClass = sprintf('jtl\\Connector\\Gambio\\Controller\\%s', $controllerName);
+
+        if (class_exists($controllerClass)) {
+            $this->controller = new $controllerClass($db, $this->shopConfig, $this->connectorConfig);
+        } elseif (in_array($controllerName, $controllers, true)) {
+            $this->controller = (new DefaultController($db, $this->shopConfig, $this->connectorConfig))->setControllerName($controllerName);
+        }
+
+        if (!is_null($this->controller)) {
             $this->action = RpcMethod::buildAction($this->getMethod()->getAction());
-
             return is_callable([$this->controller, $this->action]);
         }
 
@@ -167,7 +196,6 @@ class Connector extends BaseConnector
                 $result = $this->controller->{$this->action}($model);
 
                 if ($result->getError()) {
-
                     $link->rollback();
 
                     if ($result->getError()) {

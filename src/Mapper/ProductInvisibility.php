@@ -5,9 +5,9 @@ namespace jtl\Connector\Gambio\Mapper;
 use jtl\Connector\Model\ProductInvisibility as ProductInvisibilityModel;
 use jtl\Connector\Model\Identity;
 
-class ProductInvisibility extends \jtl\Connector\Gambio\Mapper\BaseMapper
+class ProductInvisibility extends \jtl\Connector\Gambio\Mapper\AbstractMapper
 {
-    public function pull($data = null, $limit = null)
+    public function pull($data = null, $limit = null): array
     {
         $return = [];
 

@@ -2,12 +2,12 @@
 
 namespace jtl\Connector\Gambio\Mapper;
 
-use jtl\Connector\Gambio\Mapper\BaseMapper;
+use jtl\Connector\Gambio\Mapper\AbstractMapper;
 use jtl\Connector\Model\ProductVariationValueExtraCharge as ProductVariationValueExtraChargeModel;
 
-class ProductVariationValueExtraCharge extends BaseMapper
+class ProductVariationValueExtraCharge extends AbstractMapper
 {
-    public function pull($data = null, $limit = null)
+    public function pull($data = null, $limit = null): array
     {
         $return = [];
 

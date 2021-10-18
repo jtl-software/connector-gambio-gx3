@@ -114,9 +114,9 @@ class Check extends Module
                 $data['ok'],
                 $result[1]
             ) . '</span>' : '<span class="label label-danger"><span class="glyphicon glyphicon-warning-sign"></span> ' . vsprintf(
-                        $data['fault'],
-                        $result[1]
-                    ) . '</span>';
+                $data['fault'],
+                $result[1]
+            ) . '</span>';
             $html .= '</h4></td></tr>';
         }
         $html .= '</tbody></table>';

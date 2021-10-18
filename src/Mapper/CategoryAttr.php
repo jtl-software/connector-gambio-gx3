@@ -2,12 +2,12 @@
 
 namespace jtl\Connector\Gambio\Mapper;
 
-use jtl\Connector\Gambio\Mapper\BaseMapper;
+use jtl\Connector\Gambio\Mapper\AbstractMapper;
 use jtl\Connector\Model\Category as CategoryModel;
 use jtl\Connector\Model\CategoryAttr as CategoryAttrModel;
 use jtl\Connector\Model\CategoryAttrI18n as CategoryAttrI18nModel;
 
-class CategoryAttr extends BaseMapper
+class CategoryAttr extends AbstractMapper
 {
     private $additions = [
         'categories_status'          => 'Aktiv',
@@ -33,7 +33,7 @@ class CategoryAttr extends BaseMapper
         'gm_alt_text' => 'Alternativer Text',
     ];
     
-    public function pull($data = null, $limit = null)
+    public function pull($data = null, $limit = null): array
     {
         $attrs = [];
 

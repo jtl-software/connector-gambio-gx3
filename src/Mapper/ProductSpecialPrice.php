@@ -2,9 +2,9 @@
 
 namespace jtl\Connector\Gambio\Mapper;
 
-use jtl\Connector\Gambio\Mapper\BaseMapper;
+use jtl\Connector\Gambio\Mapper\AbstractMapper;
 
-class ProductSpecialPrice extends BaseMapper
+class ProductSpecialPrice extends AbstractMapper
 {
     protected $mapperConfig = [
         "table" => "specials",

@@ -2,9 +2,9 @@
 
 namespace jtl\Connector\Gambio\Mapper;
 
-use jtl\Connector\Gambio\Mapper\BaseMapper;
+use jtl\Connector\Gambio\Mapper\AbstractMapper;
 
-class ProductSpecialPriceItem extends BaseMapper
+class ProductSpecialPriceItem extends AbstractMapper
 {
     protected $mapperConfig = [
         "mapPull" => [
@@ -14,7 +14,7 @@ class ProductSpecialPriceItem extends BaseMapper
         ]
     ];
 
-    public function pull($data = null, $limit = null)
+    public function pull($data = null, $limit = null): array
     {
         return [$this->generateModel($data)];
     }

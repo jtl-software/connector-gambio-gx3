@@ -2,6 +2,7 @@
 
 namespace jtl\Connector\Gambio\Mapper;
 
+use jtl\Connector\Core\Database\IDatabase;
 use jtl\Connector\Core\Result\Mysql;
 use jtl\Connector\Drawing\ImageRelationType;
 use jtl\Connector\Gambio\Util\ShopVersion;
@@ -9,7 +10,7 @@ use jtl\Connector\Model\Image as ImageModel;
 use Nette\Utils\Strings;
 use stdClass;
 
-class Image extends BaseMapper
+class Image extends AbstractMapper
 {
     protected $mapperConfig = [
         "table" => "products_images",
@@ -27,9 +28,15 @@ class Image extends BaseMapper
 
     private $thumbConfig;
 
-    public function __construct()
+    /**
+     * @param IDatabase $db
+     * @param array $shopConfig
+     * @param stdClass $connectorConfig
+     * @throws \Exception
+     */
+    public function __construct(IDatabase $db, array $shopConfig, \stdClass $connectorConfig)
     {
-        parent::__construct();
+        parent::__construct($db, $shopConfig, $connectorConfig);
 
         $this->thumbConfig = [
             'info' => [
@@ -51,7 +58,13 @@ class Image extends BaseMapper
         ];
     }
 
-    public function pull($data = null, $limit = null)
+    /**
+     * @param null $data
+     * @param null $limit
+     * @return array
+     * @throws \Exception
+     */
+    public function pull($data = null, $limit = null): array
     {
         $result = [];
 
@@ -124,7 +137,6 @@ class Image extends BaseMapper
     public function push($data, $dbObj = null)
     {
         if (get_class($data) === ImageModel::class && $data->getForeignKey()->getEndpoint() !== '') {
-
             switch ($data->getRelationType()) {
                 case ImageRelationType::TYPE_CATEGORY:
                 case ImageRelationType::TYPE_MANUFACTURER:
@@ -252,7 +264,6 @@ class Image extends BaseMapper
                             }
                         }
                     } else {
-
                         if (!empty($imageId)) {
                             $prevImgQuery = $this->db->query(sprintf('SELECT image_name FROM products_images WHERE image_id = "%s"', $imageId));
                             if (count($prevImgQuery) > 0) {
@@ -298,7 +309,8 @@ class Image extends BaseMapper
                             $data->getId()->setEndpoint('pID_' . $productId);
 
                             foreach ($data->getI18ns() as $i18n) {
-                                $updateImgAltQuery = sprintf('UPDATE products_description SET gm_alt_text="%s" WHERE products_id="%s" && language_id=%s',
+                                $updateImgAltQuery = sprintf(
+                                    'UPDATE products_description SET gm_alt_text="%s" WHERE products_id="%s" && language_id=%s',
                                     $i18n->getAltText(),
                                     $productId,
                                     $this->locale2id($i18n->getLanguageISO())
@@ -313,7 +325,8 @@ class Image extends BaseMapper
                             $newIdQuery = $this->db->deleteInsertRow($imgObj, 'products_images', ['image_nr', 'products_id'], [$imgObj->image_nr, $imgObj->products_id]);
                             $data->getId()->setEndpoint($newIdQuery->getKey());
                             foreach ($data->getI18ns() as $i18n) {
-                                $updateImgAltQuery = sprintf('INSERT INTO gm_prd_img_alt SET gm_alt_text="%s", products_id="%s", image_id="%s", language_id=%s',
+                                $updateImgAltQuery = sprintf(
+                                    'INSERT INTO gm_prd_img_alt SET gm_alt_text="%s", products_id="%s", image_id="%s", language_id=%s',
                                     $i18n->getAltText(),
                                     $imgObj->products_id,
                                     $data->getId()->getEndpoint(),
@@ -329,7 +342,6 @@ class Image extends BaseMapper
 
                     break;
             }
-
         }
 
         return $data;
@@ -375,7 +387,6 @@ class Image extends BaseMapper
     public function delete($data)
     {
         if (get_class($data) === ImageModel::class && $data->getForeignKey()->getEndpoint() !== '') {
-
             $imageId = self::extractImageId($data->getId()->getEndpoint());
 
             switch ($data->getRelationType()) {
@@ -402,7 +413,6 @@ class Image extends BaseMapper
                         $relatedObj = new \stdClass();
                         $relatedObj->{sprintf('%s_image', $subject)} = null;
                         $this->db->updateRow($relatedObj, $subject, sprintf('%s_id', $subject), $fkId);
-
                     }
                     break;
                 case ImageRelationType::TYPE_PRODUCT:
@@ -452,7 +462,6 @@ class Image extends BaseMapper
                         }
                     } else {
                         if (!empty($imageId)) {
-
                             $prevImgQuery = $this->db->query(sprintf('SELECT image_name FROM products_images WHERE image_id = "%s"', $imageId));
                             if (count($prevImgQuery) > 0) {
                                 $prevImage = $prevImgQuery[0]['image_name'];
@@ -491,7 +500,7 @@ class Image extends BaseMapper
         return count($id) === 1 ? $id[0] : $id[1];
     }
 
-    public function statistic()
+    public function statistic(): int
     {
         $totalImages = 0;
 

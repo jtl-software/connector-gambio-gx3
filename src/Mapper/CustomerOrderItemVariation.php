@@ -5,7 +5,7 @@ namespace jtl\Connector\Gambio\Mapper;
 use jtl\Connector\Model\CustomerOrderItemVariation as CustomerOrderItemVariationModel;
 use jtl\Connector\Model\Identity;
 
-class CustomerOrderItemVariation extends BaseMapper
+class CustomerOrderItemVariation extends AbstractMapper
 {
     protected $mapperConfig = [
         "table" => "orders_products_attributes",
@@ -35,7 +35,7 @@ class CustomerOrderItemVariation extends BaseMapper
         ]
     ];
 
-    public function pull($data = null, $limit = null)
+    public function pull($data = null, $limit = null): array
     {
         $oldVars = parent::pull($data, $limit);
         $newVars = [];

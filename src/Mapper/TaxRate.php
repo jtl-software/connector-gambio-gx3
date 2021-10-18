@@ -2,7 +2,7 @@
 
 namespace jtl\Connector\Gambio\Mapper;
 
-class TaxRate extends BaseMapper
+class TaxRate extends AbstractMapper
 {
     protected $mapperConfig = [
         "table" => "tax_rates",

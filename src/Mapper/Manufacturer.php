@@ -2,11 +2,10 @@
 
 namespace jtl\Connector\Gambio\Mapper;
 
-use jtl\Connector\Gambio\Controller\BaseController;
-use jtl\Connector\Gambio\Mapper\BaseMapper;
+use jtl\Connector\Gambio\Controller\DefaultController;
 use jtl\Connector\Model\ManufacturerI18n;
 
-class Manufacturer extends BaseMapper
+class Manufacturer extends AbstractMapper
 {
     protected $mapperConfig = [
         "table"    => "manufacturers",
@@ -67,7 +66,7 @@ class Manufacturer extends BaseMapper
         $languages = $this->db->query('SELECT languages_id, code FROM languages');
         foreach ($languages as $language) {
             /** @var ManufacturerI18n $i18n */
-            $i18n = BaseController::findI18n($data->getI18ns(), $language['code']);
+            $i18n = DefaultController::findI18n($data->getI18ns(), $language['code']);
             $manufacturersInfoObj->languages_id = $language['languages_id'];
             $manufacturersInfoObj->manufacturers_meta_title = '';
             $manufacturersInfoObj->manufacturers_meta_keywords = '';
@@ -89,7 +88,7 @@ class Manufacturer extends BaseMapper
      * @param null $limit
      * @return array
      */
-    public function pull($parentData = null, $limit = null)
+    public function pull($parentData = null, $limit = null): array
     {
         $return = parent::pull($parentData, $limit);
         

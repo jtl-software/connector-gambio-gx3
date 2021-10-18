@@ -7,7 +7,7 @@ use jtl\Connector\Gambio\Gambio\Application;
 use jtl\Connector\Model\StatusChange as StatusChangeModel;
 use jtl\Connector\Model\CustomerOrder;
 
-class StatusChange extends BaseMapper
+class StatusChange extends AbstractMapper
 {
     /**
      * @param StatusChangeModel $status

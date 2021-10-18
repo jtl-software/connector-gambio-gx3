@@ -2,10 +2,10 @@
 
 namespace jtl\Connector\Gambio\Mapper;
 
-use jtl\Connector\Gambio\Mapper\BaseMapper;
+use jtl\Connector\Gambio\Mapper\AbstractMapper;
 use jtl\Connector\Gambio\Util\ShopVersion;
 
-class Currency extends BaseMapper
+class Currency extends AbstractMapper
 {
     protected $mapperConfig = [
         "table" => "currencies",

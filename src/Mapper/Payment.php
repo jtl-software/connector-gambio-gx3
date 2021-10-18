@@ -2,10 +2,11 @@
 
 namespace jtl\Connector\Gambio\Mapper;
 
+use jtl\Connector\Core\Database\IDatabase;
 use \jtl\Connector\Model\Payment as PaymentModel;
 use jtl\Connector\Payment\PaymentTypes;
 
-class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
+class Payment extends \jtl\Connector\Gambio\Mapper\AbstractMapper
 {
     protected $mapperConfig = [
         "table" => "jtl_connector_payment",
@@ -66,17 +67,15 @@ class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
         'WirecardWiretransferHub' => PaymentTypes::TYPE_WIRECARD,
     ];
 
-    /**
-     * Payment constructor.
-     */
-    public function __construct()
+    public function __construct(IDatabase $db, array $shopConfig, \stdClass $connectorConfig)
     {
-        parent::__construct();
+        parent::__construct($db, $shopConfig, $connectorConfig);
 
         if (!empty($this->connectorConfig->from_date)) {
             $this->mapperConfig['query'] .= ' && creationDate >= "' . $this->connectorConfig->from_date . '"';
         }
     }
+
 
     /**
      * @param null $parent
@@ -84,7 +83,7 @@ class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
      * @return array
      * @throws \Exception
      */
-    public function pull($parent = null, $limit = null)
+    public function pull($parent = null, $limit = null): array
     {
         $additional = [];
 
@@ -131,7 +130,7 @@ class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
 
         $rows = $this->db->query(sprintf($sql, implode(',', $orderStatusIds)));
 
-        return array_map(function(array $row) {
+        return array_map(function (array $row) {
             return (new PaymentModel())
                 ->setCreationDate(new \DateTime($row['date_purchased']))
                 ->setCustomerOrderId($this->identity($row['orders_id']))
@@ -157,7 +156,7 @@ class Payment extends \jtl\Connector\Gambio\Mapper\BaseMapper
 
         $rows = $this->db->query($sql);
 
-        return array_map(function(array $row) {
+        return array_map(function (array $row) {
             return (new PaymentModel())
                 ->setCreationDate(new \DateTime($row['date_purchased']))
                 ->setCustomerOrderId($this->identity($row['orders_id']))

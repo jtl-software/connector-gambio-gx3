@@ -5,14 +5,27 @@ namespace jtl\Connector\Gambio\Mapper;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\ShippingMethod as ShippingMethodModel;
 
-class ShippingMethod extends BaseMapper
+/**
+ * Class ShippingMethod
+ * @package jtl\Connector\Gambio\Mapper
+ */
+class ShippingMethod extends AbstractMapper
 {
+    /**
+     * @var string[]
+     */
     protected $mapperConfig = [
         "identity" => "getId",
         "getMethod" => "getShippingMethods"
     ];
 
-    public function pull($data = null, $limit = null)
+    /**
+     * @param null $data
+     * @param null $limit
+     * @return array
+     * @throws \Exception
+     */
+    public function pull($data = null, $limit = null): array
     {
         $moduleStr = $this->configHelper->getDbConfigValue('MODULE_SHIPPING_INSTALLED');
 
