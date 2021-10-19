@@ -1,3 +1,8 @@
+2.18.0
+------
+- CO-1308 - Added integration with library 'jtl/connector-components-xtc'
+- CO-1508 - Added integration with Gambio Services, status change 
+
 2.17.0
 ------
 - CO-1462 - Added product tax class guessing on product push
