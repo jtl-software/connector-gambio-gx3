@@ -28,7 +28,7 @@ class ProductSpecialPrice extends AbstractMapper
             "status" => "isActive",
             "expires_date" => "activeUntilDate",
             "begins_date" => "activeFromDate",
-            //"specials_quantity" => "stockLimit",
+            "specials_quantity" => "stockLimit",
             "ProductSpecialPriceItem|addItem|true" => "items"
         ]
     ];
@@ -57,6 +57,7 @@ class ProductSpecialPrice extends AbstractMapper
         if (!is_null($parent->getSpecialPrices()) && count($parent->getSpecialPrices()) === 1) {
             foreach ($parent->getSpecialPrices() as $special) {
                 $special->setProductId($parent->getId());
+                $special->setStockLimit(999999);
             }
 
             return parent::push($parent, $dbObj);
