@@ -35,7 +35,7 @@ class ProductStockLevel extends AbstractMapper
                 $specialPriceResult = $this->db->query($specialPriceQuery);
                 if(count($specialPriceResult) > 0) {
                     $specialPriceObj = new \stdClass();
-                    $specialPriceObj->quantity = $this->shopConfig['settings']['STOCK_ALLOW_CHECKOUT'] ? 9999999 : $stockLevel->getStockLevel();
+                    $specialPriceObj->specials_quantity = ((int) $this->shopConfig['settings']['STOCK_CHECK'] === 0 || (int) $this->shopConfig['settings']['STOCK_ALLOW_CHECKOUT'] === 1) ? 9999999 : $stockLevel;
                     $this->db->updateRow($specialPriceObj, 'specials', 'products_id', $productId);
                 }
             }
