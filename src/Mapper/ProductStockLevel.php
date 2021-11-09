@@ -4,6 +4,7 @@ namespace jtl\Connector\Gambio\Mapper;
 
 use jtl\Connector\Gambio\Mapper\AbstractMapper;
 use jtl\Connector\Model\ProductStockLevel as ProductStockLevelModel;
+use stdClass;
 
 class ProductStockLevel extends AbstractMapper
 {
@@ -21,12 +22,22 @@ class ProductStockLevel extends AbstractMapper
         $productId = $stockLevel->getProductId()->getEndpoint();
 
         if (!empty($productId)) {
+            $stockLevel = (int)round($stockLevel->getStockLevel());
+
             if (strpos($productId, '_') !== false) {
                 $ids = explode('_', $productId);
 
-                $this->db->query('UPDATE products_properties_combis SET combi_quantity='.round($stockLevel->getStockLevel()).' WHERE products_properties_combis_id='.$ids[1]);
+                $this->db->query(sprintf('UPDATE products_properties_combis SET combi_quantity = %d WHERE products_properties_combis_id = %d', $stockLevel, $ids[1]));
             } else {
-                $this->db->query('UPDATE products SET products_quantity='.round($stockLevel->getStockLevel()).' WHERE products_id='.$productId);
+                $this->db->query(sprintf('UPDATE products SET products_quantity = %d WHERE products_id= %d', $stockLevel, $productId));
+
+                $specialPriceQuery = sprintf('SELECT `products_id` FROM `specials` WHERE `products_id` = %d', $productId);
+                $specialPriceResult = $this->db->query($specialPriceQuery);
+                if(count($specialPriceResult) > 0) {
+                    $specialPriceObj = new \stdClass();
+                    $specialPriceObj->quantity = $this->shopConfig['settings']['STOCK_ALLOW_CHECKOUT'] ? 9999999 : $stockLevel->getStockLevel();
+                    $this->db->updateRow($specialPriceObj, 'specials', 'products_id', $productId);
+                }
             }
 
             return $stockLevel;

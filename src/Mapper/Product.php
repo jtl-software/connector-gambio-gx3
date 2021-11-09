@@ -2,8 +2,9 @@
 
 namespace jtl\Connector\Gambio\Mapper;
 
+use jtl\Connector\Core\Exception\LanguageException;
 use jtl\Connector\Gambio\Installer\Config;
-use \jtl\Connector\Gambio\Mapper\AbstractMapper;
+use jtl\Connector\Gambio\Mapper\ProductStockLevel as ProductStockLevelMapper;
 use jtl\Connector\Gambio\Util\CategoryIndexHelper;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\ProductStockLevel;
@@ -74,7 +75,7 @@ class Product extends AbstractMapper
         "mapPush" => [
             "products_id" => "id",
             "products_ean" => "ean",
-            "products_quantity" => null,
+            //"products_quantity" => null,
             "products_model" => "sku",
             "products_sort" => "sort",
             "products_date_added" => null,
@@ -400,9 +401,10 @@ class Product extends AbstractMapper
     }
 
     /**
-     * @param $product
+     * @param ProductModel $product
      * @param $dbObj
-     * @throws \jtl\Connector\Core\Exception\LanguageException
+     * @throws LanguageException
+     * @throws \Exception
      */
     protected function pushDone($product, $dbObj)
     {
@@ -466,7 +468,8 @@ class Product extends AbstractMapper
         }
 
         $this->db->updateRow($dbObj, 'products', 'products_id', $productsId);
-        $attributes = (new ProductAttr($this->db, $this->shopConfig, $this->connectorConfig))->push($product, new \stdClass());
+        (new ProductAttr($this->db, $this->shopConfig, $this->connectorConfig))->push($product);
+        (new ProductStockLevelMapper($this->db, $this->shopConfig, $this->connectorConfig))->push($product->getStockLevel());
 
         if (count($checkCodes) > 0) {
             $this->db->updateRow($codes, 'products_item_codes', 'products_id', $productsId);
