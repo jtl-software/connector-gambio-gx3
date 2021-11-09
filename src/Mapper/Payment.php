@@ -141,8 +141,16 @@ class Payment extends \jtl\Connector\Gambio\Mapper\AbstractMapper
             $paypalPayment = \MainFactory::create('PayPalPayment', $row['payment_id']);
 
             $transactionId = $row['payment_id'];
-            if(!is_null($paypalPayment->json_object->transactions[0]->related_resources[0]->sale->id)){
-                $transactionId = $paypalPayment->json_object->transactions[0]->related_resources[0]->sale->id;
+            if (!is_null($paypalPayment->json_object->intent && !is_null($paypalPayment->json_object->transactions[0]->related_resources[0]))) {
+                $relatedResources = $paypalPayment->json_object->transactions[0]->related_resources[0];
+                switch ($paypalPayment->json_object->intent) {
+                    case 'sale':
+                        $transactionId = $relatedResources->sale->id;
+                        break;
+                    case 'authorize':
+                        $transactionId = $relatedResources->authorization->id;
+                        break;
+                }
             }
 
             return (new PaymentModel())
