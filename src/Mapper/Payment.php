@@ -6,6 +6,7 @@ use jtl\Connector\Core\Database\IDatabase;
 use jtl\Connector\Gambio\Gambio\Application;
 use \jtl\Connector\Model\Payment as PaymentModel;
 use jtl\Connector\Payment\PaymentTypes;
+use \jtl\Connector\Gambio\Connector;
 
 class Payment extends \jtl\Connector\Gambio\Mapper\AbstractMapper
 {
@@ -134,14 +135,14 @@ class Payment extends \jtl\Connector\Gambio\Mapper\AbstractMapper
         /**
          * Dummy service initialization for class class autoloading
          */
-        \jtl\Connector\Gambio\Connector::getGxService(Application::SERVICE_ORDER_WRITE);
+        Connector::getGxService(Application::SERVICE_ORDER_WRITE);
 
         return array_map(function (array $row) {
 
             $paypalPayment = \MainFactory::create('PayPalPayment', $row['payment_id']);
 
             $transactionId = $row['payment_id'];
-            if (!is_null($paypalPayment->json_object->intent && !is_null($paypalPayment->json_object->transactions[0]->related_resources[0]))) {
+            if (!is_null($paypalPayment->json_object->intent) && !is_null($paypalPayment->json_object->transactions[0]->related_resources[0])) {
                 $relatedResources = $paypalPayment->json_object->transactions[0]->related_resources[0];
                 switch ($paypalPayment->json_object->intent) {
                     case 'sale':
