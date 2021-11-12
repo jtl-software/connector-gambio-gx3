@@ -222,7 +222,7 @@ class CustomerOrder extends AbstractMapper
             }
         }
 
-        $totalData = $this->db->query(sprintf('SELECT `class`, `value`, `title` FROM `orders_total` WHERE `orders_id` = %d', $data['orders_id']));
+        $totalData = $this->db->query(sprintf('SELECT `orders_total_id`, `class`, `value`, `title` FROM `orders_total` WHERE `orders_id` = %d', $data['orders_id']));
         foreach ($totalData as $total) {
             switch ($total['class']) {
                 case 'ot_total':
@@ -279,7 +279,7 @@ class CustomerOrder extends AbstractMapper
             ->setId($this->identity($total['orders_total_id']))
             ->setQuantity(1)
             ->setVat($vat)
-            ->setPriceGross($total['class'] == 'ot_gv' ? floatval($total['value']) * -1 : floatval($total['value']));
+            ->setPriceGross($total['class'] === 'ot_gv' ? floatval($total['value']) * -1 : floatval($total['value']));
 
         if ($vat === 0.) {
             $item->setPrice($item->getPriceGross());
