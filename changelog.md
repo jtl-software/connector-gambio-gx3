@@ -1,3 +1,8 @@
+2.19.0
+------
+- CO-999 - Added support for additional presentation forms of the variations
+- Fixed missing orders_total_id
+
 2.18.0
 ------
 - CO-1308 - Added integration with library 'jtl/connector-components-xtc'
