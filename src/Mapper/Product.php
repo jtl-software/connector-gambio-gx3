@@ -424,7 +424,7 @@ class Product extends AbstractMapper
         $codes->code_isbn = $product->getIsbn();
         $codes->code_upc = $product->getUpc();
         $codes->code_mpn = $product->getManufacturerNumber();
-        $codes->expiration_date = $product->getMinBestBeforeDate() ? $product->getMinBestBeforeDate()->format('Y-m-d') : '0000-00-00';
+        $codes->expiration_date = $product->getMinBestBeforeDate() ? $product->getMinBestBeforeDate()->format('Y-m-d') : '1000-01-01';
 
         $dbObj->products_status = 1;
         foreach ($product->getAttributes() as $attr) {
