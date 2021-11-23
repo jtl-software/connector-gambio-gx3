@@ -14,6 +14,9 @@ class CustomerOrder extends AbstractMapper
         "query" => "SELECT o.* FROM orders o
             LEFT JOIN jtl_connector_link_customer_order l ON o.orders_id = l.endpoint_id
             WHERE l.host_id IS NULL",
+        "statisticsQuery" => "SELECT COUNT(o.orders_id) as total FROM orders o
+            LEFT JOIN jtl_connector_link_customer_order l ON o.orders_id = l.endpoint_id
+            WHERE l.host_id IS NULL",
         "where" => "orders_id",
         "identity" => "getId",
         "mapPull" => [
