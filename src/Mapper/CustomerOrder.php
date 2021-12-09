@@ -14,6 +14,9 @@ class CustomerOrder extends AbstractMapper
         "query" => "SELECT o.* FROM orders o
             LEFT JOIN jtl_connector_link_customer_order l ON o.orders_id = l.endpoint_id
             WHERE l.host_id IS NULL",
+        "statisticsQuery" => "SELECT COUNT(o.orders_id) as total FROM orders o
+            LEFT JOIN jtl_connector_link_customer_order l ON o.orders_id = l.endpoint_id
+            WHERE l.host_id IS NULL",
         "where" => "orders_id",
         "identity" => "getId",
         "mapPull" => [
@@ -222,7 +225,7 @@ class CustomerOrder extends AbstractMapper
             }
         }
 
-        $totalData = $this->db->query(sprintf('SELECT `class`, `value`, `title` FROM `orders_total` WHERE `orders_id` = %d', $data['orders_id']));
+        $totalData = $this->db->query(sprintf('SELECT `orders_total_id`, `class`, `value`, `title` FROM `orders_total` WHERE `orders_id` = %d', $data['orders_id']));
         foreach ($totalData as $total) {
             switch ($total['class']) {
                 case 'ot_total':
@@ -279,7 +282,7 @@ class CustomerOrder extends AbstractMapper
             ->setId($this->identity($total['orders_total_id']))
             ->setQuantity(1)
             ->setVat($vat)
-            ->setPriceGross($total['class'] == 'ot_gv' ? floatval($total['value']) * -1 : floatval($total['value']));
+            ->setPriceGross($total['class'] === 'ot_gv' ? floatval($total['value']) * -1 : floatval($total['value']));
 
         if ($vat === 0.) {
             $item->setPrice($item->getPriceGross());
