@@ -33,15 +33,18 @@ class DeliveryNote extends DefaultController
                             $trackingUrl = str_replace('{TRACKING_NUMBER}', $code, $trackingUrlTemplate);
                             $this->db->query(
                                 sprintf(
-                                    '
-                                    INSERT INTO orders_parcel_tracking_codes SET
-                                    order_id="%s", tracking_code="%s", parcel_service_id=%s, parcel_service_name="%s", language_id="%s", url="%s", comment=""',
+                                'INSERT INTO orders_parcel_tracking_codes (order_id, tracking_code, parcel_service_id, parcel_service_name, language_id, url, comment)
+                                            SELECT "%s", "%s", %s, "%s", "%s", "%s", "" 
+                                                FROM dual 
+                                                WHERE NOT EXISTS (SELECT * FROM orders_parcel_tracking_codes WHERE tracking_code = "%s" AND parcel_service_id = %s)',
                                     $orderId,
                                     $code,
                                     $carrier['parcel_service_id'],
                                     $carrier['name'],
                                     $languageId,
-                                    $trackingUrl
+                                    $trackingUrl,
+                                    $code,
+                                    $carrier['parcel_service_id']
                                 )
                             );
                         }
