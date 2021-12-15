@@ -1,3 +1,10 @@
+2.20.0
+------
+- CO-1714 - Fixed PayPal Transaction ID
+- CO-1845 - Fixed special price to early deactivated
+- CO-1860 - Fixed delivery note is created several times
+- CO-1882 - Fixed duplicate product options in the frontend
+
 2.19.0
 ------
 - CO-999 - Added support for additional presentation forms of the variations
