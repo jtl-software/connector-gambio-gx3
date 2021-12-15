@@ -227,6 +227,9 @@ class ProductVariation extends Product
 
                         // try to find existing variation id
                         $variationIdQuery = $this->db->query(sprintf('SELECT properties_id FROM properties_description WHERE properties_admin_name = "%s"', $propertiesAdminName));
+                        if (count($variationIdQuery) === 0) {
+                            $variationIdQuery = $this->db->query(sprintf('SELECT properties_id FROM properties_description WHERE properties_name = "%s"', $variationName));
+                        }
 
                         // use existing id or generate next available one
                         if (count($variationIdQuery) > 0) {
@@ -503,7 +506,10 @@ class ProductVariation extends Product
 
             $propertyAdminName = $this->createPropertyAdminName($variationName, ProductVariation::mapVariationType($variation->getType()));
 
-            $variationIdQuery = $this->db->query(sprintf('SELECT properties_id FROM properties_description WHERE properties_admin_name = "%s"', $propertyAdminName));
+            $variationIdQuery = $this->db->query(sprintf('SELECT properties_id FROM properties_description WHERE properties_name="%s" AND properties_admin_name =""', $variationName));
+            if (count($variationIdQuery) === 0) {
+                $variationIdQuery = $this->db->query(sprintf('SELECT properties_id FROM properties_description WHERE properties_admin_name = "%s"', $propertyAdminName));
+            }
 
             if (count($variationIdQuery) > 0) {
                 static::$variationIds[$variation->getId()->getHost()] = $variationIdQuery[0]['properties_id'];
