@@ -243,6 +243,9 @@ class CustomerOrder extends AbstractMapper
                 case 'ot_cod_fee':
                     $this->addSpecialItem(CustomerOrderItem::TYPE_SHIPPING, $model, $total, $data, $vat);
                     break;
+                case 'ot_loworderfee':
+                    $this->addSpecialItem(CustomerOrderItem::TYPE_SURCHARGE, $model, $total, $data, $vat);
+                    break;
                 case 'ot_payment':
                     $this->addSpecialItem(CustomerOrderItem::TYPE_PRODUCT, $model, $total, $data, $vat);
                     break;
