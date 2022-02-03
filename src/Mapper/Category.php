@@ -130,7 +130,7 @@ class Category extends \jtl\Connector\Gambio\Mapper\AbstractMapper
         DefaultController::resetCache();
     }
     
-    private function getChildren($ids = null, $level = 0, $limit)
+    private function getChildren($ids, $level, $limit)
     {
         if (is_null($ids)) {
             $sql = 'c.parent_id=0';
