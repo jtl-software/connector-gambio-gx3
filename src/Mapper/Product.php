@@ -736,7 +736,7 @@ class Product extends AbstractMapper
 
     protected function manufacturerId($data)
     {
-        return $this->replaceZero($data['manufacturers_id']);
+        return is_null($data['manufacturers_id']) ? '' : $this->replaceZero($data['manufacturers_id']);
     }
 
     protected function manufacturers_id($data)
