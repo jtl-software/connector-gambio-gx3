@@ -3,6 +3,7 @@
 namespace jtl\Connector\Gambio\Mapper;
 
 use jtl\Connector\Core\Utilities\Country;
+use jtl\Connector\Model\DataModel;
 
 class CustomerOrderBillingAddress extends AbstractMapper
 {
@@ -78,9 +79,9 @@ class CustomerOrderBillingAddress extends AbstractMapper
         return "cID_".$data['customers_id'];
     }
 
-    public function push($parent, $dbObj = null)
+    public function push(DataModel $model, \stdClass $dbObj = null)
     {
-        $this->generateDbObj($parent->getBillingAddress(), $dbObj, null, true);
+        $this->generateDbObj($model->getBillingAddress(), $dbObj, null, true);
     }
 
     protected function customers_name($data)

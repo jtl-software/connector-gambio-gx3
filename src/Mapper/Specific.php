@@ -2,6 +2,8 @@
 
 namespace jtl\Connector\Gambio\Mapper;
 
+use jtl\Connector\Model\DataModel;
+
 class Specific extends \jtl\Connector\Gambio\Mapper\AbstractMapper
 {
     protected $mapperConfig = [
@@ -22,20 +24,20 @@ class Specific extends \jtl\Connector\Gambio\Mapper\AbstractMapper
         ]
     ];
 
-    public function push($parent, $dbObj = null)
+    public function push(DataModel $model, \stdClass $dbObj = null)
     {
-        $id = $parent->getId()->getEndpoint();
+        $id = $model->getId()->getEndpoint();
 
         if (empty($id)) {
             $newId = $this->db->query('INSERT INTO feature SET feature_id=DEFAULT');
 
-            $parent->getId()->setEndpoint($newId);
+            $model->getId()->setEndpoint($newId);
         }
 
-        return parent::push($parent, $dbObj);
+        return parent::push($model, $dbObj);
     }
 
-    public function delete($data)
+    public function delete(DataModel $data)
     {
         $id = $data->getId()->getEndpoint();
 

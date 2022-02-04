@@ -23,6 +23,7 @@ class ImageI18n extends \jtl\Connector\Gambio\Mapper\AbstractMapper
 
     public function pull($data = null, $limit = null): array
     {
+        $return = [];
         if (isset($data['type'])) {
             switch ($data['type']) {
                 case 'product':
@@ -49,8 +50,9 @@ class ImageI18n extends \jtl\Connector\Gambio\Mapper\AbstractMapper
                     break;
             }
 
-            return parent::pull($data, $limit);
+            $return = parent::pull($data, $limit);
         }
+        return $return;
     }
 
     protected function languageISO($data)

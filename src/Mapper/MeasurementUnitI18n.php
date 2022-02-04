@@ -3,6 +3,7 @@
 namespace jtl\Connector\Gambio\Mapper;
 
 use jtl\Connector\Gambio\Mapper\AbstractMapper;
+use jtl\Connector\Model\DataModel;
 
 class MeasurementUnitI18n extends AbstractMapper
 {
@@ -17,13 +18,13 @@ class MeasurementUnitI18n extends AbstractMapper
         ]
     ];
 
-    public function push($data, $dbObj = null)
+    public function push(DataModel $model, \stdClass $dbObj = null)
     {
         $id = null;
 
         $skip = true;
 
-        foreach ($data->getI18ns() as $i18n) {
+        foreach ($model->getI18ns() as $i18n) {
             $name = $i18n->getName();
             $language_id = $this->locale2id($i18n->getLanguageISO());
             
@@ -48,9 +49,9 @@ class MeasurementUnitI18n extends AbstractMapper
                 $this->db->query('DELETE FROM quantity_unit_description WHERE quantity_unit_id=' . $id);
             }
 
-            $data->getId()->setEndpoint($id);
+            $model->getId()->setEndpoint($id);
 
-            foreach ($data->getI18ns() as $i18n) {
+            foreach ($model->getI18ns() as $i18n) {
                 $i18n->getMeasurementUnitId()->setEndpoint($id);
 
                 $unit = new \stdClass();
@@ -61,7 +62,7 @@ class MeasurementUnitI18n extends AbstractMapper
                 $this->db->insertRow($unit, 'quantity_unit_description');
             }
 
-            return $data->getI18ns();
+            return $model->getI18ns();
         }
     }
 

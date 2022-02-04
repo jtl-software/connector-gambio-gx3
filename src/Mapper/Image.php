@@ -6,6 +6,7 @@ use jtl\Connector\Core\Database\IDatabase;
 use jtl\Connector\Core\Result\Mysql;
 use jtl\Connector\Drawing\ImageRelationType;
 use jtl\Connector\Gambio\Util\ShopVersion;
+use jtl\Connector\Model\DataModel;
 use jtl\Connector\Model\Image as ImageModel;
 use Nette\Utils\Strings;
 use stdClass;
@@ -134,21 +135,21 @@ class Image extends AbstractMapper
      * @return object
      * @throws \Exception
      */
-    public function push($data, $dbObj = null)
+    public function push(DataModel $model, \stdClass $dbObj = null)
     {
-        if (get_class($data) === ImageModel::class && $data->getForeignKey()->getEndpoint() !== '') {
-            switch ($data->getRelationType()) {
+        if (get_class($model) === ImageModel::class && $model->getForeignKey()->getEndpoint() !== '') {
+            switch ($model->getRelationType()) {
                 case ImageRelationType::TYPE_CATEGORY:
                 case ImageRelationType::TYPE_MANUFACTURER:
 
-                    $imageId = self::extractImageId($data->getForeignKey()->getEndpoint());
+                    $imageId = self::extractImageId($model->getForeignKey()->getEndpoint());
 
                     $indexMappings = [
                         ImageRelationType::TYPE_CATEGORY => 'categories',
                         ImageRelationType::TYPE_MANUFACTURER => 'manufacturers',
                     ];
 
-                    $subject = $indexMappings[$data->getRelationType()];
+                    $subject = $indexMappings[$model->getRelationType()];
 
                     $oldImage = null;
                     $sql = sprintf('SELECT %s_image FROM %s WHERE %s_id = %d', $subject, $subject, $subject, $imageId);
@@ -158,51 +159,51 @@ class Image extends AbstractMapper
                     if (isset($oldImageResult[0][$imageIndex]) && $oldImageResult[0][$imageIndex] !== '') {
                         $oldImage = $oldImageResult[0][$imageIndex];
 
-                        $oldImageFilePath = $this->createImageFilePath($oldImage, $data->getRelationType());
+                        $oldImageFilePath = $this->createImageFilePath($oldImage, $model->getRelationType());
                         if (file_exists($oldImageFilePath)) {
                             @unlink($oldImageFilePath);
                         }
                     }
 
-                    $imgFileName = $this->generateImageName($data);
-                    $imageFilePath = $this->createImageFilePath($imgFileName, $data->getRelationType());
+                    $imgFileName = $this->generateImageName($model);
+                    $imageFilePath = $this->createImageFilePath($imgFileName, $model->getRelationType());
 
-                    if (!rename($data->getFilename(), $imageFilePath)) {
+                    if (!rename($model->getFilename(), $imageFilePath)) {
                         throw new \Exception('Cannot move uploaded image file');
                     }
 
                     $relatedObject = new \stdClass();
                     $relatedObject->{$imageIndex} = $imgFileName;
-                    if ($data->getRelationType() === ImageRelationType::TYPE_MANUFACTURER) {
+                    if ($model->getRelationType() === ImageRelationType::TYPE_MANUFACTURER) {
                         $relatedObject->{$imageIndex} = sprintf('%s/%s', $subject, $imgFileName);
                     }
 
                     $this->db->updateRow($relatedObject, $subject, sprintf('%s_id', $subject), $imageId);
 
                     $endpoint = sprintf('%sID_%d', $subject[0], $imageId);
-                    $data->getId()->setEndpoint($endpoint);
+                    $model->getId()->setEndpoint($endpoint);
 
                     break;
 
                 case ImageRelationType::TYPE_PRODUCT:
 
-                    $imageId = self::extractImageId($data->getId()->getEndpoint());
+                    $imageId = self::extractImageId($model->getId()->getEndpoint());
 
-                    $productId = $data->getForeignKey()->getEndpoint();
+                    $productId = $model->getForeignKey()->getEndpoint();
 
                     if (Product::isVariationChild($productId)) {
-                        if ($data->getSort() == 1) {
-                            $this->delete($data);
+                        if ($model->getSort() == 1) {
+                            $this->delete($model);
 
                             $combiId = explode('_', $productId);
                             $combiId = $combiId[1];
 
                             if (!empty($combiId)) {
-                                $imgFileName = $this->generateImageName($data);
+                                $imgFileName = $this->generateImageName($model);
 
                                 if (ShopVersion::isGreaterOrEqual('4.1')) {
                                     $imagePath = $this->createImageFilePath($imgFileName, ImageRelationType::TYPE_PRODUCT);
-                                    if (!rename($data->getFilename(), $imagePath)) {
+                                    if (!rename($model->getFilename(), $imagePath)) {
                                         throw new \Exception('Cannot move uploaded image file');
                                     }
 
@@ -235,7 +236,7 @@ class Image extends AbstractMapper
                                         $obj->product_image_list_id = $imageListId;
                                         $this->db->deleteInsertRow($obj, 'product_image_list_combi', 'products_properties_combis_id', $combiId);
 
-                                        $i18ns = $data->getI18ns();
+                                        $i18ns = $model->getI18ns();
                                         if (empty($i18ns)) {
                                             $defaultLanguageId = $this->configHelper->getDefaultLanguage();
                                             $this->saveCombiI18n($imageListImageId, 'title', $imgFileName, $defaultLanguageId);
@@ -251,7 +252,7 @@ class Image extends AbstractMapper
                                         $this->generateThumbs($imgFileName);
                                     }
                                 } else {
-                                    if (!rename($data->getFilename(), $this->shopConfig['shop']['path'] . 'images/product_images/properties_combis_images/' . $imgFileName)) {
+                                    if (!rename($model->getFilename(), $this->shopConfig['shop']['path'] . 'images/product_images/properties_combis_images/' . $imgFileName)) {
                                         throw new \Exception('Cannot move uploaded image file');
                                     }
 
@@ -260,7 +261,7 @@ class Image extends AbstractMapper
                                     $this->db->updateRow($combisObj, 'products_properties_combis', 'products_properties_combis_id', $combiId);
                                 }
 
-                                $this->db->query(sprintf('INSERT INTO jtl_connector_link_image SET host_id="%s", endpoint_id="vID_%s"', $data->getId()->getHost(), $combiId));
+                                $this->db->query(sprintf('INSERT INTO jtl_connector_link_image SET host_id="%s", endpoint_id="vID_%s"', $model->getId()->getHost(), $combiId));
                             }
                         }
                     } else {
@@ -270,18 +271,20 @@ class Image extends AbstractMapper
                                 $prevImage = $prevImgQuery[0]['image_name'];
                             }
 
-                            $this->removeProductImageAndThumbnails($prevImage);
+                            if (isset($prevImage)) {
+                                $this->removeProductImageAndThumbnails($prevImage);
+                            }
 
                             $this->db->query(sprintf('DELETE FROM products_images WHERE image_id="%s"', $imageId));
-                            if ($data->getSort() > 1) {
+                            if ($model->getSort() > 1) {
                                 $this->db->query(sprintf('DELETE FROM gm_prd_img_alt WHERE image_id="%s"', $imageId));
                             }
                         }
 
-                        if ($data->getSort() == 1) {
+                        if ($model->getSort() == 1) {
                             $oldImage = $this->db->query(sprintf('SELECT products_image as image_name FROM products WHERE products_id = "%s"', $productId));
                         } else {
-                            $oldImage = $this->db->query(sprintf('SELECT image_name FROM products_images WHERE products_id = "%s" && image_nr=%s', $productId, ($data->getSort() - 1)));
+                            $oldImage = $this->db->query(sprintf('SELECT image_name FROM products_images WHERE products_id = "%s" && image_nr=%s', $productId, ($model->getSort() - 1)));
                         }
 
                         if (count($oldImage) > 0) {
@@ -294,21 +297,21 @@ class Image extends AbstractMapper
                             }
                         }
 
-                        $imgFileName = $this->generateImageName($data);
+                        $imgFileName = $this->generateImageName($model);
                         $imagePath = $this->createImageFilePath($imgFileName, ImageRelationType::TYPE_PRODUCT);
-                        if (!rename($data->getFilename(), $imagePath)) {
+                        if (!rename($model->getFilename(), $imagePath)) {
                             throw new \Exception('Cannot move uploaded image file');
                         }
 
                         $this->generateThumbs($imgFileName, $oldImage);
 
-                        if ($data->getSort() == 1) {
+                        if ($model->getSort() == 1) {
                             $productsObj = new \stdClass();
                             $productsObj->products_image = $imgFileName;
                             $this->db->updateRow($productsObj, 'products', 'products_id', $productId);
-                            $data->getId()->setEndpoint('pID_' . $productId);
+                            $model->getId()->setEndpoint('pID_' . $productId);
 
-                            foreach ($data->getI18ns() as $i18n) {
+                            foreach ($model->getI18ns() as $i18n) {
                                 $updateImgAltQuery = sprintf(
                                     'UPDATE products_description SET gm_alt_text="%s" WHERE products_id="%s" && language_id=%s',
                                     $i18n->getAltText(),
@@ -321,30 +324,30 @@ class Image extends AbstractMapper
                             $imgObj = new \stdClass();
                             $imgObj->products_id = $productId;
                             $imgObj->image_name = $imgFileName;
-                            $imgObj->image_nr = ($data->getSort() - 1);
+                            $imgObj->image_nr = ($model->getSort() - 1);
                             $newIdQuery = $this->db->deleteInsertRow($imgObj, 'products_images', ['image_nr', 'products_id'], [$imgObj->image_nr, $imgObj->products_id]);
-                            $data->getId()->setEndpoint($newIdQuery->getKey());
-                            foreach ($data->getI18ns() as $i18n) {
+                            $model->getId()->setEndpoint($newIdQuery->getKey());
+                            foreach ($model->getI18ns() as $i18n) {
                                 $updateImgAltQuery = sprintf(
                                     'INSERT INTO gm_prd_img_alt SET gm_alt_text="%s", products_id="%s", image_id="%s", language_id=%s',
                                     $i18n->getAltText(),
                                     $imgObj->products_id,
-                                    $data->getId()->getEndpoint(),
+                                    $model->getId()->getEndpoint(),
                                     $this->locale2id($i18n->getLanguageISO())
                                 );
                                 $this->db->query($updateImgAltQuery);
                             }
                         }
 
-                        $this->db->query(sprintf('DELETE FROM jtl_connector_link_image WHERE host_id=%s', $data->getId()->getHost()));
-                        $this->db->query(sprintf('INSERT INTO jtl_connector_link_image SET host_id="%s", endpoint_id="%s"', $data->getId()->getHost(), $data->getId()->getEndpoint()));
+                        $this->db->query(sprintf('DELETE FROM jtl_connector_link_image WHERE host_id=%s', $model->getId()->getHost()));
+                        $this->db->query(sprintf('INSERT INTO jtl_connector_link_image SET host_id="%s", endpoint_id="%s"', $model->getId()->getHost(), $model->getId()->getEndpoint()));
                     }
 
                     break;
             }
         }
 
-        return $data;
+        return $model;
     }
 
     public function removeProductImageAndThumbnails($prevImage)
@@ -384,7 +387,7 @@ class Image extends AbstractMapper
      * @return object
      * @throws \Exception
      */
-    public function delete($data)
+    public function delete(DataModel $data)
     {
         if (get_class($data) === ImageModel::class && $data->getForeignKey()->getEndpoint() !== '') {
             $imageId = self::extractImageId($data->getId()->getEndpoint());
@@ -467,7 +470,10 @@ class Image extends AbstractMapper
                                 $prevImage = $prevImgQuery[0]['image_name'];
                             }
 
-                            $this->removeProductImageAndThumbnails($prevImage);
+                            if (isset($prevImage)) {
+                                $this->removeProductImageAndThumbnails($prevImage);
+                            }
+
                             $this->db->query(sprintf('DELETE FROM products_images WHERE image_id="%s"', $imageId));
 
                             if ($data->getSort() === 1) {
@@ -591,6 +597,12 @@ class Image extends AbstractMapper
         }
     }
 
+    /**
+     * @param $fileName
+     * @param $oldImage
+     * @return void
+     * @throws \Exception
+     */
     private function generateThumbs($fileName, $oldImage = null)
     {
         $imgInfo = getimagesize($this->shopConfig['shop']['path'] . $this->shopConfig['img']['original'] . $fileName);
@@ -605,6 +617,8 @@ class Image extends AbstractMapper
             case 3:
                 $image = imagecreatefrompng($this->shopConfig['shop']['path'] . $this->shopConfig['img']['original'] . $fileName);
                 break;
+            default:
+                throw new \Exception(sprintf('Unknown image type %s. Supported image types: gif, jpg, png.', $imgInfo[2]));
         }
 
         $width = imagesx($image);

@@ -3,6 +3,7 @@
 namespace jtl\Connector\Gambio\Mapper;
 
 use jtl\Connector\Gambio\Mapper\AbstractMapper;
+use jtl\Connector\Model\DataModel;
 
 class ProductSpecialPriceItem extends AbstractMapper
 {
@@ -19,9 +20,9 @@ class ProductSpecialPriceItem extends AbstractMapper
         return [$this->generateModel($data)];
     }
 
-    public function push($parent, $dbObj = null)
+    public function push(DataModel $model, \stdClass $dbObj = null)
     {
-        $prices = $parent->getItems();
+        $prices = $model->getItems();
         $dbObj->specials_new_products_price = $prices[0]->getPriceNet();
     }
 

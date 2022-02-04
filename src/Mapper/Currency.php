@@ -4,6 +4,7 @@ namespace jtl\Connector\Gambio\Mapper;
 
 use jtl\Connector\Gambio\Mapper\AbstractMapper;
 use jtl\Connector\Gambio\Util\ShopVersion;
+use jtl\Connector\Model\DataModel;
 
 class Currency extends AbstractMapper
 {
@@ -33,19 +34,19 @@ class Currency extends AbstractMapper
         ]
     ];
 
-    public function push($data, $dbObj = null)
+    public function push(DataModel $model, \stdClass $dbObj = null)
     {
-        $currencies = $data->getCurrencies();
+        $currencies = $model->getCurrencies();
 
         if (!empty($currencies)) {
-            foreach ($data->getCurrencies() as $currency) {
+            foreach ($model->getCurrencies() as $currency) {
                 $check = $this->db->query('SELECT currencies_id FROM currencies WHERE code="' . $currency->getIso() . '"');
                 if (count($check) > 0) {
                     $currency->getId()->setEndpoint($check[0]['currencies_id']);
                 }
             }
 
-            return parent::push($data, $dbObj);
+            return parent::push($model, $dbObj);
         }
     }
 

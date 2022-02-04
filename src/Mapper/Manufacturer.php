@@ -3,6 +3,7 @@
 namespace jtl\Connector\Gambio\Mapper;
 
 use jtl\Connector\Gambio\Controller\DefaultController;
+use jtl\Connector\Model\DataModel;
 use jtl\Connector\Model\ManufacturerI18n;
 
 class Manufacturer extends AbstractMapper
@@ -33,8 +34,8 @@ class Manufacturer extends AbstractMapper
             return $result[0]['manufacturers_url'];
         }
     }
-    
-    public function delete($data)
+
+    public function delete(DataModel $data)
     {
         $id = $data->getId()->getEndpoint();
         
@@ -50,23 +51,23 @@ class Manufacturer extends AbstractMapper
         
         return $data;
     }
-    
-    public function push($data, $dbObj = null)
+
+    public function push(DataModel $model, \stdClass $dbObj = null)
     {
-        /** @var \jtl\Connector\Model\Manufacturer $data */
-        $return = parent::push($data, $dbObj);
+        /** @var \jtl\Connector\Model\Manufacturer $model */
+        $return = parent::push($model, $dbObj);
         
         $props = ['manufacturers_url', 'manufacturers_meta_title', 'manufacturers_meta_description', 'manufacturers_meta_keywords'];
         
         $manufacturersInfoObj = new \stdClass();
-        $manufacturersInfoObj->manufacturers_id = $data->getId()->getEndpoint();
-        $manufacturersInfoObj->manufacturers_url = $data->getWebsiteUrl();
+        $manufacturersInfoObj->manufacturers_id = $model->getId()->getEndpoint();
+        $manufacturersInfoObj->manufacturers_url = $model->getWebsiteUrl();
         
         $this->db->query('DELETE FROM manufacturers_info WHERE manufacturers_id = ' . $manufacturersInfoObj->manufacturers_id);
         $languages = $this->db->query('SELECT languages_id, code FROM languages');
         foreach ($languages as $language) {
             /** @var ManufacturerI18n $i18n */
-            $i18n = DefaultController::findI18n($data->getI18ns(), $language['code']);
+            $i18n = DefaultController::findI18n($model->getI18ns(), $language['code']);
             $manufacturersInfoObj->languages_id = $language['languages_id'];
             $manufacturersInfoObj->manufacturers_meta_title = '';
             $manufacturersInfoObj->manufacturers_meta_keywords = '';

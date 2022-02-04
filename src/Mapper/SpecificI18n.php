@@ -2,6 +2,8 @@
 
 namespace jtl\Connector\Gambio\Mapper;
 
+use jtl\Connector\Model\DataModel;
+
 class SpecificI18n extends \jtl\Connector\Gambio\Mapper\AbstractMapper
 {
     protected $mapperConfig = [
@@ -19,12 +21,12 @@ class SpecificI18n extends \jtl\Connector\Gambio\Mapper\AbstractMapper
         ]
     ];
 
-    public function push($parent, $dbObj = null)
+    public function push(DataModel $model, \stdClass $dbObj = null)
     {
-        $fId = $parent->getId()->getEndpoint();
+        $fId = $model->getId()->getEndpoint();
 
         if (!empty($fId)) {
-            $data = $parent->getI18ns();
+            $data = $model->getI18ns();
 
             $currentResults = $this->db->query('SELECT d.language_id FROM feature_description d WHERE d.feature_id="'.$fId.'"');
 
@@ -40,7 +42,7 @@ class SpecificI18n extends \jtl\Connector\Gambio\Mapper\AbstractMapper
                 $dbObj = new \stdClass();
 
                 $dbObj->language_id = $this->locale2id($obj->getLanguageISO());
-                $dbObj->feature_id = $parent->getId()->getEndpoint();
+                $dbObj->feature_id = $model->getId()->getEndpoint();
                 $dbObj->feature_name = $obj->getName();
 
                 $new[] = $dbObj;

@@ -2,6 +2,8 @@
 
 namespace jtl\Connector\Gambio\Mapper;
 
+use jtl\Connector\Model\DataModel;
+
 class CategoryI18n extends \jtl\Connector\Gambio\Mapper\AbstractMapper
 {
     protected $mapperConfig = [
@@ -42,12 +44,12 @@ class CategoryI18n extends \jtl\Connector\Gambio\Mapper\AbstractMapper
         'gm_alt_text' => 'Alternativer Text',
     ];
 
-    public function push($parent, $dbObj = null)
+    public function push(DataModel $model, \stdClass $dbObj = null)
     {
-        $cId = $parent->getId()->getEndpoint();
+        $cId = $model->getId()->getEndpoint();
 
         if (!empty($cId)) {
-            $data = $parent->getI18ns();
+            $data = $model->getI18ns();
 
             $currentResults = $this->db->query('SELECT d.language_id FROM categories_description d WHERE d.categories_id="'.$cId.'"');
 
@@ -60,7 +62,7 @@ class CategoryI18n extends \jtl\Connector\Gambio\Mapper\AbstractMapper
             $new = [];
             
             $attributes = [];
-            foreach ($parent->getAttributes() as $attribute) {
+            foreach ($model->getAttributes() as $attribute) {
                 foreach ($attribute->getI18ns() as $i18n) {
                     if (isset($this->relatedAttributes[$i18n->getName()])) {
                         $attributes[$i18n->getLanguageISO()][$i18n->getName()] = $i18n;
@@ -95,7 +97,7 @@ class CategoryI18n extends \jtl\Connector\Gambio\Mapper\AbstractMapper
                 
                 foreach ($this->mapperConfig['mapPush'] as $endpoint => $host) {
                     if (is_null($host) && method_exists(get_class($this), $endpoint)) {
-                        $dbObj->$endpoint = $this->$endpoint($obj, null, $parent);
+                        $dbObj->$endpoint = $this->$endpoint($obj, null, $model);
                     } else {
                         $value = null;
 

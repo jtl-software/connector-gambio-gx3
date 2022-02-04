@@ -18,18 +18,18 @@ class ChecksumLoader implements IChecksumLoader
     {
         $dbResult = $this->db->query('SELECT checksum FROM jtl_connector_product_checksum WHERE endpoint_id = "'.$endpointId.'" AND type = '.$type);
 
-        $checksum = (count($dbResult) > 0) ? $dbResult[0]['checksum'] : null;
-
-        return $checksum;
+        return (count($dbResult) > 0) ? $dbResult[0]['checksum'] : null;
     }
 
     public function delete($endpointId, $type)
     {
         $this->db->query('DELETE FROM jtl_connector_product_checksum WHERE type='.$type.' && endpoint_id="'.$endpointId.'"');
+        return true;
     }
 
     public function write($endpointId, $type, $checksum)
     {
         $this->db->query('INSERT IGNORE INTO jtl_connector_product_checksum (endpoint_id, type, checksum) VALUES ("'.$endpointId.'",'.$type.',"'.$checksum.'")');
+        return true;
     }
 }

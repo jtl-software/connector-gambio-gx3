@@ -3,6 +3,7 @@
 namespace jtl\Connector\Gambio\Mapper;
 
 use jtl\Connector\Gambio\Mapper\AbstractMapper;
+use jtl\Connector\Model\DataModel;
 
 class ProductSpecialPrice extends AbstractMapper
 {
@@ -48,19 +49,19 @@ class ProductSpecialPrice extends AbstractMapper
         return $data['begins_date'] == '0000-00-00 00:00:00' ? null : $data['begins_date'];
     }
 
-    public function push($parent, $dbObj = null)
+    public function push(DataModel $model, \stdClass $dbObj = null)
     {
-        $id = $parent->getId()->getEndpoint();
+        $id = $model->getId()->getEndpoint();
         $q='DELETE FROM `specials` WHERE `products_id` = ' . $id;
         $this->db->query($q);
 
-        if (!is_null($parent->getSpecialPrices()) && count($parent->getSpecialPrices()) === 1) {
-            foreach ($parent->getSpecialPrices() as $special) {
-                $special->setProductId($parent->getId());
+        if (!is_null($model->getSpecialPrices()) && count($model->getSpecialPrices()) === 1) {
+            foreach ($model->getSpecialPrices() as $special) {
+                $special->setProductId($model->getId());
                 $special->setStockLimit(999999);
             }
 
-            return parent::push($parent, $dbObj);
+            return parent::push($model, $dbObj);
         }
     }
 }

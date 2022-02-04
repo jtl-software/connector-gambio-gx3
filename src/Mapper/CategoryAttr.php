@@ -6,6 +6,7 @@ use jtl\Connector\Gambio\Mapper\AbstractMapper;
 use jtl\Connector\Model\Category as CategoryModel;
 use jtl\Connector\Model\CategoryAttr as CategoryAttrModel;
 use jtl\Connector\Model\CategoryAttrI18n as CategoryAttrI18nModel;
+use jtl\Connector\Model\DataModel;
 
 class CategoryAttr extends AbstractMapper
 {
@@ -80,11 +81,11 @@ class CategoryAttr extends AbstractMapper
      * @param null $dbObj
      * @return multitype
      */
-    public function push($product, $dbObj = null)
+    public function push(DataModel $model, \stdClass $dbObj = null)
     {
         $dbObj->categories_status = 1;
         
-        foreach ($product->getAttributes() as $attr) {
+        foreach ($model->getAttributes() as $attr) {
             foreach ($attr->getI18ns() as $i18n) {
                 $attributeName = trim($i18n->getName());
                 $field = array_key_exists($attributeName, $this->additions);
@@ -103,7 +104,7 @@ class CategoryAttr extends AbstractMapper
             }
         }
         
-        return $product->getAttributes();
+        return $model->getAttributes();
     }
     
     private function createAttr($id, $name, $value, $data)

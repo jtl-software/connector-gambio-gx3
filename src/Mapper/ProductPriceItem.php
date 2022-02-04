@@ -2,6 +2,8 @@
 
 namespace jtl\Connector\Gambio\Mapper;
 
+use jtl\Connector\Model\DataModel;
+
 class ProductPriceItem extends AbstractMapper
 {
     private static $parentPrice = null;
@@ -30,9 +32,9 @@ class ProductPriceItem extends AbstractMapper
         return $return;
     }
 
-    public function push($data, $dbObj = null)
+    public function push(DataModel $model, \stdClass $dbObj = null)
     {
-        $productId = $data->getProductId()->getEndpoint();
+        $productId = $model->getProductId()->getEndpoint();
 
         if (strpos($productId, '_') !== false) {
             list($parentId, $combiId) = explode('_', $productId);
@@ -42,19 +44,19 @@ class ProductPriceItem extends AbstractMapper
                 static::$parentPrice[$parentId] = $parentObj[0]['products_price'];
             }
 
-            foreach ($data->getItems() as $price) {
+            foreach ($model->getItems() as $price) {
                 $obj = new \stdClass();
 
-                if (is_null($data->getCustomerGroupId()->getEndpoint()) || $data->getCustomerGroupId()->getEndpoint() == '') {
+                if (is_null($model->getCustomerGroupId()->getEndpoint()) || $model->getCustomerGroupId()->getEndpoint() == '') {
                     $obj->combi_price = $price->getNetPrice() - static::$parentPrice[$parentId];
                     $this->db->updateRow($obj, 'products_properties_combis', 'products_properties_combis_id', $combiId);
                 }
             }
         } else {
-            foreach ($data->getItems() as $price) {
+            foreach ($model->getItems() as $price) {
                 $obj = new \stdClass();
 
-                if (is_null($data->getCustomerGroupId()->getEndpoint()) || $data->getCustomerGroupId()->getEndpoint() == '') {
+                if (is_null($model->getCustomerGroupId()->getEndpoint()) || $model->getCustomerGroupId()->getEndpoint() == '') {
                     static::$parentPrice[$productId] = $price->getNetPrice();
 
                     $obj->products_price = $price->getNetPrice();
@@ -65,12 +67,12 @@ class ProductPriceItem extends AbstractMapper
                     $obj->personal_offer = $price->getNetprice();
                     $obj->quantity = ($price->getQuantity() == 0) ? 1 : $price->getQuantity();
 
-                    $this->db->insertRow($obj, 'personal_offers_by_customers_status_'.$data->getCustomerGroupId()->getEndpoint());
+                    $this->db->insertRow($obj, 'personal_offers_by_customers_status_'.$model->getCustomerGroupId()->getEndpoint());
                 }
             }
         }
 
-        return $data;
+        return $model;
     }
 
     protected function quantity($data)

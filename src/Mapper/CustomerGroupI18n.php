@@ -3,6 +3,7 @@
 namespace jtl\Connector\Gambio\Mapper;
 
 use jtl\Connector\Gambio\Mapper\AbstractMapper;
+use jtl\Connector\Model\DataModel;
 
 class CustomerGroupI18n extends AbstractMapper
 {
@@ -17,9 +18,9 @@ class CustomerGroupI18n extends AbstractMapper
         ]
     ];
 
-    public function push($data, $dbObj = null)
+    public function push(DataModel $model, \stdClass $dbObj = null)
     {
-        $id = $data->getId()->getEndpoint();
+        $id = $model->getId()->getEndpoint();
 
         if (empty($id) && $id !== 0) {
             $nextId = $this->db->query('SELECT max(customers_status_id) + 1 AS nextID FROM customers_status');
@@ -28,22 +29,22 @@ class CustomerGroupI18n extends AbstractMapper
             $this->db->query('DELETE FROM customers_status WHERE customers_status_id='.$id);
         }
 
-        $data->getId()->setEndpoint($id);
+        $model->getId()->setEndpoint($id);
 
-        foreach ($data->getI18ns() as $i18n) {
+        foreach ($model->getI18ns() as $i18n) {
             $i18n->getCustomerGroupId()->setEndpoint($id);
 
             $grp = new \stdClass();
             $grp->language_id = $this->locale2id($i18n->getLanguageISO());
             $grp->customers_status_id = $id;
             $grp->customers_status_name = $i18n->getName();
-            $grp->customers_status_discount = $data->getDiscount();
-            $grp->customers_status_ot_discount = $data->getDiscount();
+            $grp->customers_status_discount = $model->getDiscount();
+            $grp->customers_status_ot_discount = $model->getDiscount();
             $grp->customers_status_graduated_prices = 1;
-            $grp->customers_status_add_tax_ot = $data->getApplyNetPrice() === true ? 1 : 0;
-            $grp->customers_status_show_price_tax = $data->getApplyNetPrice() === true ? 0 : 1;
+            $grp->customers_status_add_tax_ot = $model->getApplyNetPrice() === true ? 1 : 0;
+            $grp->customers_status_show_price_tax = $model->getApplyNetPrice() === true ? 0 : 1;
 
-            foreach ($data->getAttributes() as $attr) {
+            foreach ($model->getAttributes() as $attr) {
                 if ($attr->getKey() == 'Mindestbestellwert') {
                     $grp->customers_status_min_order = $attr->getValue();
                 } elseif ($attr->getKey() == 'Hoechstbestellwert') {
@@ -54,7 +55,7 @@ class CustomerGroupI18n extends AbstractMapper
             $this->db->insertRow($grp, 'customers_status');
         }
 
-        return $data->getI18ns();
+        return $model->getI18ns();
     }
 
     protected function language_id($data)

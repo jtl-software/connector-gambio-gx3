@@ -6,6 +6,7 @@ use jtl\Connector\Core\Logger\Logger;
 use jtl\Connector\Gambio\Mapper\AbstractMapper;
 use jtl\Connector\Core\Utilities\Language;
 use jtl\Connector\Core\Utilities\Country;
+use jtl\Connector\Model\DataModel;
 
 class Customer extends AbstractMapper
 {
@@ -133,10 +134,10 @@ class Customer extends AbstractMapper
         
         return isset($password) ? $password : md5(rand());
     }
-    
-    public function push($data, $dbObj = null)
+
+    public function push(DataModel $model, \stdClass $dbObj = null)
     {
-        $id = $data->getId()->getEndpoint();
+        $id = $model->getId()->getEndpoint();
         
         if (!is_null($id)) {
             $this->db->query('DELETE FROM address_book WHERE customers_id=' . $id);
@@ -144,45 +145,45 @@ class Customer extends AbstractMapper
             $this->db->query('DELETE FROM coupon_gv_customer WHERE customer_id=' . $id);
         }
         
-        $return = parent::push($data, $dbObj);
+        $return = parent::push($model, $dbObj);
         
-        $dataIso = $data->getCountryIso();
+        $dataIso = $model->getCountryIso();
         
         if (!empty($dataIso)) {
             $countryResult = $this->db->query('SELECT countries_id FROM countries WHERE countries_iso_code_2="' . $dataIso . '"');
         }
         
         $entry = new \stdClass();
-        $entry->customers_id = $data->getId()->getEndpoint();
-        $entry->entry_gender = $data->getSalutation() == 'Herr' ? 'm' : 'f';
-        $entry->entry_company = $data->getCompany();
-        $entry->entry_firstname = $data->getFirstName();
-        $entry->entry_lastname = $data->getLastName();
+        $entry->customers_id = $model->getId()->getEndpoint();
+        $entry->entry_gender = $model->getSalutation() == 'Herr' ? 'm' : 'f';
+        $entry->entry_company = $model->getCompany();
+        $entry->entry_firstname = $model->getFirstName();
+        $entry->entry_lastname = $model->getLastName();
         
-        $entry->entry_street_address = $data->getStreet();
+        $entry->entry_street_address = $model->getStreet();
         if ($this->shopConfig['settings']['ACCOUNT_SPLIT_STREET_INFORMATION'] === 1) {
-            preg_match('/([[:alnum:]]+)(\\.|\\:|\\-|\\s)*([[:digit:]]+.*)/', $data->getStreet(), $addressData);
+            preg_match('/([[:alnum:]]+)(\\.|\\:|\\-|\\s)*([[:digit:]]+.*)/', $model->getStreet(), $addressData);
             if (isset($addressData[1]) && isset($addressData[3])) {
                 $entry->entry_street_address = $addressData[1];
                 $entry->entry_house_number = $addressData[3];
             }
         }
         
-        $entry->entry_additional_info = $data->getExtraAddressLine();
-        $entry->entry_postcode = $data->getZipCode();
-        $entry->entry_city = $data->getCity();
-        $entry->entry_state = $data->getState();
-        $entry->entry_country_id = ($countryResult) ? $countryResult[0]['countries_id'] : '81';
+        $entry->entry_additional_info = $model->getExtraAddressLine();
+        $entry->entry_postcode = $model->getZipCode();
+        $entry->entry_city = $model->getCity();
+        $entry->entry_state = $model->getState();
+        $entry->entry_country_id = $countryResult[0]['countries_id'] ?? '81';
         
         $address = $this->db->insertRow($entry, 'address_book');
         
         $customerUpdate = new \stdClass();
         $customerUpdate->customers_default_address_id = $address->getKey();
         
-        $insertResult = $this->db->updateRow($customerUpdate, $this->mapperConfig['table'], 'customers_id', $data->getId()->getEndpoint());
+        $insertResult = $this->db->updateRow($customerUpdate, $this->mapperConfig['table'], 'customers_id', $model->getId()->getEndpoint());
         
         $addressUpdate = new \stdClass();
-        $addressUpdate->customers_id = $data->getId()->getEndpoint();
+        $addressUpdate->customers_id = $model->getId()->getEndpoint();
         
         $this->db->updateRow($addressUpdate, 'address_book', 'address_book_id', $address->getKey());
         
@@ -190,17 +191,17 @@ class Customer extends AbstractMapper
         $infoObj->customers_info_id = $insertResult->getKey();
         $this->db->insertRow($infoObj, 'customers_info');
         
-        if ($data->getAccountCredit() > 0) {
+        if ($model->getAccountCredit() > 0) {
             $credit = new \stdClass();
             $credit->customer_id = $insertResult->getKey();
-            $credit->amount = $data->getAccountCredit();
+            $credit->amount = $model->getAccountCredit();
             $this->db->insertRow($credit, 'coupon_gv_customer');
         }
         
         return $return;
     }
-    
-    public function delete($data)
+
+    public function delete(DataModel $data)
     {
         try {
             $this->db->query('DELETE FROM customers WHERE customers_id=' . $data->getId()->getEndpoint());

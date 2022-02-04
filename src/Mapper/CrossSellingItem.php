@@ -7,11 +7,12 @@ use jtl\Connector\Model\CrossSellingItem as CrossSellingItemModel;
 
 class CrossSellingItem extends AbstractMapper
 {
-    public function pull($data, $limit = null): array
+    public function pull($parentData = null, $limit = null): array
     {
-        $query = 'SELECT x.* FROM products_xsell x WHERE x.products_id = "'.$data['products_id'].'"';
+        $query = 'SELECT x.* FROM products_xsell x WHERE x.products_id = "'.$parentData['products_id'].'"';
         $results = $this->db->query($query);
-        
+        $groups = [];
+
         foreach ($results as $xsell) {
             $groups[$xsell['products_xsell_grp_name_id']][] = $this->identity($xsell['xsell_id']);
         }

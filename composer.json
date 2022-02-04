@@ -32,7 +32,8 @@
         "jtl/connector-integration-tests": "dev-develop",
         "friendsofphp/php-cs-fixer": "^3.2",
         "phpcompatibility/php-compatibility": "dev-develop",
-        "dealerdirect/phpcodesniffer-composer-installer": "^0.7.1"
+        "dealerdirect/phpcodesniffer-composer-installer": "^0.7.1",
+        "phpstan/phpstan": "^1.4"
     },
     "autoload": {
         "psr-4": {
@@ -43,6 +44,7 @@
         "build": [
             "@composer update",
             "./vendor/bin/phpcs src/ --extensions=php -p --standard=phpcs.xml.dist",
+            "./vendor/bin/phpstan analyse",
             "@composer update --no-dev",
             "./vendor/bin/phing package",
             "@composer update"

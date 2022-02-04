@@ -3,6 +3,7 @@
 namespace jtl\Connector\Gambio\Mapper;
 
 use jtl\Connector\Gambio\Installer\Config;
+use jtl\Connector\Model\DataModel;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\Product as ProductModel;
 use jtl\Connector\Model\ProductAttr as ProductAttrModel;
@@ -47,18 +48,19 @@ class ProductAttr extends AbstractMapper
 
         return $attrs;
     }
-    
+
     /**
-     * @param ProductModel $product
-     * @param null $dbObj
-     * @return multitype
+     * @param DataModel $model
+     * @param \stdClass|null $dbObj
+     * @return mixed
+     * @throws \jtl\Connector\Core\Exception\LanguageException
      */
-    public function push($product, $dbObj = null)
+    public function push(DataModel $model, \stdClass $dbObj = null)
     {
         $ignoreAttributes = array_merge($this->ignoreAttributes, array_values(Product::getSpecialAttributes()), array_keys(Product::getSpecialAttributes()));
-        foreach ($product->getAttributes() as $attr) {
+        foreach ($model->getAttributes() as $attr) {
             foreach ($attr->getI18ns() as $i18n) {
-                $pId = $product->getId()->getEndpoint();
+                $pId = $model->getId()->getEndpoint();
                 $ignoreAttribute = in_array($i18n->getName(), $ignoreAttributes);
                 if ($ignoreAttribute || ($attr->getIsCustomProperty() && $this->connectorConfig->{Config::IGNORE_CUSTOM_FIELDS})) {
                     break;
@@ -110,26 +112,28 @@ class ProductAttr extends AbstractMapper
                     }
                 }
             }
-            
-            $value = new \stdClass();
-            $value->additional_field_id = $fieldId;
-            $value->item_id = $product->getId()->getEndpoint();
 
-            $valIns = $this->db->insertRow($value, 'additional_field_values');
-            $valId = $valIns->getKey();
-            if ($this->locale2id($i18n->getLanguageISO())) {
-                foreach ($attr->getI18ns() as $i18n) {
-                    $valDesc = new \stdClass();
-                    $valDesc->additional_field_value_id = $valId;
-                    $valDesc->language_id = $this->locale2id($i18n->getLanguageISO());
-                    $valDesc->value = $i18n->getValue();
+            if(isset($fieldId)) {
+                $value = new \stdClass();
+                $value->additional_field_id = $fieldId;
+                $value->item_id = $model->getId()->getEndpoint();
 
-                    $this->db->insertRow($valDesc, 'additional_field_value_descriptions');
+                $valIns = $this->db->insertRow($value, 'additional_field_values');
+                $valId = $valIns->getKey();
+                if (isset($i18n) && $this->locale2id($i18n->getLanguageISO())) {
+                    foreach ($attr->getI18ns() as $i18n) {
+                        $valDesc = new \stdClass();
+                        $valDesc->additional_field_value_id = $valId;
+                        $valDesc->language_id = $this->locale2id($i18n->getLanguageISO());
+                        $valDesc->value = $i18n->getValue();
+
+                        $this->db->insertRow($valDesc, 'additional_field_value_descriptions');
+                    }
                 }
             }
         }
 
-        return $product->getAttributes();
+        return $model->getAttributes();
     }
 
     private function createAttr($id, $name, $value, $data)

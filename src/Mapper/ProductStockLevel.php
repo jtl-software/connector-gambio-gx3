@@ -3,6 +3,7 @@
 namespace jtl\Connector\Gambio\Mapper;
 
 use jtl\Connector\Gambio\Mapper\AbstractMapper;
+use jtl\Connector\Model\DataModel;
 use jtl\Connector\Model\ProductStockLevel as ProductStockLevelModel;
 use stdClass;
 
@@ -17,12 +18,12 @@ class ProductStockLevel extends AbstractMapper
         return [$stockLevel];
     }
 
-    public function push($stockLevel, $dbObj = null)
+    public function push(DataModel $model, \stdClass $dbObj = null)
     {
-        $productId = $stockLevel->getProductId()->getEndpoint();
+        $productId = $model->getProductId()->getEndpoint();
 
         if (!empty($productId)) {
-            $stockLevel = (int)round($stockLevel->getStockLevel());
+            $stockLevel = (int)round($model->getStockLevel());
 
             if (strpos($productId, '_') !== false) {
                 $ids = explode('_', $productId);

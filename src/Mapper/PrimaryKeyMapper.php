@@ -64,7 +64,9 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
             Logger::write(sprintf('Save link with endpoint_id (%s), host_id (%s) and type (%s)', $endpointId, $hostId, $type), Logger::DEBUG, 'linker');
 
             $this->db->query("INSERT IGNORE INTO jtl_connector_link_" . static::$types[$type] . " (endpoint_id, host_id) VALUES ('" . $endpointId . "'," . $hostId . ")");
+            return true;
         }
+        return false;
     }
 
     public function delete($endpointId, $hostId, $type)
@@ -83,7 +85,9 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
             }
 
             $this->db->query('DELETE FROM jtl_connector_link_' . static::$types[$type] . ' WHERE ' . join(" AND ", $where));
+            return true;
         }
+        return false;
     }
 
     public function clear()

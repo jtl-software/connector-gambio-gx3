@@ -29,20 +29,18 @@ class ShippingMethod extends AbstractMapper
     {
         $moduleStr = $this->configHelper->getDbConfigValue('MODULE_SHIPPING_INSTALLED');
 
+        $return = [];
         if (!is_null($moduleStr)) {
             $modules = explode(';', $moduleStr);
             if (count($modules) > 0) {
-                $return = [];
 
                 foreach ($modules as $moduleFile) {
                     $modName = str_replace('.php', '', $moduleFile);
+                    $t_language_text_section_content_array = [];
                     include_once($this->shopConfig['shop']['path'] . 'lang/german/original_sections/modules/shipping/' . $modName . '.lang.inc.php');
 
-                    if (isset($t_language_text_section_content_array['MODULE_SHIPPING_' . strtoupper($modName) . '_TEXT_TITLE'])) {
-                        $modTitle = $t_language_text_section_content_array['MODULE_SHIPPING_' . strtoupper($modName) . '_TEXT_TITLE'];
-                    } else {
-                        $modTitle = $modName;
-                    }
+                    $titleName = 'MODULE_SHIPPING_' . strtoupper($modName) . '_TEXT_TITLE';
+                    $modTitle = $t_language_text_section_content_array[$titleName] ?? $modName;
 
                     $model = new ShippingMethodModel();
                     $model->setName($modTitle);
@@ -51,8 +49,8 @@ class ShippingMethod extends AbstractMapper
                     $return[] = $model;
                 }
 
-                return $return;
             }
         }
+        return $return;
     }
 }

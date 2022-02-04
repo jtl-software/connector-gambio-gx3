@@ -3,6 +3,7 @@
 namespace jtl\Connector\Gambio\Mapper;
 
 use jtl\Connector\Gambio\Mapper\AbstractMapper;
+use jtl\Connector\Model\DataModel;
 
 class Product2Category extends AbstractMapper
 {
@@ -23,18 +24,18 @@ class Product2Category extends AbstractMapper
         ]
     ];
 
-    public function push($parent, $dbObj = null)
+    public function push(DataModel $model, \stdClass $dbObj = null)
     {
-        $id = $parent->getId()->getEndpoint();
+        $id = $model->getId()->getEndpoint();
 
         if (!empty($id)) {
             $this->db->query('DELETE FROM products_to_categories WHERE products_id='.$id);
         }
 
-        foreach ($parent->getCategories() as $category) {
-            $category->setProductId($parent->getId());
+        foreach ($model->getCategories() as $category) {
+            $category->setProductId($model->getId());
         }
 
-        return parent::push($parent, $dbObj);
+        return parent::push($model, $dbObj);
     }
 }

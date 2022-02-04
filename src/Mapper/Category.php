@@ -4,6 +4,7 @@ namespace jtl\Connector\Gambio\Mapper;
 
 use jtl\Connector\Gambio\Controller\DefaultController;
 use jtl\Connector\Gambio\Util\CategoryIndexHelper;
+use jtl\Connector\Model\DataModel;
 
 class Category extends \jtl\Connector\Gambio\Mapper\AbstractMapper
 {
@@ -104,17 +105,17 @@ class Category extends \jtl\Connector\Gambio\Mapper\AbstractMapper
         
         return $result;
     }
-    
-    public function push($data, $dbObj = null)
+
+    public function push(DataModel $model, \stdClass $dbObj = null)
     {
-        if (isset(static::$idCache[$data->getParentCategoryId()->getHost()])) {
-            $data->getParentCategoryId()->setEndpoint(static::$idCache[$data->getParentCategoryId()->getHost()]);
+        if (isset(static::$idCache[$model->getParentCategoryId()->getHost()])) {
+            $model->getParentCategoryId()->setEndpoint(static::$idCache[$model->getParentCategoryId()->getHost()]);
         }
     
         $dbObj = new \stdClass();
-        $result = parent::push($data, $dbObj);
+        $result = parent::push($model, $dbObj);
 
-        (new CategoryI18n($this->db, $this->shopConfig, $this->connectorConfig))->push($data, new \stdClass());
+        (new CategoryI18n($this->db, $this->shopConfig, $this->connectorConfig))->push($model, new \stdClass());
         return $result;
     }
     
@@ -154,8 +155,8 @@ class Category extends \jtl\Connector\Gambio\Mapper\AbstractMapper
             $this->getChildren($ids, $level + 1, $limit);
         }
     }
-    
-    public function delete($data)
+
+    public function delete(DataModel $data)
     {
         $id = $data->getId()->getEndpoint();
         

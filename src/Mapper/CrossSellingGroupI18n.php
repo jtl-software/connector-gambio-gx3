@@ -3,6 +3,7 @@
 namespace jtl\Connector\Gambio\Mapper;
 
 use jtl\Connector\Gambio\Mapper\AbstractMapper;
+use jtl\Connector\Model\DataModel;
 
 class CrossSellingGroupI18n extends AbstractMapper
 {
@@ -20,9 +21,9 @@ class CrossSellingGroupI18n extends AbstractMapper
         ]
     ];
 
-    public function push($data, $dbObj = null)
+    public function push(DataModel $model, \stdClass $dbObj = null)
     {
-        $id = $data->getId()->getEndpoint();
+        $id = $model->getId()->getEndpoint();
 
         if (empty($id)) {
             $nextId = $this->db->query('SELECT max(products_xsell_grp_name_id) + 1 AS nextID FROM products_xsell_grp_name');
@@ -31,9 +32,9 @@ class CrossSellingGroupI18n extends AbstractMapper
             $this->db->query('DELETE FROM products_xsell_grp_name WHERE products_xsell_grp_name_id='.$id);
         }
 
-        $data->getId()->setEndpoint($id);
+        $model->getId()->setEndpoint($id);
 
-        foreach ($data->getI18ns() as $i18n) {
+        foreach ($model->getI18ns() as $i18n) {
             $i18n->getCrossSellingGroupId()->setEndpoint($id);
 
             $grp = new \stdClass();
@@ -44,7 +45,7 @@ class CrossSellingGroupI18n extends AbstractMapper
             $this->db->insertRow($grp, 'products_xsell_grp_name');
         }
 
-        return $data->getI18ns();
+        return $model->getI18ns();
     }
 
     protected function languageISO($data)

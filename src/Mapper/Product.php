@@ -6,6 +6,7 @@ use jtl\Connector\Core\Exception\LanguageException;
 use jtl\Connector\Gambio\Installer\Config;
 use jtl\Connector\Gambio\Mapper\ProductStockLevel as ProductStockLevelMapper;
 use jtl\Connector\Gambio\Util\CategoryIndexHelper;
+use jtl\Connector\Model\DataModel;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\ProductStockLevel;
 use jtl\Connector\Model\Product as ProductModel;
@@ -153,7 +154,6 @@ class Product extends AbstractMapper
 
         if (count($return) < $limit) {
             $productsData = [];
-            $limitQuery = isset($limit) ? ' LIMIT ' . $limit : '';
 
             $sql =
                 'SELECT j.* , qud.unit_name, pv.products_vpe_name vpe_name ' . "\n" .
@@ -162,7 +162,7 @@ class Product extends AbstractMapper
                 '  FROM products_properties_combis c' . "\n" .
                 '  LEFT JOIN products p USING (products_id)' . "\n" .
                 '  LEFT JOIN jtl_connector_link_product l ON CONCAT(c.products_id,"_",c.products_properties_combis_id) = l.endpoint_id' . "\n" .
-                '  WHERE l.host_id IS NULL' . $limitQuery . "\n" .
+                '  WHERE l.host_id IS NULL LIMIT ' . $limit . "\n" .
                 ') AS j ' . "\n" .
                 'LEFT JOIN products_quantity_unit pqu ON pqu.products_id = j.products_id ' . "\n" .
                 'LEFT JOIN languages la ON la.code = \'' . $this->shopConfig['settings']['DEFAULT_LANGUAGE'] . '\' ' . "\n" .
@@ -366,20 +366,20 @@ class Product extends AbstractMapper
         return ($i / 10.);
     }
 
-    public function push($product, $dbObj = null)
+    public function push(DataModel $model, \stdClass $dbObj = null)
     {
         if (is_null($dbObj)) {
             $dbObj = new \stdClass();
         }
 
-        $masterId = $product->getMasterProductId()->getEndpoint();
-        if (empty($masterId) && isset(static::$idCache[$product->getMasterProductId()->getHost()])) {
-            $masterId = static::$idCache[$product->getMasterProductId()->getHost()];
-            $product->getMasterProductId()->setEndpoint($masterId);
+        $masterId = $model->getMasterProductId()->getEndpoint();
+        if (empty($masterId) && isset(static::$idCache[$model->getMasterProductId()->getHost()])) {
+            $masterId = static::$idCache[$model->getMasterProductId()->getHost()];
+            $model->getMasterProductId()->setEndpoint($masterId);
         }
 
         $isVarCombiChild = !empty($masterId);
-        $id = $product->getId()->getEndpoint();
+        $id = $model->getId()->getEndpoint();
         if ($isVarCombiChild) {
             $this->mapperConfig['mapPush'] = [
                 "ProductVariation|addVariation" => "variations",
@@ -397,7 +397,7 @@ class Product extends AbstractMapper
                         )', $id));
         }
 
-        return parent::push($product, $dbObj);
+        return parent::push($model, $dbObj);
     }
 
     /**
@@ -533,7 +533,7 @@ class Product extends AbstractMapper
         }
     }
 
-    public function delete($data)
+    public function delete(DataModel $data)
     {
         $id = $data->getId()->getEndpoint();
 

@@ -2,6 +2,8 @@
 
 namespace jtl\Connector\Gambio\Mapper;
 
+use jtl\Connector\Model\DataModel;
+
 class ProductI18n extends AbstractMapper
 {
     protected $mapperConfig = [
@@ -96,12 +98,12 @@ class ProductI18n extends AbstractMapper
         return '';
     }
 
-    public function push($parent, $dbObj = null)
+    public function push(DataModel $model, \stdClass $dbObj = null)
     {
-        $pId = $parent->getId()->getEndpoint();
+        $pId = $model->getId()->getEndpoint();
 
         if (!empty($pId)) {
-            $data = $parent->getI18ns();
+            $data = $model->getI18ns();
 
             $currentResults = $this->db->query('SELECT d.language_id FROM products_description d WHERE d.products_id="'.$pId.'"');
 
@@ -123,7 +125,7 @@ class ProductI18n extends AbstractMapper
 
                 foreach ($this->mapperConfig['mapPush'] as $endpoint => $host) {
                     if (is_null($host) && method_exists(get_class($this), $endpoint)) {
-                        $dbObj->$endpoint = $this->$endpoint($obj, null, $parent);
+                        $dbObj->$endpoint = $this->$endpoint($obj, null, $model);
                     } else {
                         $value = null;
 

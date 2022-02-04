@@ -1,0 +1,12 @@
+parameters:
+	level: 1
+	phpVersion: 80100
+	excludePaths:
+	    - src/Gambio/Application.php
+	bootstrapFiles:
+	    - tests/gambio-stubs.php
+	scanFiles:
+	    - bootstrap.php
+	    - vendor/jtl/connector/src/bootstrap.php
+	paths:
+		- src

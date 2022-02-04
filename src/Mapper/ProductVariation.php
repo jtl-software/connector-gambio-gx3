@@ -4,6 +4,8 @@ namespace jtl\Connector\Gambio\Mapper;
 
 use jtl\Connector\Formatter\ExceptionFormatter;
 use jtl\Connector\Gambio\Connector;
+use jtl\Connector\Gambio\Exception\ControllerException;
+use jtl\Connector\Model\DataModel;
 use \jtl\Connector\Model\ProductVariation as ProductVariationModel;
 use \jtl\Connector\Gambio\Mapper\AbstractMapper;
 use \jtl\Connector\Linker\ChecksumLinker;
@@ -75,29 +77,35 @@ class ProductVariation extends Product
     }
 
     /**
-     * @param \jtl\Connector\Model\Product $parent
-     * @param object|null $dbObj
-     * @return mixed
+     * @param DataModel $model
+     * @param \stdClass|null $dbObj
+     * @return array|array[]|DataModel|DataModel[]|mixed
+     * @throws ControllerException
+     * @throws \jtl\Connector\Core\Exception\LanguageException
      */
-    public function push($parent, $dbObj = null)
+    public function push(DataModel $model, \stdClass $dbObj = null)
     {
-        if (count($parent->getVariations()) > 0) {
-            $masterId = $parent->getMasterProductId()->getEndpoint();
-            $productId = $parent->getId()->getEndpoint();
+        if (count($model->getVariations()) > 0) {
+            $masterId = $model->getMasterProductId()->getEndpoint();
+            $productId = $model->getId()->getEndpoint();
 
             // old variations
-            if (empty($masterId) && $parent->getIsMasterProduct() === false) {
+            if (empty($masterId) && $model->getIsMasterProduct() === false) {
                 $totalStock = 0;
 
                 // clear existing product variations
                 $this->db->query('DELETE FROM products_attributes WHERE products_id=' . $productId);
 
-                foreach ($parent->getVariations() as $variation) {
+                foreach ($model->getVariations() as $variation) {
                     // get variation name in default language
+                    $variationName = '';
                     foreach ($variation->getI18ns() as $i18n) {
                         if ($i18n->getLanguageISO() == $this->fullLocale($this->shopConfig['settings']['DEFAULT_LANGUAGE'])) {
                             $variationName = $i18n->getName();
                         }
+                    }
+                    if (empty($variationName)) {
+                        throw ControllerException::valueCannotBeEmpty('variationName');
                     }
 
                     // try to find existing variation id
@@ -129,10 +137,14 @@ class ProductVariation extends Product
                     // VariationValues
                     foreach ($variation->getValues() as $value) {
                         // get value name in default language
+                        $valueName = '';
                         foreach ($value->getI18ns() as $i18n) {
                             if ($i18n->getLanguageISO() == $this->fullLocale($this->shopConfig['settings']['DEFAULT_LANGUAGE'])) {
                                 $valueName = $i18n->getName();
                             }
+                        }
+                        if (empty($valueName)) {
+                            throw ControllerException::valueCannotBeEmpty('valueName');
                         }
 
                         // try to find existing value id
@@ -175,7 +187,7 @@ class ProductVariation extends Product
 
                         // insert/update product variation
                         $pVarObj = new \stdClass();
-                        $pVarObj->products_id = $parent->getId()->getEndpoint();
+                        $pVarObj->products_id = $model->getId()->getEndpoint();
                         $pVarObj->options_id = $variationId;
                         $pVarObj->options_values_id = $valueId;
                         $pVarObj->attributes_stock = round($value->getStockLevel());
@@ -198,27 +210,31 @@ class ProductVariation extends Product
                     }
                 }
 
-                if ($parent->getStockLevel()->getStockLevel() == 0) {
+                if ($model->getStockLevel()->getStockLevel() == 0) {
                     $this->db->query('UPDATE products SET products_quantity=' . $totalStock . ' WHERE products_id=' . $productId);
                 }
 
                 $this->clearUnusedVariations();
             } // varcombi master
-            elseif ($parent->getIsMasterProduct() === true) {
-                $checksum = ChecksumLinker::find($parent, 1);
+            elseif ($model->getIsMasterProduct() === true) {
+                $checksum = ChecksumLinker::find($model, 1);
 
                 if ($checksum === null || $checksum->hasChanged() === true) {
                     $_SESSION[Connector::FINISH_TASK_CLEANUP_PRODUCT_PROPERTIES] = true;
                     $this->db->query('DELETE FROM products_attributes WHERE products_id=' . $productId);
                     $this->db->query('DELETE FROM products_properties_admin_select WHERE products_id=' . $productId);
 
-                    foreach ($parent->getVariations() as $variation) {
+                    foreach ($model->getVariations() as $variation) {
                         // get variation name in default language
+                        $variationName = '';
                         foreach ($variation->getI18ns() as $i18n) {
                             if ($i18n->getLanguageISO() == $this->fullLocale($this->shopConfig['settings']['DEFAULT_LANGUAGE'])) {
                                 $variationName = $i18n->getName();
                                 break;
                             }
+                        }
+                        if (empty($variationName)) {
+                            throw ControllerException::valueCannotBeEmpty('variationName');
                         }
 
                         $displayType = ProductVariation::mapVariationType($variation->getType());
@@ -261,12 +277,19 @@ class ProductVariation extends Product
                         $newVariationValues = [];
                         foreach ($variation->getValues() as $value) {
                             // get value name in default language
+                            $valueName = $langId = '';
                             foreach ($value->getI18ns() as $i18n) {
                                 if ($i18n->getLanguageISO() == $this->fullLocale($this->shopConfig['settings']['DEFAULT_LANGUAGE'])) {
                                     $valueName = $i18n->getName();
                                     $langId = $this->locale2id($i18n->getLanguageISO());
                                     break;
                                 }
+                            }
+                            if (empty($langId)) {
+                                throw ControllerException::valueCannotBeEmpty('langId');
+                            }
+                            if (empty($valueName)) {
+                                throw ControllerException::valueCannotBeEmpty('valueName');
                             }
 
                             $sql = 'SELECT v.properties_values_id ' . "\n" .
@@ -336,10 +359,10 @@ class ProductVariation extends Product
                         }
                     }
 
-                    foreach ($parent->getPrices() as $price) {
+                    foreach ($model->getPrices() as $price) {
                         if (is_null($price->getCustomerGroupId()->getEndpoint()) || $price->getCustomerGroupId()->getEndpoint() == '') {
                             $priceItem = $price->getItems()[0];
-                            static::$parentPrices[$parent->getId()->getHost()] = $priceItem->getNetPrice();
+                            static::$parentPrices[$model->getId()->getHost()] = $priceItem->getNetPrice();
                             break;
                         }
                     }
@@ -348,32 +371,32 @@ class ProductVariation extends Product
             else {
                 $combi = new \stdClass();
 
-                $id = $parent->getId()->getEndpoint();
+                $id = $model->getId()->getEndpoint();
                 $combiId = explode('_', $id);
 
                 if (!empty($id)) {
                     $combi->products_properties_combis_id = $combiId[1];
                 }
-                $combi->products_id = $parent->getMasterProductId()->getEndpoint();
-                $combi->sort_order = $parent->getSort();
-                $combi->combi_model = $parent->getSku();
-                $combi->combi_ean = $parent->getEan();
-                $combi->combi_quantity = $parent->getStockLevel()->getStockLevel();
-                $combi->combi_shipping_status_id = $this->getShippingtime($parent);
-                $combi->combi_weight = $parent->getProductWeight();
+                $combi->products_id = $model->getMasterProductId()->getEndpoint();
+                $combi->sort_order = $model->getSort();
+                $combi->combi_model = $model->getSku();
+                $combi->combi_ean = $model->getEan();
+                $combi->combi_quantity = $model->getStockLevel()->getStockLevel();
+                $combi->combi_shipping_status_id = $this->getShippingtime($model);
+                $combi->combi_weight = $model->getProductWeight();
                 $combi->combi_price_type = 'fix';
                 $combi->combi_price = 0.;
-                $combi->vpe_value = $this->products_vpe_value($parent);
-                $combi->products_vpe_id = $this->products_vpe($parent);
-                foreach ($parent->getPrices() as $price) {
+                $combi->vpe_value = $this->products_vpe_value($model);
+                $combi->products_vpe_id = $this->products_vpe($model);
+                foreach ($model->getPrices() as $price) {
                     if (is_null($price->getCustomerGroupId()->getEndpoint()) || $price->getCustomerGroupId()->getEndpoint() == '') {
                         $childPrice = $price->getItems()[0]->getNetPrice();
-                        if (is_null(static::$parentPrices[$parent->getMasterProductId()->getHost()])) {
+                        if (is_null(static::$parentPrices[$model->getMasterProductId()->getHost()])) {
                             $parentObj = $this->db->query('SELECT products_price FROM products WHERE products_id="' . $combi->products_id . '"');
-                            static::$parentPrices[$parent->getMasterProductId()->getHost()] = (float)$parentObj[0]['products_price'];
+                            static::$parentPrices[$model->getMasterProductId()->getHost()] = (float)$parentObj[0]['products_price'];
                         }
 
-                        $parentPrice = static::$parentPrices[$parent->getMasterProductId()->getHost()];
+                        $parentPrice = static::$parentPrices[$model->getMasterProductId()->getHost()];
                         if ($childPrice !== $parentPrice) {
                             $combi->combi_price = ($childPrice - $parentPrice);
                         }
@@ -395,7 +418,7 @@ class ProductVariation extends Product
 
                 $combi->products_properties_combis_id = $result->getKey();
 
-                foreach ($parent->getVariations() as $variation) {
+                foreach ($model->getVariations() as $variation) {
                     $variation->getId()->setEndpoint($this->getVariationId($variation));
 
                     $varI18ns = [];
@@ -450,8 +473,8 @@ class ProductVariation extends Product
                 }
 
                 $combiId = new \StdClass();
-                $combiId->endpoint_id = $parent->getMasterProductId()->getEndpoint() . '_' . $result->getKey();
-                $combiId->host_id = $parent->getId()->getHost();
+                $combiId->endpoint_id = $model->getMasterProductId()->getEndpoint() . '_' . $result->getKey();
+                $combiId->host_id = $model->getId()->getHost();
                 $this->db->deleteInsertRow(
                     $combiId,
                     'jtl_connector_link_product',
@@ -461,7 +484,7 @@ class ProductVariation extends Product
             }
         }
 
-        return $parent->getVariations();
+        return $model->getVariations();
     }
 
     /**
@@ -498,10 +521,14 @@ class ProductVariation extends Product
         if (isset(static::$variationIds[$variation->getId()->getHost()])) {
             return static::$variationIds[$variation->getId()->getHost()];
         } else {
+            $variationName = '';
             foreach ($variation->getI18ns() as $i18n) {
                 if ($i18n->getLanguageISO() == $this->fullLocale($this->shopConfig['settings']['DEFAULT_LANGUAGE'])) {
                     $variationName = $i18n->getName();
                 }
+            }
+            if (empty($variationName)) {
+                throw ControllerException::valueCannotBeEmpty('variationName');
             }
 
             $propertyAdminName = $this->createPropertyAdminName($variationName, ProductVariation::mapVariationType($variation->getType()));
@@ -526,12 +553,19 @@ class ProductVariation extends Product
         if (isset(static::$valueIds[$value->getId()->getHost()])) {
             return static::$valueIds[$value->getId()->getHost()];
         } else {
+            $valueId = $valueName = '';
             foreach ($value->getI18ns() as $i18n) {
                 if ($i18n->getLanguageISO() == $this->fullLocale($this->shopConfig['settings']['DEFAULT_LANGUAGE'])) {
                     $valueName = $i18n->getName();
                     $langId = $this->locale2id($i18n->getLanguageISO());
                     break;
                 }
+            }
+            if (empty($valueName)) {
+                throw ControllerException::valueCannotBeEmpty('valueName');
+            }
+            if (empty($langId)) {
+                throw ControllerException::valueCannotBeEmpty('langId');
             }
 
             $valueIdQuery = $this->db->query('SELECT v.properties_values_id
