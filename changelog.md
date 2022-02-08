@@ -1,3 +1,9 @@
+2.21.0
+------
+- CO-1914 - Fixed setting stock quantity for new products
+- CO-1916 - Fixed importing surcharge in customer order for minimum quantity 
+- CO-1917 - Fixed problem with importing product without manufacturer
+
 2.20.0
 ------
 - CO-1714 - Fixed PayPal Transaction ID
