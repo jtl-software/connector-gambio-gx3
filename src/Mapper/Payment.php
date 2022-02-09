@@ -131,37 +131,42 @@ class Payment extends \jtl\Connector\Gambio\Mapper\AbstractMapper
                 WHERE o.orders_status NOT IN (%s) AND o.payment_method = \'paypal3\' AND l.host_id IS NULL AND lo.endpoint_id IS NOT NULL';
 
         $rows = $this->db->query(sprintf($sql, implode(',', $orderStatusIds)));
+        $payments = [];
 
-        /**
-         * Dummy service initialization for class class autoloading
-         */
-        Connector::getGxService(Application::SERVICE_ORDER_WRITE);
+        if (!empty($rows)) {
+            /**
+             * Dummy service initialization for class class autoloading
+             */
+            Connector::getGxService(Application::SERVICE_ORDER_WRITE);
 
-        return array_map(function (array $row) {
+            $payments = array_map(function (array $row) {
 
-            $paypalPayment = \MainFactory::create('PayPalPayment', $row['payment_id']);
+                $paypalPayment = \MainFactory::create('PayPalPayment', $row['payment_id']);
 
-            $transactionId = $row['payment_id'];
-            if (!is_null($paypalPayment->json_object->intent) && !is_null($paypalPayment->json_object->transactions[0]->related_resources[0])) {
-                $relatedResources = $paypalPayment->json_object->transactions[0]->related_resources[0];
-                switch ($paypalPayment->json_object->intent) {
-                    case 'sale':
-                        $transactionId = $relatedResources->sale->id;
-                        break;
-                    case 'authorize':
-                        $transactionId = $relatedResources->authorization->id;
-                        break;
+                $transactionId = $row['payment_id'];
+                if (!is_null($paypalPayment->json_object->intent) && !is_null($paypalPayment->json_object->transactions[0]->related_resources[0])) {
+                    $relatedResources = $paypalPayment->json_object->transactions[0]->related_resources[0];
+                    switch ($paypalPayment->json_object->intent) {
+                        case 'sale':
+                            $transactionId = $relatedResources->sale->id;
+                            break;
+                        case 'authorize':
+                            $transactionId = $relatedResources->authorization->id;
+                            break;
+                    }
                 }
-            }
 
-            return (new PaymentModel())
-                ->setCreationDate(new \DateTime($row['date_purchased']))
-                ->setCustomerOrderId($this->identity($row['orders_id']))
-                ->setId($this->identity($row['orders_id']))
-                ->setPaymentModuleCode(self::mapPaymentType($row['payment_method']))
-                ->setTotalSum((float)$row['value'])
-                ->setTransactionId($transactionId);
-        }, $rows);
+                return (new PaymentModel())
+                    ->setCreationDate(new \DateTime($row['date_purchased']))
+                    ->setCustomerOrderId($this->identity($row['orders_id']))
+                    ->setId($this->identity($row['orders_id']))
+                    ->setPaymentModuleCode(self::mapPaymentType($row['payment_method']))
+                    ->setTotalSum((float)$row['value'])
+                    ->setTransactionId($transactionId);
+            }, $rows);
+        }
+
+        return $payments;
     }
 
     /**
