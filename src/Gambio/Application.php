@@ -14,6 +14,17 @@ class Application extends GxApplication
         SERVICE_ORDER_WRITE = 'OrderWrite'
     ;
 
+    public function run()
+    {
+        $this->registerComposerAutoloader();
+        $this->runGProtector();
+        self::loadConfig();
+        $this->setUpEnvironment();
+        $this->initLanguage();
+        $this->updateSessionData();
+        $this->initializeGlobalObjects();
+    }
+
     /**
      *
      */
