@@ -3,6 +3,7 @@
 - CO-1914 - Fixed setting stock quantity for new products
 - CO-1916 - Fixed importing surcharge in customer order for minimum quantity 
 - CO-1917 - Fixed problem with importing product without manufacturer
+- Improved GxApplication initialization process
 
 2.20.0
 ------
