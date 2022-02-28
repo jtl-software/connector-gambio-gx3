@@ -506,17 +506,17 @@ class Product extends AbstractMapper
     }
 
     /**
-     * @param string $googleCondition
+     * @param string $googleConditionName
      * @param int $languageId
      * @return int
      */
-    protected function getGoogleExportConditionId(string $googleCondition, int $languageId): int
+    protected function getGoogleExportConditionId(string $googleConditionName, int $languageId): int
     {
-        $googleExportConditionId = $this->db->query(sprintf('SELECT google_export_condition_id FROM google_export_condition WHERE condition = "%s" AND languages_id = %s', $googleCondition, $languageId));
-        if (isset($googleExportConditionId[0]['google_export_condition_id'])) {
-            $googleExportConditionId = (int)$googleExportConditionId[0]['google_export_condition_id'];
+        $googleExportConditionIdResult = $this->db->query(sprintf('SELECT google_export_condition_id FROM google_export_condition WHERE `condition` = "%s" AND languages_id = %s', $googleConditionName, $languageId));
+        if (isset($googleExportConditionIdResult[0]['google_export_condition_id'])) {
+            $googleExportConditionId = (int)$googleExportConditionIdResult[0]['google_export_condition_id'];
         } else {
-            $result = $this->db->query(sprintf('INSERT INTO google_export_condition SET `language_id` = %s, `condition` = "%s"', $languageId, $this->db->escapeString($googleCondition)));
+            $result = $this->db->query(sprintf('INSERT INTO google_export_condition SET `language_id` = %s, `condition` = "%s"', $languageId, $this->db->escapeString($googleConditionName)));
             $googleExportConditionId = (int)$result;
         }
 
