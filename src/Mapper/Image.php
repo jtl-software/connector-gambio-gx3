@@ -580,7 +580,9 @@ class Image extends AbstractMapper
             return $this->shopConfig['shop']['fullUrl'] . 'images/' . $data['image_name'];
         } else {
             if (strpos($data['image_id'], 'vID_') !== false) {
-                if (ShopVersion::isGreaterOrEqual('4.1')) {
+                if (ShopVersion::isGreaterOrEqual('4.5')) {
+                    return $this->shopConfig['shop']['fullUrl'] . $this->shopConfig['img']['original'] . $data['image_name'];
+                } elseif (ShopVersion::isGreaterOrEqual('4.1')) {
                     return $this->shopConfig['shop']['fullUrl'] . $data['image_name'];
                 } else {
                     return $this->shopConfig['shop']['fullUrl'] . 'images/product_images/properties_combis_images/' . $data['image_name'];
