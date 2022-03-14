@@ -6,6 +6,7 @@ use jtl\Connector\Core\Exception\LanguageException;
 use jtl\Connector\Gambio\Installer\Config;
 use jtl\Connector\Gambio\Mapper\ProductStockLevel as ProductStockLevelMapper;
 use jtl\Connector\Gambio\Util\CategoryIndexHelper;
+use jtl\Connector\Gambio\Util\ShopVersion;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\ProductStockLevel;
 use jtl\Connector\Model\Product as ProductModel;
@@ -124,8 +125,25 @@ class Product extends AbstractMapper
 
     public function pull($data = null, $limit = null): array
     {
+        $columns = [
+            'j.* ',
+            'qud.unit_name',
+            'pv.products_vpe_name vpe_name',
+            'c.code_isbn',
+            'c.code_mpn',
+            'c.code_upc',
+            'c.google_export_availability_id',
+            'g.google_category'
+        ];
+
+        if (ShopVersion::isGreaterOrEqual('4.5')) {
+            $columns[] = 'c.google_export_condition_id';
+        } else {
+            $columns[] = 'c.google_export_condition';
+        }
+
         $this->mapperConfig['query'] =
-            'SELECT j.* , qud.unit_name, pv.products_vpe_name vpe_name, c.code_isbn, c.code_mpn, c.code_upc, c.google_export_condition, c.google_export_availability_id, g.google_category ' . "\n" .
+            'SELECT ' . implode(',', $columns) . "\n" .
             'FROM (' . "\n" .
             '  SELECT p.* ' . "\n" .
             '  FROM products p ' . "\n" .
@@ -445,7 +463,12 @@ class Product extends AbstractMapper
                     $dbObj->$attributeName = trim($i18n->getValue());
                     break;
                 } elseif ($attributeName === 'Google Zustand') {
-                    $codes->google_export_condition = $i18n->getValue();
+                    if (ShopVersion::isGreaterOrEqual('4.5')) {
+                        $languageId = $this->configHelper->getDefaultLanguage();
+                        $codes->google_export_condition_id = $this->getGoogleExportConditionId($i18n->getValue(), $languageId);
+                    } else {
+                        $codes->google_export_condition = $i18n->getValue();
+                    }
                 } elseif ($attributeName === 'Google Verfuegbarkeit ID') {
                     $codes->google_export_availability_id = $i18n->getValue();
                 } elseif ($attributeName === 'Wesentliche Produktmerkmale') {
@@ -480,6 +503,24 @@ class Product extends AbstractMapper
         }
 
         $this->determineQuantityUnit($product);
+    }
+
+    /**
+     * @param string $googleConditionName
+     * @param int $languageId
+     * @return int
+     */
+    protected function getGoogleExportConditionId(string $googleConditionName, int $languageId): int
+    {
+        $googleExportConditionIdResult = $this->db->query(sprintf('SELECT google_export_condition_id FROM google_export_condition WHERE `condition` = "%s" AND languages_id = %s', $googleConditionName, $languageId));
+        if (isset($googleExportConditionIdResult[0]['google_export_condition_id'])) {
+            $googleExportConditionId = (int)$googleExportConditionIdResult[0]['google_export_condition_id'];
+        } else {
+            $result = $this->db->query(sprintf('INSERT INTO google_export_condition SET `language_id` = %s, `condition` = "%s"', $languageId, $this->db->escapeString($googleConditionName)));
+            $googleExportConditionId = (int)$result;
+        }
+
+        return $googleExportConditionId;
     }
 
     private function determineQuantityUnit($data)
