@@ -1,3 +1,8 @@
+2.22.0
+------
+- CO-1867 - Fixed compatibility issues on import with Gambio 4.5
+- Revised variations update logic 
+
 2.21.0
 ------
 - CO-1914 - Fixed setting stock quantity for new products
