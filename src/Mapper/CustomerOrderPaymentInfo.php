@@ -2,14 +2,14 @@
 
 namespace jtl\Connector\Gambio\Mapper;
 
-class CustomerOrderPaymentInfo extends BaseMapper
+class CustomerOrderPaymentInfo extends AbstractMapper
 {
     /**
      * @param $parentData
      * @param $limit
-     * @return array|null
+     * @return array
      */
-    public function pull($parentData = null, $limit = null)
+    public function pull($parentData = null, $limit = null): array
     {
         $isSepaInstalled = $this->db->query('SHOW TABLES LIKE "sepa"');
         $paymentInfo = null;
@@ -20,16 +20,15 @@ class CustomerOrderPaymentInfo extends BaseMapper
 
             if (is_array($paymentInfoData) && isset($paymentInfoData[0]['orders_id'])) {
                 $paymentInfoData = $paymentInfoData[0];
-                $paymentInfo = [
+                $paymentInfo =
                     (new \jtl\Connector\Model\CustomerOrderPaymentInfo())
                         ->setAccountHolder($paymentInfoData['sepa_owner'])
                         ->setIban($paymentInfoData['sepa_iban'])
                         ->setBic($paymentInfoData['sepa_bic'])
-                        ->setBankName($paymentInfoData['sepa_bankname'])
-                ];
+                        ->setBankName($paymentInfoData['sepa_bankname']);
             }
         }
 
-        return $paymentInfo;
+        return [$paymentInfo];
     }
 }
