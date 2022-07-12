@@ -1,3 +1,6 @@
+## Unreleased
+- CO-2034 - Added support for transfer payment instructions 
+
 2.22.0
 ------
 - CO-1867 - Fixed compatibility issues on import with Gambio 4.5
