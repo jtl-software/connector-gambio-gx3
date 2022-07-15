@@ -2,6 +2,8 @@
 
 namespace jtl\Connector\Gambio\Mapper;
 
+use jtl\Connector\Model\Identity;
+
 class CustomerOrderPaymentInfo extends AbstractMapper
 {
     /**
@@ -31,6 +33,7 @@ class CustomerOrderPaymentInfo extends AbstractMapper
             $paymentInfoData = $paymentInfoData[0];
             $paymentInfo =
                 (new \jtl\Connector\Model\CustomerOrderPaymentInfo())
+                    ->setCustomerOrderId(new Identity($parentData['orders_id']))
                     ->setAccountHolder($paymentInfoData['sepa_owner'])
                     ->setIban($paymentInfoData['sepa_iban'])
                     ->setBic($paymentInfoData['sepa_bic'])
