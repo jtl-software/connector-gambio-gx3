@@ -99,10 +99,18 @@ class Connector extends BaseConnector
         $this->getEventDispatcher()->addListener(ConnectorAfterFinishEvent::EVENT_NAME, function (ConnectorAfterFinishEvent $event) use ($db) {
             if (isset($_SESSION[self::FINISH_TASK_CLEANUP_PRODUCT_PROPERTIES]) && $_SESSION[self::FINISH_TASK_CLEANUP_PRODUCT_PROPERTIES] === true) {
                 $queries = [
-                    'DELETE pv FROM properties_values pv WHERE pv.properties_values_id NOT IN (SELECT properties_values_id FROM products_properties_combis_values);',
-                    'DELETE pvd FROM properties_values_description pvd WHERE pvd.properties_values_id NOT IN (SELECT properties_values_id FROM properties_values);',
-                    'DELETE p FROM properties p WHERE p.properties_id NOT IN (SELECT properties_id FROM properties_values);',
-                    'DELETE pd FROM properties_description pd WHERE pd.properties_id NOT IN (SELECT properties_id FROM properties);'
+                    'DELETE pv FROM properties_values pv WHERE 
+                                          pv.properties_values_id NOT IN (SELECT properties_values_id FROM products_properties_combis_values) AND 
+                                          pv.properties_values_id NOT IN (SELECT option_value_id FROM products_options_values_to_products_options);',
+                    'DELETE pvd FROM properties_values_description pvd WHERE 
+                                          pvd.properties_values_id NOT IN (SELECT properties_values_id FROM properties_values) AND
+                                          pvd.properties_values_id NOT IN (SELECT option_value_id FROM products_options_values_to_products_options);',
+                    'DELETE p FROM properties p WHERE 
+                                          p.properties_id NOT IN (SELECT properties_id FROM properties_values) AND 
+                                          p.properties_id NOT IN (SELECT option_id FROM products_options_values_to_products_options);',
+                    'DELETE pd FROM properties_description pd WHERE 
+                                          pd.properties_id NOT IN (SELECT properties_id FROM properties) AND 
+                                          pd.properties_id NOT IN (SELECT option_id FROM products_options_values_to_products_options);'
                 ];
 
                 foreach ($queries as $sql) {

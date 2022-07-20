@@ -1,3 +1,8 @@
+unreleased
+-----------
+- fixed custom products options on push
+- dropped simple variations support
+
 2.22.0
 ------
 - CO-1867 - Fixed compatibility issues on import with Gambio 4.5

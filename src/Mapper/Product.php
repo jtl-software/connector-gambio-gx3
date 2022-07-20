@@ -406,13 +406,6 @@ class Product extends AbstractMapper
             foreach ($this->getCustomerGroups() as $group) {
                 $this->db->query('DELETE FROM personal_offers_by_customers_status_' . $group['customers_status_id'] . ' WHERE products_id="' . $id . '"');
             }
-
-            //$this->db->query('DELETE FROM specials WHERE products_id='.$id);
-            $this->db->query(sprintf('
-                        DELETE FROM products_attributes
-                        WHERE products_id="%s" AND products_attributes_id NOT IN (
-                            SELECT products_attributes_id FROM products_attributes_download
-                        )', $id));
         }
 
         return parent::push($product, $dbObj);
@@ -816,7 +809,7 @@ class Product extends AbstractMapper
     {
         $check = $this->db->query('SELECT products_id FROM products_attributes WHERE products_id=' . $data['products_id']);
 
-        return count($check) > 0 ? true : false;
+        return count($check) > 0;
     }
 
     protected function permitNegativeStock($data)

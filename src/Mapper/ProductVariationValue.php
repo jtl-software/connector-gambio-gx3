@@ -20,30 +20,6 @@ class ProductVariationValue extends AbstractMapper
         ]
     ];
 
-    public function pull($data = null, $limit = null): array
-    {
-        if (isset($data['options_id'])) {
-            $this->mapperConfig = [
-                "table" => "products_attributes",
-                "query" => 'SELECT * FROM products_attributes WHERE products_id=[[products_id]] && options_id=[[options_id]]',
-                "getMethod" => "getValues",
-                "mapPull" => [
-                    "id" => "options_values_id",
-                    "productVariationId" => "options_id",
-                    "extraWeight" => null,
-                    "sku" => "attributes_model",
-                    "sort" => "sortorder",
-                    "stockLevel" => "attributes_stock",
-                    "i18ns" => "ProductVariationValueI18n|addI18n",
-                    "extraCharges" => "ProductVariationValueExtraCharge|addExtraCharge",
-                    "ean" => "gm_ean"
-                ]
-            ];
-        }
-
-        return parent::pull($data, $limit);
-    }
-
     protected function extraWeight($data)
     {
         return $data['weight_prefix'] == '-' ? $data['options_values_weight'] * -1 : $data['options_values_weight'];
