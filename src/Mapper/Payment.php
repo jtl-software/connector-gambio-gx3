@@ -175,12 +175,19 @@ class Payment extends \jtl\Connector\Gambio\Mapper\AbstractMapper
      */
     private function hubPayments(): array
     {
-        $sql = 'SELECT o.orders_id, o.date_purchased, o.gambio_hub_module, o.gambio_hub_transaction_code, t.value
+        $completedOrders = [
+            $this->connectorConfig->mapping->paid,
+            $this->connectorConfig->mapping->completed,
+        ];
+
+        $sql = sprintf('SELECT o.orders_id, o.date_purchased, o.gambio_hub_module, o.gambio_hub_transaction_code, t.value
                 FROM orders o
                 LEFT JOIN orders_total t ON o.orders_id = t.orders_id AND t.class = \'ot_total\'
                 LEFT JOIN jtl_connector_link_payment l ON o.orders_id = l.endpoint_id
                 LEFT JOIN jtl_connector_link_customer_order lo ON o.orders_id = lo.endpoint_id
-                WHERE o.payment_method = \'gambio_hub\' AND l.host_id IS NULL AND lo.endpoint_id IS NOT NULL';
+                WHERE o.payment_method = \'gambio_hub\' 
+                AND o.orders_status IN (%s)
+                AND l.host_id IS NULL AND lo.endpoint_id IS NOT NULL', implode(',', $completedOrders));
 
         $rows = $this->db->query($sql);
 

@@ -1,3 +1,7 @@
+unreleased
+----------
+- CO-1806 - Fixed importing unpaid hub payments. Added condition to import only paid or completed
+
 2.22.0
 ------
 - CO-1867 - Fixed compatibility issues on import with Gambio 4.5
