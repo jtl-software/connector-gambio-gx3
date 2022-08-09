@@ -132,7 +132,7 @@ class CustomerOrderItem extends AbstractMapper
 
     protected function priceGross($data)
     {
-        return $data['allow_tax'] === '1' ? $data['products_price'] : $data['products_price'] * ($data['products_tax'] / 100 + 1);
+        return $data['products_price'];
     }
 
     protected function vat($data)
