@@ -1,3 +1,8 @@
+2.22.1
+------
+- CO-1965 - fix tax calc if vat id is present
+- CO-2034 - fix missing payment info for invoice pull
+
 2.22.0
 ------
 - CO-1867 - Fixed compatibility issues on import with Gambio 4.5
