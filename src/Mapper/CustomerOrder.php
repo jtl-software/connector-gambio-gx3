@@ -4,6 +4,7 @@ namespace jtl\Connector\Gambio\Mapper;
 
 use jtl\Connector\Core\Database\IDatabase;
 use jtl\Connector\Model\CustomerOrder as CustomerOrderModel;
+use jtl\Connector\Model\CustomerOrderPaymentInfo;
 use jtl\Connector\Payment\PaymentTypes;
 use jtl\Connector\Model\CustomerOrderItem;
 
@@ -32,6 +33,7 @@ class CustomerOrder extends AbstractMapper
             "items" => "CustomerOrderItem|addItem",
             "status" => null,
             "paymentStatus" => null,
+            "paymentInfo" => 'CustomerOrderPaymentInfo|setPaymentInfo',
             "languageISO" => null,
         ],
         "mapPush" => [
