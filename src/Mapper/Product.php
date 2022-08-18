@@ -526,8 +526,7 @@ class Product extends AbstractMapper
      * @param int $languageId
      * @return int
      */
-    protected
-    function getGoogleExportConditionId(string $googleConditionName, int $languageId): int
+    protected function getGoogleExportConditionId(string $googleConditionName, int $languageId): int
     {
         $googleExportConditionIdResult = $this->db->query(sprintf('SELECT google_export_condition_id FROM google_export_condition WHERE `condition` = "%s" AND languages_id = %s', $googleConditionName, $languageId));
         if (isset($googleExportConditionIdResult[0]['google_export_condition_id'])) {
@@ -540,8 +539,7 @@ class Product extends AbstractMapper
         return $googleExportConditionId;
     }
 
-    private
-    function determineQuantityUnit($data)
+    private function determineQuantityUnit($data)
     {
         $id = null;
 
@@ -594,8 +592,7 @@ class Product extends AbstractMapper
         }
     }
 
-    public
-    function delete($data)
+    public function delete($data)
     {
         $id = $data->getId()->getEndpoint();
 
@@ -648,14 +645,12 @@ class Product extends AbstractMapper
         return $data;
     }
 
-    protected
-    function isActive($data)
+    protected function isActive($data)
     {
         return true;
     }
 
-    protected
-    function products_date_added($data)
+    protected function products_date_added($data)
     {
         if ($data->getisNewProduct() && !is_null($data->getNewReleaseDate())) {
             return $data->getNewReleaseDate();
@@ -664,34 +659,29 @@ class Product extends AbstractMapper
         return $data->getCreationDate();
     }
 
-    protected
-    function gm_min_order($data)
+    protected function gm_min_order($data)
     {
         return $data->getMinimumOrderQuantity() == 0 ? 1 : $data->getMinimumOrderQuantity();
     }
 
-    protected
-    function gm_graduated_qty($data)
+    protected function gm_graduated_qty($data)
     {
         return $data->getPackagingQuantity() == 0 ? 1 : $data->getPackagingQuantity();
     }
 
-    protected
-    function isMasterProduct($data)
+    protected function isMasterProduct($data)
     {
         $query = $this->db->query('SELECT products_properties_combis_id FROM products_properties_combis WHERE products_id=' . $data['products_id']);
 
         return count($query) === 0 ? false : true;
     }
 
-    protected
-    function considerBasePrice($data)
+    protected function considerBasePrice($data)
     {
         return $data['products_vpe_status'] == 1 ? true : false;
     }
 
-    protected
-    function products_vpe($data)
+    protected function products_vpe($data)
     {
         /** @var ProductModel $data */
         $name = $data->getMeasurementUnitCode();
@@ -735,8 +725,7 @@ class Product extends AbstractMapper
         return 0;
     }
 
-    protected
-    function products_vpe_value($data)
+    protected function products_vpe_value($data)
     {
         /** @var ProductModel $data */
         $value = $data->getMeasurementQuantity();
@@ -748,8 +737,7 @@ class Product extends AbstractMapper
         return $value;
     }
 
-    protected
-    function products_shippingtime($data): int
+    protected function products_shippingtime($data): int
     {
         foreach ($data->getI18ns() as $i18n) {
             $name = $i18n->getDeliveryStatus();
@@ -784,14 +772,12 @@ class Product extends AbstractMapper
         return isset($this->shopConfig['settings']['DEFAULT_SHIPPING_STATUS_ID']) ? (int)$this->shopConfig['settings']['DEFAULT_SHIPPING_STATUS_ID'] : 0;
     }
 
-    protected
-    function products_vpe_status($data)
+    protected function products_vpe_status($data)
     {
         return $data->getConsiderBasePrice() == true ? 1 : 0;
     }
 
-    protected
-    function products_image($data)
+    protected function products_image($data)
     {
         $id = $data->getId()->getEndpoint();
 
@@ -807,14 +793,12 @@ class Product extends AbstractMapper
         return '';
     }
 
-    protected
-    function manufacturerId($data)
+    protected function manufacturerId($data)
     {
         return is_null($data['manufacturers_id']) ? '' : $this->replaceZero($data['manufacturers_id']);
     }
 
-    protected
-    function manufacturers_id($data)
+    protected function manufacturers_id($data)
     {
         $id = $data->getManufacturerId()->getEndpoint();
 
@@ -825,14 +809,12 @@ class Product extends AbstractMapper
         return 0;
     }
 
-    protected
-    function unitId($data)
+    protected function unitId($data)
     {
         return !is_null($data['unit_name']) ? $data['unit_name'] : '';
     }
 
-    protected
-    function measurementUnitId($data)
+    protected function measurementUnitId($data)
     {
         if (!is_null($data['unit_name']) && MeasurementUnitHelper::isUnitByName($data['unit_name'])) {
             return $data['unit_name'];
@@ -841,28 +823,24 @@ class Product extends AbstractMapper
         return '';
     }
 
-    protected
-    function considerStock($data)
+    protected function considerStock($data)
     {
         return true;
     }
 
-    protected
-    function considerVariationStock($data)
+    protected function considerVariationStock($data)
     {
         $check = $this->db->query('SELECT products_id FROM products_attributes WHERE products_id=' . $data['products_id']);
 
         return count($check) > 0 ? true : false;
     }
 
-    protected
-    function permitNegativeStock($data)
+    protected function permitNegativeStock($data)
     {
         return $this->shopConfig['settings']['STOCK_ALLOW_CHECKOUT'];
     }
 
-    protected
-    function vat($data)
+    protected function vat($data)
     {
         $sql = $this->db->query('SELECT r.tax_rate FROM zones_to_geo_zones z LEFT JOIN tax_rates r ON z.geo_zone_id=r.tax_zone_id WHERE z.zone_country_id = ' . $this->shopConfig['settings']['STORE_COUNTRY'] . ' && r.tax_class_id=' . $data['products_tax_class_id']);
 
@@ -877,8 +855,7 @@ class Product extends AbstractMapper
      * @param ProductModel $product
      * @return mixed|string
      */
-    protected
-    function products_tax_class_id(ProductModel $product)
+    protected function products_tax_class_id(ProductModel $product)
     {
         if (!is_null($product->getTaxClassId()) && !empty($product->getTaxClassId()->getEndpoint())) {
             $taxClassId = $product->getTaxClassId()->getEndpoint();
@@ -902,8 +879,7 @@ class Product extends AbstractMapper
      * @param TaxRate ...$taxRates
      * @return string|null
      */
-    protected
-    function findTaxClassId(TaxRate ...$taxRates): ?string
+    protected function findTaxClassId(TaxRate ...$taxRates): ?string
     {
         $conditions = [];
         foreach ($taxRates as $taxRate) {
@@ -921,14 +897,12 @@ class Product extends AbstractMapper
         return $taxClasses[0]['tax_class_id'] ?? null;
     }
 
-    protected
-    function products_quantity($data)
+    protected function products_quantity($data)
     {
         return round($data->getStockLevel()->getStockLevel());
     }
 
-    public
-    function statistic(): int
+    public function statistic(): int
     {
         $count = 0;
 
@@ -948,8 +922,7 @@ class Product extends AbstractMapper
         return $count;
     }
 
-    public
-    function use_properties_combis_shipping_time()
+    public function use_properties_combis_shipping_time()
     {
         if (isset($this->connectorConfig->{Config::DISPLAY_COMBI_DELIVERY_TIME})) {
             $result = $this->connectorConfig->{Config::DISPLAY_COMBI_DELIVERY_TIME} === true ? 1 : 0;
@@ -963,14 +936,12 @@ class Product extends AbstractMapper
     /**
      * @return string[]
      */
-    public
-    static function getSpecialAttributes()
+    public static function getSpecialAttributes()
     {
         return self::$specialAttributes;
     }
 
-    public
-    function keywords($data)
+    public function keywords($data)
     {
         $results = $this->db->query(sprintf(
             '
@@ -992,8 +963,7 @@ class Product extends AbstractMapper
      * @param string $endpoint
      * @return bool
      */
-    public
-    static function isVariationChild(string $endpoint): bool
+    public static function isVariationChild(string $endpoint): bool
     {
         $data = explode('_', $endpoint);
         return isset($data[1]);
