@@ -462,47 +462,63 @@ class Product extends AbstractMapper
                 if ($specialAttribute) {
                     $dbObj->$attributeName = trim($i18n->getValue());
                     break;
-                } elseif ($attributeName === 'Google Zustand') {
-                    if (ShopVersion::isGreaterOrEqual('4.5')) {
-                        $languageId = $this->configHelper->getDefaultLanguage();
-                        $codes->google_export_condition_id = $this->getGoogleExportConditionId($i18n->getValue(), $languageId);
-                    } else {
-                        $codes->google_export_condition = $i18n->getValue();
+                } else {
+                    switch ($attributeName) {
+                        case 'Google Zustand':
+                            if (ShopVersion::isGreaterOrEqual('4.5')) {
+                                $languageId = $this->configHelper->getDefaultLanguage();
+                                $codes->google_export_condition_id = $this->getGoogleExportConditionId($i18n->getValue(), $languageId);
+                            } else {
+                                $codes->google_export_condition = $i18n->getValue();
+                            }
+                            break;
+                        case 'Google Verfuegbarkeit ID':
+                            $codes->google_export_availability_id = $i18n->getValue();
+                            break;
+                        case 'Wesentliche Produktmerkmale':
+                            $language_id = $this->locale2id($i18n->getLanguageISO());
+                            $sql = 'INSERT INTO products_description (products_id,language_id,checkout_information,products_meta_title,products_meta_description,products_meta_keywords) VALUES(' . $productsId . ',' . $language_id . ',"' . $this->db->escapeString($i18n->getValue()) . '","","","") ' .
+                                'ON DUPLICATE KEY UPDATE checkout_information = "' . $this->db->escapeString(trim($i18n->getValue())) . '";';
+                            $this->db->query($sql);
+                            break;
+                        case 'products_keywords':
+                            $language_id = $this->locale2id($i18n->getLanguageISO());
+                            $sql = 'INSERT INTO products_description (products_id,language_id,products_keywords,products_meta_title,products_meta_description,products_meta_keywords,checkout_information) VALUES(' . $productsId . ',' . $language_id . ',"' . $this->db->escapeString($i18n->getValue()) . '","","","","") ' .
+                                'ON DUPLICATE KEY UPDATE products_keywords = "' . $this->db->escapeString(trim($i18n->getValue())) . '";';
+                            $this->db->query($sql);
+                            break;
+                        case 'Google Kategorie':
+                            $obj = new \stdClass();
+                            $obj->products_id = $productsId;
+                            $obj->google_category = trim($i18n->getValue());
+                            $this->db->deleteInsertRow($obj, 'products_google_categories', 'products_id', $productsId);
+                            break;
+                        case 'Marke':
+                            $codes->brand_name = $i18n->getValue();
+                            break;
+                        case 'Altersgruppe':
+                            $codes->age_group = $i18n->getValue();
+                            break;
+                        case 'Geschlecht':
+                            $codes->gender = $i18n->getValue();
                     }
-                } elseif ($attributeName === 'Google Verfuegbarkeit ID') {
-                    $codes->google_export_availability_id = $i18n->getValue();
-                } elseif ($attributeName === 'Wesentliche Produktmerkmale') {
-                    $language_id = $this->locale2id($i18n->getLanguageISO());
-                    $sql = 'INSERT INTO products_description (products_id,language_id,checkout_information,products_meta_title,products_meta_description,products_meta_keywords) VALUES(' . $productsId . ',' . $language_id . ',"' . $this->db->escapeString($i18n->getValue()) . '","","","") ' .
-                        'ON DUPLICATE KEY UPDATE checkout_information = "' . $this->db->escapeString(trim($i18n->getValue())) . '";';
-                    $this->db->query($sql);
-                } elseif ($attributeName === 'products_keywords') {
-                    $language_id = $this->locale2id($i18n->getLanguageISO());
-                    $sql = 'INSERT INTO products_description (products_id,language_id,products_keywords,products_meta_title,products_meta_description,products_meta_keywords,checkout_information) VALUES(' . $productsId . ',' . $language_id . ',"' . $this->db->escapeString($i18n->getValue()) . '","","","","") ' .
-                        'ON DUPLICATE KEY UPDATE products_keywords = "' . $this->db->escapeString(trim($i18n->getValue())) . '";';
-                    $this->db->query($sql);
-                } elseif ($attributeName === 'Google Kategorie') {
-                    $obj = new \stdClass();
-                    $obj->products_id = $productsId;
-                    $obj->google_category = trim($i18n->getValue());
-                    $this->db->deleteInsertRow($obj, 'products_google_categories', 'products_id', $productsId);
                 }
             }
+
+            $this->db->updateRow($dbObj, 'products', 'products_id', $productsId);
+            (new ProductAttr($this->db, $this->shopConfig, $this->connectorConfig))->push($product);
+
+            $product->getStockLevel()->setProductId($product->getId());
+            (new ProductStockLevelMapper($this->db, $this->shopConfig, $this->connectorConfig))->push($product->getStockLevel());
+
+            if (count($checkCodes) > 0) {
+                $this->db->updateRow($codes, 'products_item_codes', 'products_id', $productsId);
+            } else {
+                $this->db->insertRow($codes, 'products_item_codes');
+            }
+
+            $this->determineQuantityUnit($product);
         }
-
-        $this->db->updateRow($dbObj, 'products', 'products_id', $productsId);
-        (new ProductAttr($this->db, $this->shopConfig, $this->connectorConfig))->push($product);
-
-        $product->getStockLevel()->setProductId($product->getId());
-        (new ProductStockLevelMapper($this->db, $this->shopConfig, $this->connectorConfig))->push($product->getStockLevel());
-
-        if (count($checkCodes) > 0) {
-            $this->db->updateRow($codes, 'products_item_codes', 'products_id', $productsId);
-        } else {
-            $this->db->insertRow($codes, 'products_item_codes');
-        }
-
-        $this->determineQuantityUnit($product);
     }
 
     /**
