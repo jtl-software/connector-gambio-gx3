@@ -1,3 +1,7 @@
+2.23.0
+------
+- CO-2096 - support brand field
+
 2.22.1
 ------
 - CO-1965 - fix tax calc if vat id is present
