@@ -1,50 +1,51 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="JTL-Connector-Gambio-Endpoint" default="package">
+    <property name="tmpdir" value="/tmp/" />
     <target name="build">
-        <delete dir="./dist" />
-        <mkdir dir="./dist" />
-        <mkdir dir="./dist/config" />
-        <mkdir dir="./dist/db" />
-        <mkdir dir="./dist/db/updates" />
-        <mkdir dir="./dist/logs" />
-        <mkdir dir="./dist/install" />
-        <mkdir dir="./dist/plugins" />
-        <mkdir dir="./dist/tmp" />
+        <delete dir="${tmpdir}/dist" />
+        <mkdir dir="${tmpdir}/dist" />
+        <mkdir dir="${tmpdir}/dist/config" />
+        <mkdir dir="${tmpdir}/dist/db" />
+        <mkdir dir="${tmpdir}/dist/db/updates" />
+        <mkdir dir="${tmpdir}/dist/logs" />
+        <mkdir dir="${tmpdir}/dist/install" />
+        <mkdir dir="${tmpdir}/dist/plugins" />
+        <mkdir dir="${tmpdir}/dist/tmp" />
 
-        <copy todir="./dist/config">
+        <copy todir="${tmpdir}/dist/config">
             <fileset dir="./config">
                 <include name="features.json.example" />
                 <include name=".htaccess" />
             </fileset>
         </copy>
-        <copy todir="./dist/db">
+        <copy todir="${tmpdir}/dist/db">
             <fileset dir="./db">
                 <include name=".htaccess" />
                 <include name="updates/*" />
             </fileset>
         </copy>
-        <copy todir="./dist/logs">
+        <copy todir="${tmpdir}/dist/logs">
             <fileset dir="./logs">
                 <include name=".htaccess" />
             </fileset>
         </copy>
-        <copy todir="./dist/install">
+        <copy todir="${tmpdir}/dist/install">
             <fileset dir="./install">
                 <include name="index.php" />
                 <include name="loggingConfig.php"/>
             </fileset>
         </copy>
-        <copy todir="./dist/plugins">
+        <copy todir="${tmpdir}/dist/plugins">
             <fileset dir="./plugins">
                 <include name=".htaccess" />
             </fileset>
         </copy>
-        <copy todir="./dist/tmp">
+        <copy todir="${tmpdir}/dist/tmp">
             <fileset dir="./tmp">
                 <include name=".htaccess" />
             </fileset>
         </copy>
-        <copy todir="./dist">
+        <copy todir="${tmpdir}/dist">
             <fileset dir="./">
                 <include name="index.php" />
                 <include name="version" />
@@ -52,16 +53,16 @@
             </fileset>
         </copy>
 
-        <chmod file="./dist/config" mode="0777" />
-        <chmod file="./dist/db" mode="0777" />
-        <chmod file="./dist/logs" mode="0777" />
-        <chmod file="./dist/tmp" mode="0777" />
-        <chmod file="./dist" mode="0777" />
+        <chmod file="${tmpdir}/dist/config" mode="0777" />
+        <chmod file="${tmpdir}/dist/db" mode="0777" />
+        <chmod file="${tmpdir}/dist/logs" mode="0777" />
+        <chmod file="${tmpdir}/dist/tmp" mode="0777" />
+        <chmod file="${tmpdir}/dist" mode="0777" />
 
-        <delete dir="./build" />
-        <mkdir dir="./build" />
+        <delete dir="${tmpdir}/build" />
+        <mkdir dir="${tmpdir}/build" />
 
-        <copy todir="./build">
+        <copy todir="${tmpdir}/build">
             <fileset dir=".">
                 <include name="src/" />
                 <include name="vendor/" />
@@ -70,19 +71,19 @@
     </target>
 
     <target name="package" depends="build">
-        <delete file="./dist/connector.phar" />
+        <delete file="${tmpdir}/dist/connector.phar" />
         <pharpackage
-            destfile="./dist/index.phar"
-            basedir="./build"
+            destfile="${tmpdir}/dist/index.phar"
+            basedir="${tmpdir}/build"
             compression="gzip"
             stub="./stub.php"
             signature="sha256">
-            <fileset dir="./build">
+            <fileset dir="${tmpdir}/build">
                 <include name="**/**" />
             </fileset>
         </pharpackage>
-        <move file="./dist/index.phar" tofile="./dist/connector.phar" />
-        <delete dir="./build" />
+        <move file="${tmpdir}/dist/index.phar" tofile="${tmpdir}/dist/connector.phar" />
+        <delete dir="${tmpdir}/build" />
         <loadfile property="version" file="version"/>
         <phingcall target="zip">
             <property name="version" value="${version}" />
@@ -90,11 +91,11 @@
     </target>
 
     <target name="zip">
-        <zip destfile="./dist/jtl_connector_gambio_${version}.zip" basedir="./dist" prefix="jtlconnector/" includeemptydirs="false"/>
+        <zip destfile="./jtl_connector_gambio_${version}.zip" basedir="${tmpdir}/dist" prefix="jtlconnector/" includeemptydirs="false"/>
     </target>
 
     <target name="clean">
-        <delete dir="./build" />
-        <delete dir="./dist" />
+        <delete dir="${tmpdir}/build" />
+        <delete dir="${tmpdir}/dist" />
     </target>
 </project>
