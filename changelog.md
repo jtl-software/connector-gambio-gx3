@@ -1,3 +1,7 @@
+2.23.1
+------
+- CO.1914 - fix stock not set
+
 2.23.0
 ------
 - CO-2096 - support brand field

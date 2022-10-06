@@ -504,21 +504,21 @@ class Product extends AbstractMapper
                     }
                 }
             }
-
-            $this->db->updateRow($dbObj, 'products', 'products_id', $productsId);
-            (new ProductAttr($this->db, $this->shopConfig, $this->connectorConfig))->push($product);
-
-            $product->getStockLevel()->setProductId($product->getId());
-            (new ProductStockLevelMapper($this->db, $this->shopConfig, $this->connectorConfig))->push($product->getStockLevel());
-
-            if (count($checkCodes) > 0) {
-                $this->db->updateRow($codes, 'products_item_codes', 'products_id', $productsId);
-            } else {
-                $this->db->insertRow($codes, 'products_item_codes');
-            }
-
-            $this->determineQuantityUnit($product);
         }
+
+        $this->db->updateRow($dbObj, 'products', 'products_id', $productsId);
+        (new ProductAttr($this->db, $this->shopConfig, $this->connectorConfig))->push($product);
+
+        $product->getStockLevel()->setProductId($product->getId());
+        (new ProductStockLevelMapper($this->db, $this->shopConfig, $this->connectorConfig))->push($product->getStockLevel());
+
+        if (count($checkCodes) > 0) {
+            $this->db->updateRow($codes, 'products_item_codes', 'products_id', $productsId);
+        } else {
+            $this->db->insertRow($codes, 'products_item_codes');
+        }
+
+        $this->determineQuantityUnit($product);
     }
 
     /**
